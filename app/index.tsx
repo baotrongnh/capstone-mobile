@@ -1,5 +1,6 @@
 import { useApartment } from "@/hooks/query/useApartments";
 import { useRouter } from "expo-router";
+import { useEffect } from "react";
 import { Button, Text, View } from "react-native";
 
 export default function Index() {
@@ -7,6 +8,8 @@ export default function Index() {
 
   const { data, refetch, isLoading, error } = useApartment('f103a022-da39-42fb-b9da-25f386ee88db')
   if (isLoading) return <Text>Loading...</Text>;
+
+  console.log(data?.data);
 
   return (
     <View
