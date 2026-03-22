@@ -1,5 +1,4 @@
-import SwitchAnimated from '@/app-example/components/home/DeviceCard'
-import DeviceGrid from '@/app-example/components/home/DeviceGrid';
+import DeviceGrid from '@/components/home/DeviceGrid';
 import React from 'react'
 import { Text, View } from 'react-native'
 
