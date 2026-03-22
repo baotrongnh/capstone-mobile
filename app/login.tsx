@@ -1,11 +1,18 @@
 import { Colors, InputField, PageTitle, StyledContainer } from '@/components/styles'
+import { useLogin } from '@/hooks/query/useAuth'
+import { LoginDTO } from '@/types/auth'
 import { Formik } from 'formik'
 import React from 'react'
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, Image, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 export default function LoginScreen() {
+     const loginMutation = useLogin()
+
      return (
-          <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
+          <KeyboardAvoidingView
+               style={{ flex: 1, backgroundColor: '#ffffff' }}
+               behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          >
                <Image
                     source={require('../assets/images/login-frame.png')}
                     style={loginStyles.loginHeader}
@@ -22,19 +29,28 @@ export default function LoginScreen() {
                               <PageTitle style={loginStyles.pageTitle}>Chào mừng trở lại!</PageTitle>
                          </View>
 
-                         <Formik
-                              initialValues={{ userName: '', password: '' }}
-                              onSubmit={values => {
-                                   console.log(values)
+                         <Formik<LoginDTO>
+                              initialValues={{ identifier: '', password: '' }}
+                              onSubmit={async (values) => {
+                                   try {
+                                        await loginMutation.mutateAsync({
+                                             identifier: values.identifier.trim(),
+                                             password: values.password,
+                                        })
+                                        console.log('OK', values)
+                                   } catch {
+                                        Alert.alert('Đăng nhập thất bại')
+                                   }
                               }}
                          >
                               {({ handleChange, handleBlur, handleSubmit, values }) => (
                                    <View style={loginStyles.inputForm}>
                                         <InputField
-                                             onChangeText={handleChange('userName')}
-                                             onBlur={handleBlur('userName')}
-                                             value={values.userName}
-                                             placeholder="Nhập tên đăng nhập"
+                                             onChangeText={handleChange('identifier')}
+                                             onBlur={handleBlur('identifier')}
+                                             value={values.identifier}
+                                             placeholder="Nhập email hoặc số điện thoại"
+                                             editable={!loginMutation.isPending}
                                         />
 
                                         <InputField
@@ -43,10 +59,20 @@ export default function LoginScreen() {
                                              value={values.password}
                                              placeholder="Nhập mật khẩu"
                                              secureTextEntry
+                                             editable={!loginMutation.isPending}
                                         />
 
-                                        <TouchableOpacity onPress={() => handleSubmit()} style={loginStyles.loginButton}>
-                                             <Text style={loginStyles.buttonText}>Đăng nhập</Text>
+                                        <TouchableOpacity
+                                             onPress={() => handleSubmit()}
+                                             style={[
+                                                  loginStyles.loginButton,
+                                                  loginMutation.isPending && loginStyles.loginButtonDisabled
+                                             ]}
+                                             disabled={loginMutation.isPending}
+                                        >
+                                             <Text style={loginStyles.buttonText}>
+                                                  {loginMutation.isPending ? 'Đang đăng nhập...' : 'Đăng nhập'}
+                                             </Text>
                                         </TouchableOpacity>
 
                                         <View style={loginStyles.dividerRow}>
@@ -68,7 +94,7 @@ export default function LoginScreen() {
                          </Formik>
                     </View>
                </StyledContainer>
-          </View>
+          </KeyboardAvoidingView>
      )
 }
 
@@ -119,6 +145,9 @@ const loginStyles = StyleSheet.create({
           backgroundColor: `${Colors.primary}`,
           padding: 16,
           borderRadius: 12
+     },
+     loginButtonDisabled: {
+          opacity: 0.7
      },
      buttonText: {
           color: '#ffffff',

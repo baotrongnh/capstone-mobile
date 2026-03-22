@@ -4129,7 +4129,7 @@ export interface components {
         };
         CreateNotificationDto: {
             /** @enum {string} */
-            recipientType: "guest" | "user" | "staff" | "operator" | "admin" | "partner" | "system";
+            recipientType: "guest" | "user" | "staff" | "operator" | "admin" | "system";
             /** @description Recipient UUID */
             recipientId: string;
             /**
@@ -8673,7 +8673,7 @@ export interface operations {
     ActivityLogsController_findAll: {
         parameters: {
             query?: {
-                actorType?: "guest" | "user" | "staff" | "operator" | "admin" | "partner" | "system";
+                actorType?: "guest" | "user" | "staff" | "operator" | "admin" | "system";
                 actorId?: string;
                 entityType?: string;
                 entityId?: string;
