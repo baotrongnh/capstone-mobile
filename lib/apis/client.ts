@@ -1,14 +1,14 @@
 import axios from "axios"
 import { endpoints } from "./endpoints"
+import { storage } from "@/stores/storage"
 
 export const apiClient = axios.create({
      baseURL: process.env.EXPO_PUBLIC_API_BASE_URL,
      withCredentials: true
 })
 
-apiClient.interceptors.request.use((config) => {
-     //token here
-     const accessToken = ''
+apiClient.interceptors.request.use(async (config) => {
+     const accessToken = await storage.getItem("accessToken")
      if (accessToken) {
           config.headers.Authorization = `Bearer ${accessToken}`
      }
@@ -25,11 +25,9 @@ apiClient.interceptors.response.use(undefined, async (error) => {
      if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
           originalRequest._retry = true
 
-          const refreshToken = localStorage.getItem('refreshToken')
+          const refreshToken = await storage.getItem("refreshToken")
           if (!refreshToken) {
-               const redirectUrl = `/?openAuthModal=true&redirect=${encodeURIComponent(window.location.pathname)}`
-               localStorage.clear()
-               window.location.href = redirectUrl
+               console.error("Unauthorized: missing refresh token")
                return Promise.reject(error)
           }
 
@@ -40,14 +38,13 @@ apiClient.interceptors.response.use(undefined, async (error) => {
                //debug (nhbt):
                console.log('REFRESH NEW TOKEN: ', data)
                const newTokens = data.data.tokens
-               localStorage.setItem('accessToken', newTokens.accessToken)
-               localStorage.setItem('refreshToken', newTokens.refreshToken)
+               await storage.setItem("accessToken", newTokens.accessToken)
+               await storage.setItem("refreshToken", newTokens.refreshToken)
                originalRequest.headers.Authorization = `Bearer ${newTokens.accessToken}`
                return apiClient(originalRequest)
-          } catch {
-               localStorage.clear()
-               window.location.href = '/'
-               return Promise.reject(error)
+          } catch (refreshError) {
+               console.error("Refresh token failed", refreshError)
+               return Promise.reject(refreshError)
           }
      }
 
