@@ -71,6 +71,7 @@ export const useGoogleLogin = () => {
         setLoading(true)
         try {
             const redirectUri = getOAuthRedirectUri()
+            console.log(redirectUri)
             const url = await authServices.getSupabaseUrl()
 
             console.log('URL', url)

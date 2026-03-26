@@ -1,6 +1,7 @@
 import { Colors, InputField, PageTitle, StyledContainer } from '@/components/styles'
 import { useGoogleLogin, useLogin } from '@/hooks/query/useAuth'
 import { LoginDTO } from '@/types/auth'
+import { useRouter } from 'expo-router'
 import { Formik } from 'formik'
 import React from 'react'
 import { Alert, Image, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
@@ -8,10 +9,12 @@ import { Alert, Image, KeyboardAvoidingView, Platform, StyleSheet, Text, Touchab
 export default function LoginScreen() {
      const loginMutation = useLogin()
      const googleLogin = useGoogleLogin()
+     const router = useRouter()
 
      const handleGoogleLogin = async () => {
           try {
                await googleLogin.login()
+               router.replace('/(tabs)/home')
           } catch {
                Alert.alert('Đăng nhập Google thất bại')
           }
@@ -46,7 +49,7 @@ export default function LoginScreen() {
                                              identifier: values.identifier.trim(),
                                              password: values.password,
                                         })
-                                        console.log('OK', values)
+                                        router.replace('/(tabs)/home')
                                    } catch {
                                         Alert.alert('Đăng nhập thất bại')
                                    }
