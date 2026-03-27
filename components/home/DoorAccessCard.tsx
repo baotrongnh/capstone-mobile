@@ -2,7 +2,9 @@ import { MaterialCommunityIcons } from "@expo/vector-icons"
 import React, { useEffect, useRef, useState } from "react"
 import {
      Alert,
+     KeyboardAvoidingView,
      Modal,
+     Platform,
      Pressable,
      StyleSheet,
      Text,
@@ -12,55 +14,52 @@ import {
 
 interface DoorAccessCardProps {
      title?: string
-     password: string
+     // TODO: Nhận password từ API thay vì hardcode
      onOpenDoor?: () => void
 }
 
 export default function DoorAccessCard({
      title = "Mở cửa chính",
-     password,
      onOpenDoor,
 }: DoorAccessCardProps) {
      const [modalVisible, setModalVisible] = useState(false)
-     const [inputPassword, setInputPassword] = useState("")
+     const [pin, setPin] = useState("")
      const [error, setError] = useState("")
      const inputRef = useRef<TextInput>(null)
 
-     const openPasswordModal = () => {
+     // TODO: Thay bằng gọi API verify PIN
+     const CORRECT_PIN = "123456"
+
+     const openModal = () => {
           setError("")
-          setInputPassword("")
+          setPin("")
           setModalVisible(true)
      }
 
-     const closePasswordModal = () => {
+     const closeModal = () => {
           setModalVisible(false)
-          setInputPassword("")
+          setPin("")
           setError("")
      }
 
-     const handleConfirmOpenDoor = (pin: string) => {
-          if (pin !== password) {
-               setError("Mật khẩu không đúng")
-               setTimeout(() => {
-                    setInputPassword("")
-                    inputRef.current?.focus()
-               }, 120)
+     const handleVerifyPin = (enteredPin: string) => {
+          if (enteredPin !== CORRECT_PIN) {
+               setError("PIN không đúng")
+               setPin("")
+               inputRef.current?.focus()
                return
           }
 
-          closePasswordModal()
-          onOpenDoor?.()
+          // TODO: Gọi API mở cửa ở đây
+          closeModal()
+          if (onOpenDoor) onOpenDoor()
           Alert.alert("Thành công", "Cửa đã được mở")
      }
 
      useEffect(() => {
-          if (!modalVisible) return
-
-          const timer = setTimeout(() => {
-               inputRef.current?.focus()
-          }, 80)
-
-          return () => clearTimeout(timer)
+          if (modalVisible) {
+               setTimeout(() => inputRef.current?.focus(), 100)
+          }
      }, [modalVisible])
 
      return (
@@ -70,7 +69,7 @@ export default function DoorAccessCard({
                          <View style={styles.icon}>
                               <MaterialCommunityIcons name="door-closed-lock" size={30} color="#1f2937" />
                          </View>
-                         <Pressable onPress={openPasswordModal} style={styles.switchButton} hitSlop={10}>
+                         <Pressable onPress={openModal} style={styles.switchButton} hitSlop={10}>
                               <MaterialCommunityIcons name="power" size={24} color="#fff" />
                          </Pressable>
                     </View>
@@ -83,58 +82,60 @@ export default function DoorAccessCard({
                     visible={modalVisible}
                     animationType="fade"
                     transparent
-                    onRequestClose={closePasswordModal}
+                    onRequestClose={closeModal}
                >
-                    <View style={styles.overlay}>
+                    <KeyboardAvoidingView
+                         behavior={Platform.OS === "ios" ? "padding" : "height"}
+                         style={styles.overlay}
+                    >
                          <View style={styles.modalCard}>
                               <Text style={styles.modalTitle}>Xác thực mở cửa</Text>
-                              <Text style={styles.modalDescription}>Nhập mã PIN 6 số, hệ thống tự mở khi đúng</Text>
+                              <Text style={styles.modalDescription}>Nhập PIN 6 số</Text>
 
+                              {/* Hiển thị 6 ô PIN */}
                               <Pressable style={styles.pinRow} onPress={() => inputRef.current?.focus()}>
-                                   {[0, 1, 2, 3, 4, 5].map((index) => {
-                                        const value = inputPassword[index]
-
-                                        return (
-                                             <View
-                                                  key={index}
-                                                  style={[
-                                                       styles.pinBox,
-                                                       value ? styles.pinBoxFilled : undefined,
-                                                       error ? styles.pinBoxError : undefined,
-                                                  ]}
-                                             >
-                                                  <Text style={styles.pinText}>{value ? "*" : ""}</Text>
-                                             </View>
-                                        )
-                                   })}
+                                   {[0, 1, 2, 3, 4, 5].map((i) => (
+                                        <View
+                                             key={i}
+                                             style={[
+                                                  styles.pinBox,
+                                                  pin[i] ? styles.pinBoxFilled : undefined,
+                                                  error ? styles.pinBoxError : undefined,
+                                             ]}
+                                        >
+                                             <Text style={styles.pinText}>{pin[i] ? "*" : ""}</Text>
+                                        </View>
+                                   ))}
                               </Pressable>
 
+                              {/* Input ẩn để nhân bàn phím */}
                               <TextInput
                                    ref={inputRef}
-                                   value={inputPassword}
-                                   onChangeText={(value) => {
-                                        const numericOnly = value.replace(/\D/g, "").slice(0, 6)
-                                        setInputPassword(numericOnly)
-                                        if (error) setError("")
-                                        if (numericOnly.length === 6) {
-                                             handleConfirmOpenDoor(numericOnly)
+                                   value={pin}
+                                   onChangeText={(text) => {
+                                        const digits = text.replace(/\D/g, "").slice(0, 6)
+                                        setPin(digits)
+                                        setError("")
+                                        if (digits.length === 6) {
+                                             handleVerifyPin(digits)
                                         }
                                    }}
                                    keyboardType="number-pad"
                                    maxLength={6}
                                    style={styles.hiddenInput}
-                                   caretHidden
                               />
 
+                              {/* Hiển thị lỗi */}
                               {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
+                              {/* Nút đóng */}
                               <View style={styles.actions}>
-                                   <Pressable onPress={closePasswordModal} style={[styles.actionBtn, styles.cancelBtn]}>
+                                   <Pressable onPress={closeModal} style={[styles.actionBtn, styles.cancelBtn]}>
                                         <Text style={styles.cancelText}>Huỷ</Text>
                                    </Pressable>
                               </View>
                          </View>
-                    </View>
+                    </KeyboardAvoidingView>
                </Modal>
           </>
      )

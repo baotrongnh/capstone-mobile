@@ -27,7 +27,7 @@ export default function HomeScreen() {
                     onDeviceToggle={onDeviceToggle}
                />
                <Text style={{ fontSize: 20, fontWeight: 600, marginBottom: 20 }}>Cửa ra vào</Text>
-               <DoorAccessCard password="123456" onOpenDoor={onOpenDoor} />
+               <DoorAccessCard onOpenDoor={onOpenDoor} />
           </StyledContainer>
      )
 }

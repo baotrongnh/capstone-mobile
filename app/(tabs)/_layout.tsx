@@ -1,6 +1,6 @@
-import { Tabs } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { Tabs } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -11,8 +11,9 @@ type TabVisual = {
 };
 
 const TAB_VISUALS: Record<string, TabVisual> = {
-  home: { label: "Home", icon: "home-outline" },
+  home: { label: "Căn hộ", icon: "home-outline" },
   apartment: { label: "Căn hộ", icon: "office-building-outline" },
+  analytic: { label: "Căn hộ", icon: "meter-electric-outline" },
   profile: { label: "Profile", icon: "account-outline" },
 };
 
@@ -85,7 +86,7 @@ function FloatingAnimatedTabBar({ state, descriptors, navigation }: BottomTabBar
         {state.routes.map((route, index) => {
           const focused = state.index === index;
           const options = descriptors[route.key]?.options;
-          const color = focused ? "#5b57ff" : "#2f2f34";
+          const color = focused ? "#3b82f6" : "#2f2f34";
 
           const onPress = () => {
             const event = navigation.emit({
@@ -165,13 +166,19 @@ export default function TabLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: "Home",
+          title: "Căn hộ",
         }}
       />
       <Tabs.Screen
         name="apartment"
         options={{
-          title: "Căn hộ",
+          title: "Thuê",
+        }}
+      />
+      <Tabs.Screen
+        name="analytic"
+        options={{
+          title: "Chỉ số",
         }}
       />
       <Tabs.Screen
@@ -232,7 +239,7 @@ const styles = StyleSheet.create({
     color: "#3f3f46",
   },
   labelFocused: {
-    color: "#5b57ff",
+    color: "#3b82f6",
     fontWeight: "700",
   },
   activeBadge: {
@@ -250,7 +257,7 @@ const styles = StyleSheet.create({
     width: ACTIVE_UNDERLINE_WIDTH,
     height: 3,
     borderRadius: 2,
-    backgroundColor: "#5b57ff",
+    backgroundColor: "#3b82f6",
     zIndex: 1,
   },
 });
