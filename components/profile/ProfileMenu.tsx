@@ -13,7 +13,6 @@ interface MenuItemData {
   id: string;
   label: string;
   icon: string;
-  color: string;
   screen: string;
 }
 
@@ -32,13 +31,13 @@ export default function ProfileMenu({ items, onMenuPress }: ProfileMenuProps) {
           android_ripple={{ color: "#f0f0f0" }}
         >
           <MenuLeft>
-            <MenuIcon style={{ backgroundColor: item.color + "20" }}>
-              <Ionicons name={item.icon as any} size={20} color={item.color} />
+            <MenuIcon>
+              <Ionicons name={item.icon as any} size={20} color="#6b7280" />
             </MenuIcon>
             <MenuText>{item.label}</MenuText>
           </MenuLeft>
           <MenuArrow>
-            <Ionicons name="chevron-forward" size={20} color="#ccc" />
+            <Ionicons name="chevron-forward" size={20} color="#d1d5db" />
           </MenuArrow>
         </MenuItem>
       ))}

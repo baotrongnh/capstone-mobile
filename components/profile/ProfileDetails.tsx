@@ -31,12 +31,21 @@ export default function ProfileDetails({ onBack }: ProfileDetailsProps) {
   return (
     <Container>
       <HeaderBar>
-        <BackButton onPress={onBack}>
-          <Ionicons name="chevron-back" size={24} color="#3b82f6" />
+        <BackButton
+          style={{ flexDirection: "row", alignItems: "center" }}
+          onPress={onBack}
+        >
+          <Ionicons name="chevron-back" size={24} color="#6b7280" />
+          <Text style={{ fontSize: 18, fontWeight: "600", color: "#6d6d6d" }}>
+            Tài khoản
+          </Text>
         </BackButton>
       </HeaderBar>
       <ScrollContainer style={{ padding: 20 }}>
-        <Text style={{ fontSize: 14, color: "#778088", marginBottom: 8 }}>
+        <Text style={{ fontSize: 28, color: "#313131", marginBottom: 8 }}>
+          Thông tin tài khoản
+        </Text>
+        <Text style={{ fontSize: 14, color: "#9ca3af", marginBottom: 8 }}>
           First name
         </Text>
         <TextInputField placeholder={userData.firstName} editable={false} />
@@ -44,7 +53,7 @@ export default function ProfileDetails({ onBack }: ProfileDetailsProps) {
         <Text
           style={{
             fontSize: 14,
-            color: "#778088",
+            color: "#9ca3af",
             marginBottom: 8,
             marginTop: 20,
           }}
@@ -56,7 +65,7 @@ export default function ProfileDetails({ onBack }: ProfileDetailsProps) {
         <Text
           style={{
             fontSize: 14,
-            color: "#778088",
+            color: "#9ca3af",
             marginBottom: 8,
             marginTop: 20,
           }}
@@ -68,7 +77,7 @@ export default function ProfileDetails({ onBack }: ProfileDetailsProps) {
         <Text
           style={{
             fontSize: 14,
-            color: "#778088",
+            color: "#9ca3af",
             marginBottom: 8,
             marginTop: 20,
           }}

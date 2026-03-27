@@ -23,11 +23,11 @@ export const Avatar = styled.View`
   width: 100px;
   height: 100px;
   border-radius: 50px;
-  background-color: #e8f0ff;
+  background-color: #f3f4f6;
   justify-content: center;
   align-items: center;
   margin-bottom: 15px;
-  border: 3px solid #3b82f6;
+  border: 2px solid #d1d5db;
 `;
 
 export const AvatarImage = styled.Image`
@@ -45,7 +45,7 @@ export const UserName = styled.Text`
 
 export const UserEmail = styled.Text`
   font-size: 14px;
-  color: #778088;
+  color: #9ca3af;
   margin-bottom: 20px;
 `;
 
@@ -76,7 +76,7 @@ export const MenuIcon = styled.View`
   justify-content: center;
   align-items: center;
   margin-right: 15px;
-  background-color: #f8f8f8;
+  background-color: #f3f4f6;
 `;
 
 export const MenuText = styled.Text`
@@ -93,13 +93,13 @@ export const MenuArrow = styled.View`
 `;
 
 export const TextInputField = styled.TextInput`
-  background-color: #f8f8f8;
-  border: 1px solid #e8e8e8;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
   height: 48px;
   padding: 12px 16px;
   font-size: 16px;
   border-radius: 8px;
-  color: #0f172a;
+  color: #1f2937;
 `;
 
 export const HeaderBar = styled.View`
