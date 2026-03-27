@@ -1,22 +1,25 @@
 import DeviceGrid from '@/components/home/DeviceGrid';
-import React from 'react'
-import { Text, View } from 'react-native'
+import { StyledContainer } from '@/components/styles';
+import React from 'react';
+import { Text } from 'react-native';
 
 const devices = [
-     { id: "1", title: "Smart TV", deviceCount: 1, icon: "television" },
-     { id: "2", title: "Air Conditioner", deviceCount: 1, icon: "air-conditioner" },
-     { id: "3", title: "Air Purifier", deviceCount: 4, icon: "air-purifier" },
-     { id: "4", title: "Smart Light", deviceCount: 4, icon: "lightbulb" },
-];
+     { id: "1", deviceId: '1', title: "Light 1", deviceCount: 1, icon: "lightbulb" },
+     { id: "2", deviceId: '1', title: "Light 2", deviceCount: 1, icon: "lightbulb" },
+]
+
+const onDeviceToggle = (deviceId: string, action: string) => {
+     console.log(deviceId, action)
+}
 
 export default function HomeScreen() {
      return (
-          <View>
+          <StyledContainer>
                <Text>Home</Text>
                <DeviceGrid
                     devices={devices}
-                    onDeviceToggle={(deviceId, isOn) => console.log(`${deviceId}: ${isOn}`)}
+                    onDeviceToggle={onDeviceToggle}
                />
-          </View>
+          </StyledContainer>
      )
 }

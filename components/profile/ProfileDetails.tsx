@@ -31,11 +31,20 @@ export default function ProfileDetails({ onBack }: ProfileDetailsProps) {
   return (
     <Container>
       <HeaderBar>
-        <BackButton onPress={onBack}>
+        <BackButton
+          style={{ flexDirection: "row", alignItems: "center" }}
+          onPress={onBack}
+        >
           <Ionicons name="chevron-back" size={24} color="#6b7280" />
+          <Text style={{ fontSize: 18, fontWeight: "600", color: "#6d6d6d" }}>
+            Tài khoản
+          </Text>
         </BackButton>
       </HeaderBar>
       <ScrollContainer style={{ padding: 20 }}>
+        <Text style={{ fontSize: 28, color: "#313131", marginBottom: 8 }}>
+          Thông tin tài khoản
+        </Text>
         <Text style={{ fontSize: 14, color: "#9ca3af", marginBottom: 8 }}>
           First name
         </Text>

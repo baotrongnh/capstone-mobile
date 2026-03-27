@@ -1,5 +1,5 @@
 import { Colors, InputField, PageTitle, StyledContainer } from '@/components/styles'
-import { useLogin } from '@/hooks/query/useAuth'
+import { useGoogleLogin, useLogin } from '@/hooks/query/useAuth'
 import { LoginDTO } from '@/types/auth'
 import { Formik } from 'formik'
 import React from 'react'
@@ -7,6 +7,15 @@ import { Alert, Image, KeyboardAvoidingView, Platform, StyleSheet, Text, Touchab
 
 export default function LoginScreen() {
      const loginMutation = useLogin()
+     const googleLogin = useGoogleLogin()
+
+     const handleGoogleLogin = async () => {
+          try {
+               await googleLogin.login()
+          } catch {
+               Alert.alert('Đăng nhập Google thất bại')
+          }
+     }
 
      return (
           <KeyboardAvoidingView
@@ -68,7 +77,7 @@ export default function LoginScreen() {
                                                   loginStyles.loginButton,
                                                   loginMutation.isPending && loginStyles.loginButtonDisabled
                                              ]}
-                                             disabled={loginMutation.isPending}
+                                             disabled={loginMutation.isPending || googleLogin.loading}
                                         >
                                              <Text style={loginStyles.buttonText}>
                                                   {loginMutation.isPending ? 'Đang đăng nhập...' : 'Đăng nhập'}
@@ -81,13 +90,22 @@ export default function LoginScreen() {
                                              <View style={loginStyles.dividerLine} />
                                         </View>
 
-                                        <TouchableOpacity onPress={() => handleSubmit()} style={loginStyles.googleLoginButton}>
+                                        <TouchableOpacity
+                                             onPress={handleGoogleLogin}
+                                             style={[
+                                                  loginStyles.googleLoginButton,
+                                                  googleLogin.loading && loginStyles.loginButtonDisabled
+                                             ]}
+                                             disabled={googleLogin.loading || loginMutation.isPending}
+                                        >
                                              <Image
                                                   source={require('../assets/images/google-logo.png')}
                                                   style={loginStyles.googleIcon}
                                                   resizeMode='contain'
                                              />
-                                             <Text style={loginStyles.googleButtonText}>Đăng nhập với Google</Text>
+                                             <Text style={loginStyles.googleButtonText}>
+                                                  {googleLogin.loading ? 'Đang đăng nhập Google...' : 'Đăng nhập với Google'}
+                                             </Text>
                                         </TouchableOpacity>
                                    </View>
                               )}
