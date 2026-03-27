@@ -4,7 +4,7 @@ import { Animated, Pressable, StyleSheet, Text, View } from "react-native"
 
 const ANIMATION_DURATION = 180
 const THUMB_OFF_X = 1
-const THUMB_ON_X = 16
+const THUMB_ON_X = 18
 
 interface DeviceCardProps {
      icon: React.ReactNode
@@ -64,20 +64,20 @@ export default function DeviceCard({
 const styles = StyleSheet.create({
      card: {
           flex: 1,
-          backgroundColor: "#f3f4f6",
+          backgroundColor: "#f8fafc",
           borderWidth: 1,
-          borderColor: "#f3f4f6",
-          borderRadius: 14,
-          padding: 16,
-          minHeight: 120,
+          borderColor: "#dbe7ff",
+          borderRadius: 16,
+          padding: 18,
+          minHeight: 126,
           justifyContent: "flex-start",
           shadowColor: "#000",
-          shadowOpacity: 0.04,
-          shadowRadius: 4,
-          elevation: 1,
+          shadowOpacity: 0.06,
+          shadowRadius: 8,
+          elevation: 2,
      },
      cardOn: {
-          backgroundColor: "#e8f0ff",
+          backgroundColor: "#eff6ff",
           borderColor: "#2563eb",
      },
      row: {
@@ -88,8 +88,8 @@ const styles = StyleSheet.create({
      },
      icon: {
           backgroundColor: "#fff",
-          borderRadius: 20,
-          padding: 8,
+          borderRadius: 24,
+          padding: 10,
           alignItems: "center",
           justifyContent: "center",
      },
@@ -99,13 +99,13 @@ const styles = StyleSheet.create({
      switchWrap: {
           alignItems: "center",
           justifyContent: "center",
-          padding: 2,
+          padding: 3,
      },
      track: {
-          width: 36,
-          height: 20,
-          borderRadius: 10,
-          backgroundColor: "#d1d5db",
+          width: 42,
+          height: 24,
+          borderRadius: 12,
+          backgroundColor: "#cbd5e1",
           justifyContent: "center",
           padding: 2,
      },
@@ -113,9 +113,9 @@ const styles = StyleSheet.create({
           backgroundColor: "#2563eb",
      },
      thumb: {
-          width: 16,
-          height: 16,
-          borderRadius: 8,
+          width: 20,
+          height: 20,
+          borderRadius: 10,
           backgroundColor: "#fff",
           elevation: 2,
           shadowColor: "#000",
@@ -123,17 +123,17 @@ const styles = StyleSheet.create({
           shadowRadius: 2,
      },
      title: {
-          fontSize: 15,
-          fontWeight: "600",
+          fontSize: 16,
+          fontWeight: "700",
           color: "#1f2937",
-          marginBottom: 2,
+          marginBottom: 4,
      },
      titleOn: {
           color: "#1d4ed8",
      },
      deviceCount: {
-          fontSize: 12,
-          color: "#6b7280",
+          fontSize: 13,
+          color: "#475569",
      },
      deviceCountOn: {
           color: "#1e40af",
