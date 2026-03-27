@@ -23,7 +23,7 @@ export default function PushNotifications({ onBack }: PushNotificationsProps) {
     <Container>
       <HeaderBar>
         <BackButton onPress={onBack}>
-          <Ionicons name="chevron-back" size={24} color="#3b82f6" />
+          <Ionicons name="chevron-back" size={24} color="#6b7280" />
         </BackButton>
       </HeaderBar>
       <ScrollContainer style={{ padding: 20 }}>
@@ -32,12 +32,12 @@ export default function PushNotifications({ onBack }: PushNotificationsProps) {
           onPress={() => setIsEnabled(!isEnabled)}
         >
           <MenuLeft>
-            <MenuIcon style={{ backgroundColor: "#ec482920" }}>
-              <Ionicons name="notifications" size={20} color="#ec4899" />
+            <MenuIcon>
+              <Ionicons name="notifications" size={20} color="#6b7280" />
             </MenuIcon>
             <View>
               <MenuText>Push Notifications</MenuText>
-              <Text style={{ fontSize: 12, color: "#778088", marginTop: 4 }}>
+              <Text style={{ fontSize: 12, color: "#9ca3af", marginTop: 4 }}>
                 Get notified when you receive messages
               </Text>
             </View>
@@ -47,7 +47,7 @@ export default function PushNotifications({ onBack }: PushNotificationsProps) {
               width: 50,
               height: 28,
               borderRadius: 14,
-              backgroundColor: isEnabled ? "#3b82f6" : "#ccc",
+              backgroundColor: isEnabled ? "#3b82f6" : "#d1d5db",
               justifyContent: "center",
               paddingHorizontal: 2,
             }}

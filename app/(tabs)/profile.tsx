@@ -13,7 +13,6 @@ interface MenuItemData {
   id: string;
   label: string;
   icon: string;
-  color: string;
   screen: string;
 }
 
@@ -22,46 +21,45 @@ const menuItems: MenuItemData[] = [
     id: "profile-details",
     label: "Profile details",
     icon: "person",
-    color: "#3b82f6",
     screen: "profile-details",
   },
   {
     id: "settings",
     label: "Settings",
     icon: "settings",
-    color: "#8b5cf6",
     screen: "settings",
   },
   {
     id: "push-notifications",
     label: "Push Notifications",
     icon: "notifications",
-    color: "#ec4899",
     screen: "push-notifications",
   },
   {
     id: "support",
     label: "Support",
     icon: "help-circle",
-    color: "#06b6d4",
     screen: "support",
   },
   {
     id: "logout",
     label: "Logout",
     icon: "log-out",
-    color: "#ef4444",
     screen: "logout",
   },
 ];
 
 export default function ProfileScreenPage() {
   const [currentScreen, setCurrentScreen] = useState<string>("main");
+  const [avatar, setAvatar] = useState<string | null>(null);
 
   const userData = {
     name: "Ruben Geldt",
     email: "ruben.geldt@example.com",
-    avatar: null,
+  };
+
+  const handleAvatarChange = (uri: string) => {
+    setAvatar(uri);
   };
 
   const handleMenuPress = (screen: string) => {
@@ -91,6 +89,7 @@ export default function ProfileScreenPage() {
           fontSize: 24,
           fontWeight: "bold",
           marginBottom: 20,
+          color: "#1f2937",
         }}
       >
         Profile
@@ -99,7 +98,8 @@ export default function ProfileScreenPage() {
         <ProfileHeader
           name={userData.name}
           email={userData.email}
-          avatar={userData.avatar}
+          avatar={avatar}
+          onAvatarChange={handleAvatarChange}
         />
         <ProfileMenu items={menuItems} onMenuPress={handleMenuPress} />
       </ScrollContainer>
