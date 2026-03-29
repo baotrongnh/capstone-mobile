@@ -13,4 +13,5 @@ export const endpoints = {
   users: createEndpoints("users"),
   partners: createEndpoints("partners"),
   reservations: createEndpoints("reservations"),
+  invoices: createEndpoints("invoices"),
 };
