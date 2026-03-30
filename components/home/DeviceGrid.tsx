@@ -2,27 +2,35 @@ import { MaterialCommunityIcons } from "@expo/vector-icons"
 import React from "react"
 import { FlatList, StyleSheet, View } from "react-native"
 import DeviceCard from "./DeviceCard"
+import { IotControlParams } from "@/lib/services/iot.service"
 
 interface Device {
      id: string
      title: string
      deviceCount: number
-     icon: string
+     icon: string,
+     deviceType: IotControlParams['deviceType']
 }
 
 interface DeviceGridProps {
      devices: Device[];
-     onDeviceToggle?: (deviceId: string, action: string) => void
+     onDeviceToggle?: (data: IotControlParams) => void
+     espId: string
 }
 
-export default function DeviceGrid({ devices, onDeviceToggle }: DeviceGridProps) {
+export default function DeviceGrid({ devices, onDeviceToggle, espId }: DeviceGridProps) {
      const renderItem = React.useCallback(
           ({ item }: { item: Device }) => (
                <View style={styles.item}>
                     <DeviceCard
                          icon={<MaterialCommunityIcons name={item.icon as any} size={32} color="#1f2937" />}
                          title={item.title}
-                         onToggle={(isOn) => onDeviceToggle?.(item.id, isOn ? "on" : "off")}
+                         onToggle={(isOn) => onDeviceToggle?.({
+                              deviceId: item.id,
+                              action: isOn ? "ON" : "OFF",
+                              espId,
+                              deviceType: item.deviceType
+                         })}
                     />
                </View>
           ),
