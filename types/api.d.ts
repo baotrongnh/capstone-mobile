@@ -1396,6 +1396,125 @@ export interface paths {
         patch: operations["ViewingRequestsController_cancelAppointment"];
         trace?: never;
     };
+    "/api/v1/iot/online": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Check MQTT gateway availability */
+        get: operations["IoTController_getGatewayStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/iot/devices/{espId}/light/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish light command to MQTT device */
+        post: operations["IoTController_triggerLight"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/iot/devices/{espId}/alarm/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish alarm command to MQTT device */
+        post: operations["IoTController_triggerAlarm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/iot/devices/{espId}/door/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish door command to MQTT device */
+        post: operations["IoTController_triggerDoor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/iot/devices/{espId}/curtain/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish curtain command to MQTT device */
+        post: operations["IoTController_triggerCurtain"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/iot/devices/{espId}/config-door-password/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send door password directly to MQTT device */
+        post: operations["IoTController_configureDoorPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/iot/devices/{espId}/test-sequence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Run MQTT device test sequence */
+        post: operations["IoTController_runTestSequence"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/iot/devices": {
         parameters: {
             query?: never;
@@ -1464,7 +1583,7 @@ export interface paths {
         put?: never;
         /**
          * Send command to IoT device
-         * @description Control device (lock/unlock, on/off). Tenants must have active contract.
+         * @description Control device over MQTT using stored device metadata. Tenants must have an active contract.
          */
         post: operations["IoTController_controlDevice"];
         delete?: never;
@@ -3106,6 +3225,7 @@ export interface components {
             rating?: number | null;
             description?: string | null;
             images?: string[] | null;
+            videoTourUrl?: string | null;
             /**
              * @description Danh sach hop dong hop tac lien quan toi apartment (thuong dung cho owner dashboard)
              * @example [
@@ -3326,12 +3446,16 @@ export interface components {
             streetAddress?: string | null;
             /** @example 12000000 */
             baseRentPrice: string;
+            images?: string[] | null;
+            videoTourUrl?: string | null;
             /** @example available */
             status: string;
             /** Format: date-time */
-            createdAt: string;
+            createdAt?: string | null;
+            /** Format: date-time */
+            updatedAt?: string | null;
         };
-        CreateApartmentDto: {
+        CreateApartmentRequestDto: {
             /** @example Vinhomes Central Park */
             buildingName?: string;
             /** @example A-1501 */
@@ -3393,22 +3517,17 @@ export interface components {
             depositAmount?: number;
             /** @example Modern apartment with city view */
             description?: string;
-            /**
-             * @description Array of image URLs
-             * @example [
-             *       "https://example.com/img1.jpg"
-             *     ]
-             */
-            images?: string[];
-            /**
-             * Format: uri
-             * @example https://youtube.com/watch?v=...
-             */
-            videoTourUrl?: string;
             /** @example 2020 */
             yearBuilt?: number;
             /** @description Owner user ID if listed by a specific owner */
             ownerId?: string;
+            /** @description Apartment images (JPEG, PNG, WebP), max 10 files */
+            images?: string[];
+            /**
+             * Format: binary
+             * @description Apartment video (MP4, MOV, WEBM), max 1 file
+             */
+            video?: string;
         };
         PartnerCooperationSubmitResultDto: {
             /** @example ca5f5756-2748-4e63-86cb-179cfb966f27 */
@@ -3665,7 +3784,7 @@ export interface components {
              */
             video?: string;
         };
-        UpdateApartmentDto: {
+        UpdateApartmentRequestDto: {
             /** @example Vinhomes Central Park */
             buildingName?: string;
             /** @example A-1501 */
@@ -3727,18 +3846,6 @@ export interface components {
             depositAmount?: number;
             /** @example Modern apartment with city view */
             description?: string;
-            /**
-             * @description Array of image URLs
-             * @example [
-             *       "https://example.com/img1.jpg"
-             *     ]
-             */
-            images?: string[];
-            /**
-             * Format: uri
-             * @example https://youtube.com/watch?v=...
-             */
-            videoTourUrl?: string;
             /** @example 2020 */
             yearBuilt?: number;
             /** @description Owner user ID if listed by a specific owner */
@@ -3748,6 +3855,13 @@ export interface components {
              * @enum {string}
              */
             status?: "available" | "occupied" | "maintenance" | "reserved" | "inactive" | "verified" | "pending";
+            /** @description Apartment images (JPEG, PNG, WebP), max 10 files */
+            images?: string[];
+            /**
+             * Format: binary
+             * @description Apartment video (MP4, MOV, WEBM), max 1 file
+             */
+            video?: string;
         };
         ApartmentStatusResultDto: {
             /** @example d6e0a098-c1e9-4b5d-9207-e507e9a5974d */
@@ -5013,6 +5127,78 @@ export interface components {
             /** @description Staff notes */
             staffNotes?: string;
         };
+        IoTGatewayStatusDto: {
+            /** @example true */
+            success: boolean;
+            /** @example true */
+            mqttConnected: boolean;
+            brokerUrl?: string | null;
+            /** @example HOMEIQ/+/status */
+            statusTopic: string;
+        };
+        IoTMqttPublishDetailsDto: {
+            brokerUrl?: string | null;
+            /** @example ESP_A101/light */
+            topic: string;
+            /** @example on_1 */
+            payload: string;
+            /** @example ESP_A101 */
+            espId: string;
+            /** @example light */
+            controlType: string;
+            /** @example 1 */
+            channelId: number;
+            /** Format: date-time */
+            publishedAt: string;
+        };
+        IoTMqttCommandResultDto: {
+            /** @example true */
+            success: boolean;
+            /** @example The lights have been turned on */
+            message: string;
+            details: components["schemas"]["IoTMqttPublishDetailsDto"];
+        };
+        DeviceActionDto: {
+            /**
+             * @description MQTT action to send to the target device channel
+             * @example on
+             * @enum {string}
+             */
+            action: "on" | "off" | "open" | "close";
+        };
+        SetDoorPasswordDto: {
+            /**
+             * @description Door password payload sent directly to the device
+             * @example 290304
+             */
+            password: string;
+        };
+        IoTTestSequenceStepDto: {
+            /** @example 1 */
+            order: number;
+            /** @example LIGHT_1_ON */
+            action: string;
+            details: components["schemas"]["IoTMqttPublishDetailsDto"];
+        };
+        IoTTestSequenceResponseDto: {
+            /** @example true */
+            success: boolean;
+            /** @example Test sequence completed */
+            message: string;
+            /** @example 2000 */
+            holdMs: number;
+            /** @example 10 */
+            totalSteps: number;
+            steps: components["schemas"]["IoTTestSequenceStepDto"][];
+        };
+        TestSequenceDto: {
+            /**
+             * @description Delay in milliseconds between each MQTT command
+             * @default 2000
+             * @example 2000
+             */
+            holdMs: number;
+        };
         DeviceApartmentSummaryDto: {
             id: string;
             /** @example A101 */
@@ -5072,6 +5258,14 @@ export interface components {
             /** Format: date-time */
             warrantyExpiryDate?: string | null;
             configuration?: Record<string, never> | null;
+            /** @example ESP_A101 */
+            mqttEspId?: string | null;
+            /** @example door */
+            mqttControlType?: string | null;
+            /** @example 1 */
+            mqttChannelId?: number | null;
+            /** @example 1 */
+            mqttDoorPasswordChannelId?: number | null;
             accessLogsEnabled: boolean;
             notes?: string | null;
             /** Format: date-time */
@@ -5116,6 +5310,27 @@ export interface components {
             warrantyExpiryDate?: string;
             /** @description Device configuration JSON */
             configuration?: Record<string, never>;
+            /**
+             * @description MQTT target device identifier used as topic prefix
+             * @example ESP_A101
+             */
+            mqttEspId?: string;
+            /**
+             * @description MQTT control topic for this device. When omitted, generic control falls back from deviceType where possible.
+             * @example door
+             * @enum {string}
+             */
+            mqttControlType?: "light" | "alarm" | "door" | "curtain";
+            /**
+             * @description MQTT relay/channel index appended to the payload
+             * @example 1
+             */
+            mqttChannelId?: number;
+            /**
+             * @description Optional door-password channel. Defaults to mqttChannelId when omitted.
+             * @example 1
+             */
+            mqttDoorPasswordChannelId?: number;
             notes?: string;
         };
         UpdateIoTDeviceDto: {
@@ -5153,6 +5368,27 @@ export interface components {
             warrantyExpiryDate?: string;
             /** @description Device configuration JSON */
             configuration?: Record<string, never>;
+            /**
+             * @description MQTT target device identifier used as topic prefix
+             * @example ESP_A101
+             */
+            mqttEspId?: string;
+            /**
+             * @description MQTT control topic for this device. When omitted, generic control falls back from deviceType where possible.
+             * @example door
+             * @enum {string}
+             */
+            mqttControlType?: "light" | "alarm" | "door" | "curtain";
+            /**
+             * @description MQTT relay/channel index appended to the payload
+             * @example 1
+             */
+            mqttChannelId?: number;
+            /**
+             * @description Optional door-password channel. Defaults to mqttChannelId when omitted.
+             * @example 1
+             */
+            mqttDoorPasswordChannelId?: number;
             notes?: string;
             /** @enum {string} */
             status?: "active" | "inactive" | "maintenance" | "error";
@@ -5165,6 +5401,16 @@ export interface components {
             command: string;
             /** Format: date-time */
             executedAt: string;
+            /** @example ESP_A101 */
+            mqttEspId: string;
+            /** @example door */
+            mqttControlType: string;
+            /** @example 1 */
+            mqttChannelId: number;
+            /** @example ESP_A101/door */
+            mqttTopic: string;
+            /** @example open_1 */
+            mqttPayload: string;
         };
         ControlDeviceDto: {
             /**
@@ -7451,7 +7697,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["UpdateApartmentDto"];
+                "multipart/form-data": components["schemas"]["UpdateApartmentRequestDto"];
             };
         };
         responses: {
@@ -7590,7 +7836,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateApartmentDto"];
+                "multipart/form-data": components["schemas"]["CreateApartmentRequestDto"];
             };
         };
         responses: {
@@ -7729,7 +7975,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description No media uploaded or media format is invalid */
+            /** @description No media or apartment info provided, or media format is invalid */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -9791,6 +10037,293 @@ export interface operations {
             };
             /** @description Appointment not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    IoTController_getGatewayStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description IoT MQTT gateway status */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example 200 */
+                        statusCode?: number;
+                        /** @example Success */
+                        message?: string;
+                        data?: components["schemas"]["IoTGatewayStatusDto"];
+                        meta?: {
+                            /** @example 2026-02-26T10:21:00.000Z */
+                            timestamp?: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    IoTController_triggerLight: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                espId: string;
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeviceActionDto"];
+            };
+        };
+        responses: {
+            /** @description Light command published to MQTT broker */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example 200 */
+                        statusCode?: number;
+                        /** @example Success */
+                        message?: string;
+                        data?: components["schemas"]["IoTMqttCommandResultDto"];
+                        meta?: {
+                            /** @example 2026-02-26T10:21:00.000Z */
+                            timestamp?: string;
+                        };
+                    };
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    IoTController_triggerAlarm: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                espId: string;
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeviceActionDto"];
+            };
+        };
+        responses: {
+            /** @description Alarm command published to MQTT broker */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example 200 */
+                        statusCode?: number;
+                        /** @example Success */
+                        message?: string;
+                        data?: components["schemas"]["IoTMqttCommandResultDto"];
+                        meta?: {
+                            /** @example 2026-02-26T10:21:00.000Z */
+                            timestamp?: string;
+                        };
+                    };
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    IoTController_triggerDoor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                espId: string;
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeviceActionDto"];
+            };
+        };
+        responses: {
+            /** @description Door command published to MQTT broker */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example 200 */
+                        statusCode?: number;
+                        /** @example Success */
+                        message?: string;
+                        data?: components["schemas"]["IoTMqttCommandResultDto"];
+                        meta?: {
+                            /** @example 2026-02-26T10:21:00.000Z */
+                            timestamp?: string;
+                        };
+                    };
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    IoTController_triggerCurtain: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                espId: string;
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeviceActionDto"];
+            };
+        };
+        responses: {
+            /** @description Curtain command published to MQTT broker */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example 200 */
+                        statusCode?: number;
+                        /** @example Success */
+                        message?: string;
+                        data?: components["schemas"]["IoTMqttCommandResultDto"];
+                        meta?: {
+                            /** @example 2026-02-26T10:21:00.000Z */
+                            timestamp?: string;
+                        };
+                    };
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    IoTController_configureDoorPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                espId: string;
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetDoorPasswordDto"];
+            };
+        };
+        responses: {
+            /** @description Door password published to MQTT broker */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example 200 */
+                        statusCode?: number;
+                        /** @example Success */
+                        message?: string;
+                        data?: components["schemas"]["IoTMqttCommandResultDto"];
+                        meta?: {
+                            /** @example 2026-02-26T10:21:00.000Z */
+                            timestamp?: string;
+                        };
+                    };
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    IoTController_runTestSequence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                espId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TestSequenceDto"];
+            };
+        };
+        responses: {
+            /** @description MQTT test sequence completed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example 200 */
+                        statusCode?: number;
+                        /** @example Success */
+                        message?: string;
+                        data?: components["schemas"]["IoTTestSequenceResponseDto"];
+                        meta?: {
+                            /** @example 2026-02-26T10:21:00.000Z */
+                            timestamp?: string;
+                        };
+                    };
+                };
+            };
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
