@@ -21,30 +21,29 @@ const COLORS = {
   danger: "#ef4444",
 }
 
-// TODO: Gắn API data vào đây
-// Mỗi tab có một object dữ liệu, bạn thay các giá trị bằng response từ API
+
 const DATA_ELECTRICITY = {
   name: "Điện",
   icon: "flash",
-  charge: 2250000, // TODO: từ API
-  usage: 764, // TODO: từ API
+  charge: 2250000, 
+  usage: 764, 
   usageUnit: "kWh",
-  changePercent: 0.45, // TODO: từ API
-  isUp: true, // TODO: từ API
-  monthlyData: [120, 150, 140, 180, 160, 190, 170, 210, 200, 220, 240, 250], // TODO: từ API
-  lastPayment: "01/2025", // TODO: từ API
+  changePercent: 0.45, 
+  isUp: true, 
+  monthlyData: [120, 150, 140, 180, 160, 190, 170, 210, 200, 220, 240, 250],
+  lastPayment: "01/2025",
 }
 
 const DATA_WATER = {
   name: "Nước",
   icon: "water",
-  charge: 2250000, // TODO: từ API
-  usage: 12, // TODO: từ API
+  charge: 2250000,
+  usage: 12, 
   usageUnit: "m³",
-  changePercent: 0.23, // TODO: từ API
-  isUp: true, // TODO: từ API
-  monthlyData: [8, 10, 9, 12, 11, 14, 13, 16, 15, 18, 19, 20], // TODO: từ API
-  lastPayment: "01/2025", // TODO: từ API
+  changePercent: 0.23, 
+  isUp: true,
+  monthlyData: [8, 10, 9, 12, 11, 14, 13, 16, 15, 18, 19, 20], 
+  lastPayment: "01/2025", 
 }
 
 export default function AnalyticScreen() {
@@ -71,12 +70,11 @@ export default function AnalyticScreen() {
     },
   }
 
-  // Dữ liệu biểu đồ - thay data.monthlyData bằng API data
   const chartData = {
     labels: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"],
     datasets: [
       {
-        data: data.monthlyData, // TODO: từ API
+        data: data.monthlyData,
         color: () => COLORS.primary,
       },
     ],
