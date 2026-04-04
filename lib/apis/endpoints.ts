@@ -14,4 +14,5 @@ export const endpoints = {
   partners: createEndpoints("partners"),
   reservations: createEndpoints("reservations"),
   invoices: createEndpoints("invoices"),
+  iot: createEndpoints("iot")
 };
