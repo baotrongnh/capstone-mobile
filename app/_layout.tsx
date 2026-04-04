@@ -11,6 +11,8 @@ export default function RootLayout() {
           <Stack.Screen name='login' options={{ headerShown: false }} />
           <Stack.Screen name='wifi-setup' options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name='invoices' options={{ headerShown: false }} />
+          <Stack.Screen name="invoices/[id]" options={{ headerShown: false }} />
         </Stack>
       </AuthProvider>
     </ReactQueryProvider>

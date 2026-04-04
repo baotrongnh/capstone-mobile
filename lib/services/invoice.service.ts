@@ -1,4 +1,5 @@
 import {
+    InvoiceDetailId,
     InvoiceDetailResponse,
     InvoiceListQueryParams,
     InvoiceListResponse,
@@ -12,7 +13,7 @@ export const invoiceService = {
         return data
     },
 
-    getById: async (id: string | number): Promise<InvoiceDetailResponse> => {
+    getDetail: async (id: InvoiceDetailId): Promise<InvoiceDetailResponse> => {
         const { data } = await apiClient.get(`${endpoints.invoices}/${id}`)
         return data
     },
