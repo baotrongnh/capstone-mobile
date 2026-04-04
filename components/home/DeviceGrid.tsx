@@ -9,7 +9,7 @@ interface Device {
      title: string
      deviceCount: number
      icon: string,
-     deviceType: IotControlParams['deviceType']
+     topic: IotControlParams['topic']
 }
 
 interface DeviceGridProps {
@@ -29,12 +29,12 @@ export default function DeviceGrid({ devices, onDeviceToggle, espId }: DeviceGri
                               deviceId: item.id,
                               action: isOn ? "ON" : "OFF",
                               espId,
-                              deviceType: item.deviceType
+                              topic: item.topic
                          })}
                     />
                </View>
           ),
-          [onDeviceToggle],
+          [onDeviceToggle, espId],
      )
 
      return (

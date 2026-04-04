@@ -7,16 +7,16 @@ import React from 'react';
 import { Text } from 'react-native';
 
 const devices = [
-     { id: "1", deviceId: '1', title: "Đèn 1", deviceCount: 1, icon: "lightbulb", deviceType: 'light' },
-     { id: "2", deviceId: '2', title: "Đèn 2", deviceCount: 1, icon: "lightbulb", deviceType: 'light' },
-     { id: "3", deviceId: '1', title: "Rèm cửa", deviceCount: 1, icon: "curtains-closed", deviceType: 'curtain' },
+     { id: "1", deviceId: '1', title: "Đèn 1", deviceCount: 1, icon: "lightbulb", topic: 'light' },
+     { id: "2", deviceId: '2', title: "Đèn 2", deviceCount: 1, icon: "lightbulb", topic: 'light' },
+     { id: "3", deviceId: '1', title: "Rèm cửa", deviceCount: 1, icon: "curtains-closed", topic: 'curtain' },
+     { id: "4", deviceId: '1', title: "Báo động", deviceCount: 1, icon: "curtains-closed", topic: 'alarm' },
 ]
 
 //debug
 const espId = 'ESP_A101'
 
 export default function HomeScreen() {
-
      const { mutate, isPending, isSuccess } = useDeviceIot()
 
      const onDeviceToggle = (data: IotControlParams) => {
@@ -24,15 +24,14 @@ export default function HomeScreen() {
                espId: data.espId,
                deviceId: data.deviceId,
                action: data.action,
-               deviceType: data.deviceType
+               topic: data.topic
           })
-          console.log(data.deviceId, data.deviceType, data.action)
+          console.log(data.deviceId, data.topic, data.action)
      }
 
      const onOpenDoor = () => {
           console.log('Door opened')
      }
-
 
      return (
           <StyledContainer>

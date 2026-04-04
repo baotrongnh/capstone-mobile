@@ -26,6 +26,13 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Cho phép ứng dụng truy cập Micro để nhận diện lệnh giọng nói của bạn.",
+          "speechRecognitionPermission": "Cho phép ứng dụng nhận diện lệnh giọng nói để điều khiển thiết bị."
+        }
+      ],
       "expo-router",
       [
         "expo-splash-screen",
