@@ -1,19 +1,19 @@
 import DeviceGrid, { DeviceGridItem } from '@/components/apartment/DeviceGrid'
 import DoorAccessCard from '@/components/apartment/DoorAccessCard'
 import WeatherOverviewCard from '@/components/apartment/WeatherOverviewCard'
-import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { StyledContainer } from '@/components/styles'
 import { useDeviceIot } from '@/hooks/query/useDevices'
-import { IotControlParams } from '@/lib/services/iot.service'
+import { IoTControlVariables } from '@/lib/services/iot.service'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import React from 'react'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 const devices: DeviceGridItem[] = [
-     { id: 'device-1', deviceId: '1', title: 'Rèm cửa', subtitle: 'Ban công', icon: 'curtains-closed', topic: 'curtain' },
-     { id: 'device-2', deviceId: '2', title: 'Đèn trần', subtitle: 'Phòng trẻ em', icon: 'lightbulb-outline', topic: 'light' },
-     { id: 'device-3', deviceId: '3', title: 'Đèn phòng ngủ', subtitle: 'Phòng ngủ', icon: 'lightbulb-outline', topic: 'light' },
-     { id: 'device-4', deviceId: '4', title: 'Báo động', subtitle: 'Toàn căn hộ', icon: 'alarm-light-outline', topic: 'alarm' },
+     { id: 'device-1', deviceId: 1, title: 'Rèm cửa', subtitle: 'Ban công', icon: 'curtains-closed', topic: 'curtain' },
+     { id: 'device-2', deviceId: 2, title: 'Đèn trần', subtitle: 'Phòng trẻ em', icon: 'lightbulb-outline', topic: 'light' },
+     { id: 'device-3', deviceId: 1, title: 'Đèn phòng ngủ', subtitle: 'Phòng ngủ', icon: 'lightbulb-outline', topic: 'light' },
+     { id: 'device-4', deviceId: 1, title: 'Báo động', subtitle: 'Toàn căn hộ', icon: 'alarm-light-outline', topic: 'alarm' },
 ]
 
 //debug
@@ -23,12 +23,12 @@ export default function ApartmentControlScreen() {
      const router = useRouter()
      const { mutate } = useDeviceIot()
 
-     const onDeviceToggle = (data: IotControlParams) => {
+     const onDeviceToggle = (data: IoTControlVariables) => {
           mutate({
                espId: data.espId,
                deviceId: data.deviceId,
-               action: data.action,
-               topic: data.topic
+               topic: data.topic,
+               action: data.action
           })
           console.log(data.deviceId, data.topic, data.action)
      }

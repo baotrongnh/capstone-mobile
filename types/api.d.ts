@@ -1618,6 +1618,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/iot/devices/{espId}/get-telemetry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Request telemetry from MQTT board */
+        post: operations["IoTController_requestTelemetry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/iot/devices/{espId}/check-health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Send health check signal to MQTT board */
+        get: operations["IoTController_checkHealth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/iot/devices/{espId}/test-sequence": {
         parameters: {
             query?: never;
@@ -1775,9 +1809,26 @@ export interface paths {
         put?: never;
         /**
          * Send command to IoT device
-         * @description Control device over MQTT using stored device metadata. Tenants must have an active contract.
+         * @description Control device over MQTT using stored topic/deviceId metadata. Tenants must have an active contract.
          */
         post: operations["IoTController_controlDevice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/iot/devices/{espId}/{deviceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish a generic MQTT device command by topic and device id */
+        post: operations["IoTController_controlDeviceByTopic"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5906,36 +5957,50 @@ export interface components {
             brokerUrl?: string | null;
             /** @example HOMEIQ/+/status */
             statusTopic: string;
+            /** @example HOMEIQ/+/telemetry */
+            telemetryTopic: string;
         };
         IoTMqttPublishDetailsDto: {
             brokerUrl?: string | null;
             /** @example ESP_A101/light */
             topic: string;
-            /** @example on_1 */
+            /** @example ON_1 */
             payload: string;
             /** @example ESP_A101 */
             espId: string;
             /** @example light */
-            controlType: string;
+            deviceTopic?: string | null;
             /** @example 1 */
-            channelId: number;
+            deviceId?: number | null;
+            /** @example ON */
+            action?: string | null;
+            /**
+             * @deprecated
+             * @example light
+             */
+            controlType?: string | null;
+            /**
+             * @deprecated
+             * @example 1
+             */
+            channelId?: number | null;
             /** Format: date-time */
             publishedAt: string;
         };
         IoTMqttCommandResultDto: {
             /** @example true */
             success: boolean;
-            /** @example The lights have been turned on */
+            /** @example light 1 has been ON */
             message: string;
             details: components["schemas"]["IoTMqttPublishDetailsDto"];
         };
         DeviceActionDto: {
             /**
-             * @description MQTT action to send to the target device channel
+             * @description MQTT action to send to the target device. Legacy routes still accept OPEN/CLOSE and LOCK/UNLOCK.
              * @example ON
              * @enum {string}
              */
-            action: "ON" | "OFF" | "OPEN" | "CLOSE";
+            action: "ON" | "OFF" | "OPEN" | "CLOSE" | "LOCK" | "UNLOCK";
         };
         SetDoorPasswordDto: {
             /**
@@ -5943,6 +6008,13 @@ export interface components {
              * @example 290304
              */
             password: string;
+        };
+        IoTMqttSignalResultDto: {
+            /** @example true */
+            success: boolean;
+            /** @example Health check signal sent */
+            message: string;
+            details: components["schemas"]["IoTMqttPublishDetailsDto"];
         };
         IoTTestSequenceStepDto: {
             /** @example 1 */
@@ -5997,10 +6069,27 @@ export interface components {
             status: "active" | "inactive" | "maintenance" | "error";
             isControllableByTenant: boolean;
             /** @example door */
+            mqttTopic?: string | null;
+            /** @example 1 */
+            mqttDeviceId?: number | null;
+            /** @example 1 */
+            mqttDoorPasswordDeviceId?: number | null;
+            /** @example CLOSED */
+            mqttState?: string | null;
+            /**
+             * @deprecated
+             * @example door
+             */
             mqttControlType?: string | null;
-            /** @example 1 */
+            /**
+             * @deprecated
+             * @example 1
+             */
             mqttChannelId?: number | null;
-            /** @example 1 */
+            /**
+             * @deprecated
+             * @example 1
+             */
             mqttDoorPasswordChannelId?: number | null;
             room?: components["schemas"]["IoTBoardRoomSummaryDto"] | null;
         };
@@ -6075,21 +6164,26 @@ export interface components {
             /** @description Device configuration JSON */
             configuration?: Record<string, never>;
             /**
-             * @description MQTT control topic for this child device
+             * @description MQTT topic configured on the ESP board for this child device. Legacy field 'mqttControlType' is also accepted.
              * @example door
              * @enum {string}
              */
-            mqttControlType?: "light" | "alarm" | "door" | "curtain";
+            mqttTopic?: "light" | "alarm" | "door" | "curtain";
             /**
-             * @description MQTT relay/channel index for this child device
+             * @description Logical device id used in MQTT payloads. Legacy field 'mqttChannelId' is also accepted.
              * @example 1
              */
-            mqttChannelId?: number;
+            mqttDeviceId?: number;
             /**
-             * @description Optional door-password channel. Defaults to mqttChannelId when omitted.
+             * @description Optional device id used for door-password responses. Defaults to 'mqttDeviceId' when omitted. Legacy field 'mqttDoorPasswordChannelId' is also accepted.
              * @example 1
              */
-            mqttDoorPasswordChannelId?: number;
+            mqttDoorPasswordDeviceId?: number;
+            /**
+             * @description Latest known state reported back from the IoT board
+             * @example CLOSED
+             */
+            mqttState?: string;
             notes?: string;
         };
         CreateIoTBoardDto: {
@@ -6188,10 +6282,27 @@ export interface components {
             /** @example A101 Main Board */
             mqttBoardName?: string | null;
             /** @example door */
+            mqttTopic?: string | null;
+            /** @example 1 */
+            mqttDeviceId?: number | null;
+            /** @example 1 */
+            mqttDoorPasswordDeviceId?: number | null;
+            /** @example CLOSED */
+            mqttState?: string | null;
+            /**
+             * @deprecated
+             * @example door
+             */
             mqttControlType?: string | null;
-            /** @example 1 */
+            /**
+             * @deprecated
+             * @example 1
+             */
             mqttChannelId?: number | null;
-            /** @example 1 */
+            /**
+             * @deprecated
+             * @example 1
+             */
             mqttDoorPasswordChannelId?: number | null;
             accessLogsEnabled: boolean;
             notes?: string | null;
@@ -6233,21 +6344,26 @@ export interface components {
             /** @description Device configuration JSON */
             configuration?: Record<string, never>;
             /**
-             * @description MQTT control topic for this child device
+             * @description MQTT topic configured on the ESP board for this child device. Legacy field 'mqttControlType' is also accepted.
              * @example door
              * @enum {string}
              */
-            mqttControlType?: "light" | "alarm" | "door" | "curtain";
+            mqttTopic?: "light" | "alarm" | "door" | "curtain";
             /**
-             * @description MQTT relay/channel index for this child device
+             * @description Logical device id used in MQTT payloads. Legacy field 'mqttChannelId' is also accepted.
              * @example 1
              */
-            mqttChannelId?: number;
+            mqttDeviceId?: number;
             /**
-             * @description Optional door-password channel. Defaults to mqttChannelId when omitted.
+             * @description Optional device id used for door-password responses. Defaults to 'mqttDeviceId' when omitted. Legacy field 'mqttDoorPasswordChannelId' is also accepted.
              * @example 1
              */
-            mqttDoorPasswordChannelId?: number;
+            mqttDoorPasswordDeviceId?: number;
+            /**
+             * @description Latest known state reported back from the IoT board
+             * @example CLOSED
+             */
+            mqttState?: string;
             notes?: string;
         };
         IoTDeviceListItemDto: {
@@ -6264,6 +6380,14 @@ export interface components {
             isControllableByTenant: boolean;
             /** Format: date-time */
             lastOnlineAt?: string | null;
+            /** @example ESP_A101 */
+            mqttEspId?: string | null;
+            /** @example light */
+            mqttTopic?: string | null;
+            /** @example 1 */
+            mqttDeviceId?: number | null;
+            /** @example ON */
+            mqttState?: string | null;
             /** Format: date-time */
             createdAt: string;
             apartment: components["schemas"]["DeviceApartmentSummaryDto"];
@@ -6305,31 +6429,36 @@ export interface components {
             /** @description Device configuration JSON */
             configuration?: Record<string, never>;
             /**
-             * @description MQTT target device identifier used as topic prefix
+             * @description MQTT target board identifier used as the topic prefix
              * @example ESP_A101
              */
             mqttEspId?: string;
             /**
-             * @description Human-readable board name for the MQTT target device
+             * @description Human-readable board name
              * @example A101 Main Board
              */
             mqttBoardName?: string;
             /**
-             * @description MQTT control topic for this device. When omitted, generic control falls back from deviceType where possible.
+             * @description MQTT topic configured in the ESP firmware for this device. Legacy field 'mqttControlType' is also accepted.
              * @example door
              * @enum {string}
              */
-            mqttControlType?: "light" | "alarm" | "door" | "curtain";
+            mqttTopic?: "light" | "alarm" | "door" | "curtain";
             /**
-             * @description MQTT relay/channel index appended to the payload
+             * @description Logical device id appended to the MQTT payload as ACTION_id. Legacy field 'mqttChannelId' is also accepted.
              * @example 1
              */
-            mqttChannelId?: number;
+            mqttDeviceId?: number;
             /**
-             * @description Optional door-password channel. Defaults to mqttChannelId when omitted.
+             * @description Optional device id used for door-password responses. Defaults to 'mqttDeviceId' when omitted. Legacy field 'mqttDoorPasswordChannelId' is also accepted.
              * @example 1
              */
-            mqttDoorPasswordChannelId?: number;
+            mqttDoorPasswordDeviceId?: number;
+            /**
+             * @description Latest known state reported back from the IoT board
+             * @example CLOSED
+             */
+            mqttState?: string;
             notes?: string;
         };
         UpdateIoTDeviceDto: {
@@ -6368,31 +6497,36 @@ export interface components {
             /** @description Device configuration JSON */
             configuration?: Record<string, never>;
             /**
-             * @description MQTT target device identifier used as topic prefix
+             * @description MQTT target board identifier used as the topic prefix
              * @example ESP_A101
              */
             mqttEspId?: string;
             /**
-             * @description Human-readable board name for the MQTT target device
+             * @description Human-readable board name
              * @example A101 Main Board
              */
             mqttBoardName?: string;
             /**
-             * @description MQTT control topic for this device. When omitted, generic control falls back from deviceType where possible.
+             * @description MQTT topic configured in the ESP firmware for this device. Legacy field 'mqttControlType' is also accepted.
              * @example door
              * @enum {string}
              */
-            mqttControlType?: "light" | "alarm" | "door" | "curtain";
+            mqttTopic?: "light" | "alarm" | "door" | "curtain";
             /**
-             * @description MQTT relay/channel index appended to the payload
+             * @description Logical device id appended to the MQTT payload as ACTION_id. Legacy field 'mqttChannelId' is also accepted.
              * @example 1
              */
-            mqttChannelId?: number;
+            mqttDeviceId?: number;
             /**
-             * @description Optional door-password channel. Defaults to mqttChannelId when omitted.
+             * @description Optional device id used for door-password responses. Defaults to 'mqttDeviceId' when omitted. Legacy field 'mqttDoorPasswordChannelId' is also accepted.
              * @example 1
              */
-            mqttDoorPasswordChannelId?: number;
+            mqttDoorPasswordDeviceId?: number;
+            /**
+             * @description Latest known state reported back from the IoT board
+             * @example CLOSED
+             */
+            mqttState?: string;
             notes?: string;
             /** @enum {string} */
             status?: "active" | "inactive" | "maintenance" | "error";
@@ -6401,27 +6535,52 @@ export interface components {
             /** @example Command executed successfully */
             status: string;
             deviceId: string;
-            /** @example unlock */
-            command: string;
+            /** @example ON */
+            action: string;
             /** Format: date-time */
             executedAt: string;
             /** @example ESP_A101 */
             mqttEspId: string;
             /** @example door */
-            mqttControlType: string;
-            /** @example 1 */
-            mqttChannelId: number;
-            /** @example ESP_A101/door */
             mqttTopic: string;
-            /** @example open_1 */
+            /** @example 1 */
+            mqttDeviceId: number;
+            /**
+             * @deprecated
+             * @example door
+             */
+            mqttControlType?: string | null;
+            /**
+             * @deprecated
+             * @example 1
+             */
+            mqttChannelId?: number | null;
+            /** @example ESP_A101/door */
+            mqttPublishTopic: string;
+            /** @example ON_1 */
             mqttPayload: string;
         };
         ControlDeviceDto: {
             /**
-             * @description Command to send to device (e.g., lock, unlock, on, off)
-             * @example unlock
+             * @description Action to send to a registered IoT device. Legacy body field 'command' is still accepted.
+             * @example ON
+             * @enum {string}
              */
-            command: string;
+            action: "ON" | "OFF" | "OPEN" | "CLOSE" | "LOCK" | "UNLOCK";
+        };
+        DirectMqttControlDto: {
+            /**
+             * @description MQTT topic segment configured on the ESP board for this device
+             * @example light
+             * @enum {string}
+             */
+            topic: "light" | "alarm" | "door" | "curtain";
+            /**
+             * @description Only ON/OFF are accepted by the current IoT backend
+             * @example ON
+             * @enum {string}
+             */
+            action: "ON" | "OFF";
         };
         UtilityMeterListItemDto: {
             id: string;
@@ -11980,6 +12139,76 @@ export interface operations {
             };
         };
     };
+    IoTController_requestTelemetry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                espId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Telemetry request published to MQTT broker */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example 200 */
+                        statusCode?: number;
+                        /** @example Success */
+                        message?: string;
+                        data?: components["schemas"]["IoTMqttSignalResultDto"];
+                        meta?: {
+                            /** @example 2026-02-26T10:21:00.000Z */
+                            timestamp?: string;
+                        };
+                    };
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    IoTController_checkHealth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                espId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Health check signal published to MQTT broker */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example 200 */
+                        statusCode?: number;
+                        /** @example Success */
+                        message?: string;
+                        data?: components["schemas"]["IoTMqttSignalResultDto"];
+                        meta?: {
+                            /** @example 2026-02-26T10:21:00.000Z */
+                            timestamp?: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
     IoTController_runTestSequence: {
         parameters: {
             query?: never;
@@ -12542,6 +12771,43 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    IoTController_controlDeviceByTopic: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                espId: string;
+                deviceId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DirectMqttControlDto"];
+            };
+        };
+        responses: {
+            /** @description Generic MQTT command published to MQTT broker */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example 201 */
+                        statusCode?: number;
+                        /** @example Success */
+                        message?: string;
+                        data?: components["schemas"]["IoTMqttCommandResultDto"];
+                        meta?: {
+                            /** @example 2026-02-26T10:21:00.000Z */
+                            timestamp?: string;
+                        };
+                    };
+                };
             };
         };
     };
