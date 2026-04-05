@@ -7,7 +7,7 @@ export type IotControlParams = {
      espId: string,
      deviceId: string,
      action: 'ON' | 'OFF',
-     deviceType: 'light' | 'curtain' | 'door' | 'alarm' | string
+     topic: 'light' | 'curtain' | 'door' | 'alarm' | string
 }
 
 export const iotServices = {
@@ -15,11 +15,11 @@ export const iotServices = {
           espId: IotControlParams['espId'],
           deviceId: IotControlParams['deviceId'],
           action: IotControlParams['action'],
-          deviceType: IotControlParams['deviceType']
+          topic: IotControlParams['topic']
      ): Promise<lightControlResponse> => {
 
           const { data } = await apiClient.post(
-               `${endpoints.iot}/devices/${espId}/${deviceType}/${deviceId}`,
+               `${endpoints.iot}/devices/${espId}/${topic}/${deviceId}`,
                { action }
           )
 

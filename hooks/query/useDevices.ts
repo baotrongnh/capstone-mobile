@@ -4,9 +4,9 @@ import { useMutation } from "@tanstack/react-query"
 export const useDeviceIot = () => {
 
      return useMutation({
-          mutationFn: ({ espId, deviceId, action, deviceType }
+          mutationFn: ({ espId, deviceId, action, topic }
                : IotControlParams) =>
-               iotServices.deviceControl(espId, deviceId, action, deviceType),
+               iotServices.deviceControl(espId, deviceId, action, topic),
           onSuccess: () => {
                console.log('ok')
           },

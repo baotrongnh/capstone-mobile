@@ -6,17 +6,16 @@ import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type TabVisual = {
-  label: string;
-  icon: keyof typeof MaterialCommunityIcons.glyphMap;
-};
+  label: string
+  icon: keyof typeof MaterialCommunityIcons.glyphMap
+}
 
 const TAB_VISUALS: Record<string, TabVisual> = {
   home: { label: "Căn hộ", icon: "home-outline" },
   apartment: { label: "Căn hộ", icon: "office-building-outline" },
   analytic: { label: "Căn hộ", icon: "meter-electric-outline" },
-  contract: { label: "Hợp đồng", icon: "file-document-outline" },
   profile: { label: "Profile", icon: "account-outline" },
-};
+}
 
 const ACTIVE_BADGE_WIDTH = 66;
 const ACTIVE_UNDERLINE_WIDTH = 34;
@@ -188,13 +187,13 @@ export default function TabLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: "Căn hộ",
+          title: "Trang chủ",
         }}
       />
       <Tabs.Screen
         name="apartment"
         options={{
-          title: "Thuê",
+          title: "Căn hộ",
         }}
       />
       <Tabs.Screen
