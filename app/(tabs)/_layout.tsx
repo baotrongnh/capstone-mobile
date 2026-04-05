@@ -188,13 +188,13 @@ export default function TabLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: "Căn hộ",
+          title: "Trang chủ",
         }}
       />
       <Tabs.Screen
-        name="apartment"
+        name="my-apartment"
         options={{
-          title: "Thuê",
+          title: "Căn hộ",
         }}
       />
       <Tabs.Screen
