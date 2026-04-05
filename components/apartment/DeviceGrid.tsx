@@ -1,22 +1,22 @@
 import React from "react"
 import { StyleSheet, View } from "react-native"
 import DeviceCard from "./DeviceCard"
-import { IotControlParams } from "@/lib/services/iot.service"
+import { IotControlParams, IoTControlVariables } from "@/lib/services/iot.service"
 import { MaterialCommunityIcons } from "@expo/vector-icons"
 
 export interface DeviceGridItem {
      id: string
-     deviceId: string
+     deviceId: number
      title: string
      subtitle?: string
      icon: keyof typeof MaterialCommunityIcons.glyphMap
-     topic: IotControlParams["topic"]
+     topic: IoTControlVariables["topic"]
      initial?: boolean
 }
 
 interface DeviceGridProps {
      devices: DeviceGridItem[]
-     onDeviceToggle?: (data: IotControlParams) => void
+     onDeviceToggle?: (data: IoTControlVariables) => void
      espId: string
 }
 
