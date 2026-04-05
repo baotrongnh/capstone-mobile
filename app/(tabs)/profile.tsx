@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Alert, Text } from "react-native";
+import { Alert, BackHandler, Text } from "react-native";
 import {
   Container,
   ScrollContainer,
@@ -8,6 +8,11 @@ import {
   ProfileDetails,
   PushNotifications,
 } from "../../components/profile";
+import { useAuthStore } from "@/stores/auth.store";
+import { useUpdateUser, useUpdateUserAvatar } from "@/hooks/query/useUser";
+import { uploadImageFromUri } from "@/utils/uploadFile";
+import { UserProfileEditableValues } from "@/types/user";
+import { toUserText } from "@/utils/user";
 
 interface MenuItemData {
   id: string;
@@ -19,62 +24,154 @@ interface MenuItemData {
 const menuItems: MenuItemData[] = [
   {
     id: "profile-details",
-    label: "Profile details",
+    label: "Thông tin tài khoản",
     icon: "person",
     screen: "profile-details",
   },
   {
     id: "settings",
-    label: "Settings",
+    label: "Cài đặt",
     icon: "settings",
     screen: "settings",
   },
   {
     id: "push-notifications",
-    label: "Push Notifications",
+    label: "Thông báo đẩy",
     icon: "notifications",
     screen: "push-notifications",
   },
   {
     id: "support",
-    label: "Support",
+    label: "Hỗ trợ",
     icon: "help-circle",
     screen: "support",
   },
   {
     id: "logout",
-    label: "Logout",
+    label: "Đăng xuất",
     icon: "log-out",
     screen: "logout",
   },
 ];
 
 export default function ProfileScreenPage() {
-  const [currentScreen, setCurrentScreen] = useState<string>("main");
-  const [avatar, setAvatar] = useState<string | null>(null);
+  const user = useAuthStore((state) => state.user);
+  const isHydrated = useAuthStore((state) => state.isHydrated);
+  const logout = useAuthStore((state) => state.logout);
+  const { mutateAsync: updateUser, isPending: isUpdatingProfile } = useUpdateUser(user?.id ?? "");
+  const { mutateAsync: updateUserAvatar } = useUpdateUserAvatar(user?.id ?? "");
 
-  const userData = {
-    name: "Ruben Geldt",
-    email: "ruben.geldt@example.com",
+  const [currentScreen, setCurrentScreen] = useState<string>("main");
+  const [localAvatar, setLocalAvatar] = useState<string | null>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+
+  React.useEffect(() => {
+    const onBackPress = () => {
+      if (currentScreen !== "main") {
+        setCurrentScreen("main");
+        return true;
+      }
+
+      return false;
+    };
+
+    const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
+    return () => subscription.remove();
+  }, [currentScreen]);
+
+  const avatarFromStore =
+    typeof user?.profileImageUrl === "string" && user.profileImageUrl.trim().length > 0
+      ? user.profileImageUrl
+      : null;
+  const avatar = localAvatar ?? avatarFromStore;
+
+  const handleAvatarChange = async (uri: string) => {
+    if (!user?.id) {
+      Alert.alert("Thiếu thông tin", "Không tìm thấy tài khoản người dùng để cập nhật ảnh đại diện.");
+      return;
+    }
+
+    setLocalAvatar(uri);
+
+    try {
+      setAvatarUploading(true);
+      const uploaded = await uploadImageFromUri(uri);
+      await updateUserAvatar(uploaded.url);
+      Alert.alert("Thành công", "Đã cập nhật ảnh đại diện.");
+    } catch (error) {
+      console.error("Avatar update failed", error);
+      setLocalAvatar(avatarFromStore);
+      Alert.alert("Cập nhật thất bại", "Không thể cập nhật ảnh đại diện. Vui lòng thử lại.");
+    } finally {
+      setAvatarUploading(false);
+    }
   };
 
-  const handleAvatarChange = (uri: string) => {
-    setAvatar(uri);
+  const handleSaveProfile = async (values: UserProfileEditableValues) => {
+    if (!user?.id) {
+      Alert.alert("Thiếu thông tin", "Không tìm thấy tài khoản người dùng để cập nhật.");
+      return;
+    }
+
+    try {
+      await updateUser({
+        fullName: values.fullName,
+        phone: values.phone,
+        emergencyContactName: values.emergencyContactName,
+        emergencyContactPhone: values.emergencyContactPhone,
+      });
+      Alert.alert("Thành công", "Đã cập nhật thông tin tài khoản.");
+    } catch (error) {
+      console.error("Profile update failed", error);
+      Alert.alert("Cập nhật thất bại", "Không thể cập nhật thông tin. Vui lòng thử lại.");
+      throw error;
+    }
   };
 
   const handleMenuPress = (screen: string) => {
     if (screen === "logout") {
-      Alert.alert("Logout", "Are you sure you want to logout?", [
-        { text: "Cancel", onPress: () => {} },
-        { text: "Logout", onPress: () => {}, style: "destructive" },
+      Alert.alert("Đăng xuất", "Bạn có chắc chắn muốn đăng xuất không?", [
+        { text: "Hủy", onPress: () => { } },
+        {
+          text: "Đăng xuất",
+          onPress: () => {
+            void logout();
+          },
+          style: "destructive",
+        },
       ]);
+    } else if (screen === "settings" || screen === "support") {
+      Alert.alert("Thông báo", "Tính năng này sẽ được cập nhật sớm.");
     } else {
       setCurrentScreen(screen);
     }
   };
 
+  if (!isHydrated) {
+    return (
+      <Container>
+        <Text
+          style={{
+            padding: 20,
+            fontSize: 16,
+            color: "#6b7280",
+          }}
+        >
+          Đang tải thông tin tài khoản...
+        </Text>
+      </Container>
+    );
+  }
+
   if (currentScreen === "profile-details") {
-    return <ProfileDetails onBack={() => setCurrentScreen("main")} />;
+    return (
+      <ProfileDetails
+        onBack={() => setCurrentScreen("main")}
+        user={user}
+        onSave={handleSaveProfile}
+        saving={isUpdatingProfile}
+      />
+    );
   }
 
   if (currentScreen === "push-notifications") {
@@ -92,13 +189,15 @@ export default function ProfileScreenPage() {
           color: "#1f2937",
         }}
       >
-        Profile
+        Cá nhân
       </Text>
       <ScrollContainer showsVerticalScrollIndicator={false}>
         <ProfileHeader
-          name={userData.name}
-          email={userData.email}
+          name={toUserText(user?.fullName)}
+          email={toUserText(user?.email)}
           avatar={avatar}
+          isVerified={Boolean(user?.identity?.isVerified ?? user?.isVerified)}
+          avatarUploading={avatarUploading}
           onAvatarChange={handleAvatarChange}
         />
         <ProfileMenu items={menuItems} onMenuPress={handleMenuPress} />
