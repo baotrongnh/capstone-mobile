@@ -11,10 +11,10 @@ type TabVisual = {
 }
 
 const TAB_VISUALS: Record<string, TabVisual> = {
-  home: { label: "Căn hộ", icon: "home-outline" },
+  home: { label: "Trang chủ", icon: "home-outline" },
   apartment: { label: "Căn hộ", icon: "office-building-outline" },
-  analytic: { label: "Căn hộ", icon: "meter-electric-outline" },
-  profile: { label: "Profile", icon: "account-outline" },
+  analytic: { label: "Chỉ số", icon: "meter-electric-outline" },
+  profile: { label: "Cá nhân", icon: "account-outline" },
 }
 
 const ACTIVE_BADGE_WIDTH = 66;

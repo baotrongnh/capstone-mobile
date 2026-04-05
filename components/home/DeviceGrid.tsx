@@ -1,62 +1,58 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons"
 import React from "react"
-import { FlatList, StyleSheet, View } from "react-native"
+import { StyleSheet, View } from "react-native"
 import DeviceCard from "./DeviceCard"
 import { IotControlParams } from "@/lib/services/iot.service"
+import { MaterialCommunityIcons } from "@expo/vector-icons"
 
-interface Device {
+export interface DeviceGridItem {
      id: string
+     deviceId: string
      title: string
-     deviceCount: number
-     icon: string,
-     topic: IotControlParams['topic']
+     subtitle?: string
+     icon: keyof typeof MaterialCommunityIcons.glyphMap
+     topic: IotControlParams["topic"]
+     initial?: boolean
 }
 
 interface DeviceGridProps {
-     devices: Device[];
+     devices: DeviceGridItem[]
      onDeviceToggle?: (data: IotControlParams) => void
      espId: string
 }
 
 export default function DeviceGrid({ devices, onDeviceToggle, espId }: DeviceGridProps) {
-     const renderItem = React.useCallback(
-          ({ item }: { item: Device }) => (
-               <View style={styles.item}>
-                    <DeviceCard
-                         icon={<MaterialCommunityIcons name={item.icon as any} size={32} color="#1f2937" />}
-                         title={item.title}
-                         onToggle={(isOn) => onDeviceToggle?.({
-                              deviceId: item.id,
-                              action: isOn ? "ON" : "OFF",
-                              espId,
-                              topic: item.topic
-                         })}
-                    />
-               </View>
-          ),
-          [onDeviceToggle, espId],
-     )
-
      return (
-          <View>
-               <FlatList
-                    data={devices}
-                    numColumns={2}
-                    columnWrapperStyle={styles.row}
-                    keyExtractor={(item) => item.id}
-                    renderItem={renderItem}
-                    scrollEnabled={false}
-               />
+          <View style={styles.grid}>
+               {devices.map((item) => (
+                    <View key={item.id} style={styles.item}>
+                         <DeviceCard
+                              iconName={item.icon}
+                              title={item.title}
+                              subtitle={item.subtitle}
+                              initial={item.initial}
+                              onToggle={(isOn) =>
+                                   onDeviceToggle?.({
+                                        deviceId: item.deviceId,
+                                        action: isOn ? "ON" : "OFF",
+                                        espId,
+                                        topic: item.topic,
+                                   })
+                              }
+                         />
+                    </View>
+               ))}
           </View>
      )
 }
 
 const styles = StyleSheet.create({
-     row: {
+     grid: {
+          flexDirection: "row",
+          flexWrap: "wrap",
           justifyContent: "space-between",
-          marginBottom: 12,
+          gap: 12,
      },
      item: {
-          width: "48.5%",
+          width: "48.2%",
      },
 })

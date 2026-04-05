@@ -1,84 +1,80 @@
-
+import { MaterialCommunityIcons } from "@expo/vector-icons"
 import React, { useRef, useState } from "react"
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native"
 
-const ANIMATION_DURATION = 180
-const THUMB_OFF_X = 1
-const THUMB_ON_X = 18
-
 interface DeviceCardProps {
-     icon: React.ReactNode
+     iconName: keyof typeof MaterialCommunityIcons.glyphMap
      title: string
+     subtitle?: string
      onToggle?: (value: boolean) => void
      initial?: boolean
 }
 
-/**
- * Reusable device card with local on/off state and animated switch.
- * Keeps internal toggle behavior isolated and notifies parent via onToggle.
- */
 export default function DeviceCard({
-     icon,
+     iconName,
      title,
+     subtitle,
      onToggle,
      initial = false,
 }: DeviceCardProps) {
      const [isOn, setIsOn] = useState(initial)
-     const anim = useRef(new Animated.Value(initial ? 1 : 0)).current
+     const switchAnim = useRef(new Animated.Value(initial ? 20 : 0)).current
 
      const toggleSwitch = () => {
-          const newValue = !isOn
-          setIsOn(newValue)
+          const nextValue = !isOn
+          setIsOn(nextValue)
 
-          Animated.timing(anim, {
-               toValue: newValue ? 1 : 0,
-               duration: ANIMATION_DURATION,
-               useNativeDriver: false,
+          Animated.spring(switchAnim, {
+               toValue: nextValue ? 20 : 0,
+               damping: 16,
+               stiffness: 240,
+               mass: 0.8,
+               useNativeDriver: true,
           }).start()
 
-          onToggle?.(newValue)
+          onToggle?.(nextValue)
      }
-
-     const translateX = anim.interpolate({
-          inputRange: [0, 1],
-          outputRange: [THUMB_OFF_X, THUMB_ON_X],
-     })
 
      return (
           <View style={[styles.card, isOn && styles.cardOn]}>
                <View style={styles.row}>
-                    <View style={[styles.icon, isOn && styles.iconOn]}>{icon}</View>
+                    <View style={[styles.iconWrap, isOn && styles.iconWrapOn]}>
+                         <MaterialCommunityIcons
+                              name={iconName}
+                              size={22}
+                              color={isOn ? "#1d4ed8" : "#334155"}
+                         />
+                    </View>
+
                     <Pressable onPress={toggleSwitch} style={styles.switchWrap} hitSlop={8}>
                          <View style={[styles.track, isOn && styles.trackOn]}>
-                              <Animated.View style={[styles.thumb, { transform: [{ translateX }] }]} />
+                              <Animated.View style={[styles.thumb, { transform: [{ translateX: switchAnim }] }]} />
                          </View>
                     </Pressable>
                </View>
-               <Text style={[styles.title, isOn && styles.titleOn]}>{title}</Text>
-               {/* Keep existing display behavior for easier integration with current module */}
-               <Text style={[styles.deviceCount, isOn && styles.deviceCountOn]}>ID: test123</Text>
+
+               <Text numberOfLines={1} style={styles.title}>{title}</Text>
+               {subtitle ? <Text numberOfLines={1} style={styles.subtitle}>{subtitle}</Text> : null}
+               <Text style={[styles.statusText, isOn && styles.statusTextOn]}>
+                    {isOn ? "Đang bật" : "Đang tắt"}
+               </Text>
           </View>
      )
 }
 
 const styles = StyleSheet.create({
      card: {
-          flex: 1,
-          backgroundColor: "#f8fafc",
+          borderRadius: 18,
           borderWidth: 1,
-          borderColor: "#dbe7ff",
-          borderRadius: 16,
-          padding: 18,
-          minHeight: 126,
+          borderColor: "#e2e8f0",
+          backgroundColor: "#f8fafc",
+          padding: 14,
+          height: 154,
           justifyContent: "flex-start",
-          shadowColor: "#000",
-          shadowOpacity: 0.06,
-          shadowRadius: 8,
-          elevation: 2,
      },
      cardOn: {
+          borderColor: "#bfdbfe",
           backgroundColor: "#eff6ff",
-          borderColor: "#2563eb",
      },
      row: {
           flexDirection: "row",
@@ -86,56 +82,56 @@ const styles = StyleSheet.create({
           justifyContent: "space-between",
           marginBottom: 12,
      },
-     icon: {
-          backgroundColor: "#fff",
-          borderRadius: 24,
-          padding: 10,
+     iconWrap: {
+          width: 42,
+          height: 42,
+          borderRadius: 21,
           alignItems: "center",
           justifyContent: "center",
+          backgroundColor: "#ffffff",
      },
-     iconOn: {
+     iconWrapOn: {
           backgroundColor: "#dbeafe",
      },
      switchWrap: {
-          alignItems: "center",
-          justifyContent: "center",
-          padding: 3,
-     },
-     track: {
-          width: 42,
-          height: 24,
-          borderRadius: 12,
-          backgroundColor: "#cbd5e1",
-          justifyContent: "center",
           padding: 2,
      },
+     track: {
+          width: 48,
+          height: 28,
+          borderRadius: 14,
+          backgroundColor: "#cbd5e1",
+          padding: 3,
+          justifyContent: "center",
+     },
      trackOn: {
-          backgroundColor: "#2563eb",
+          backgroundColor: "#3b82f6",
      },
      thumb: {
-          width: 20,
-          height: 20,
-          borderRadius: 10,
-          backgroundColor: "#fff",
-          elevation: 2,
-          shadowColor: "#000",
-          shadowOpacity: 0.08,
-          shadowRadius: 2,
+          width: 22,
+          height: 22,
+          borderRadius: 11,
+          backgroundColor: "#ffffff",
      },
      title: {
-          fontSize: 16,
+          minHeight: 24,
+          fontSize: 17,
           fontWeight: "700",
-          color: "#1f2937",
-          marginBottom: 4,
+          color: "#0f172a",
      },
-     titleOn: {
-          color: "#1d4ed8",
+     subtitle: {
+          marginTop: 4,
+          minHeight: 18,
+          fontSize: 12,
+          color: "#64748b",
      },
-     deviceCount: {
-          fontSize: 13,
-          color: "#475569",
+     statusText: {
+          marginTop: "auto",
+          fontSize: 12,
+          color: "#64748b",
+          fontWeight: "600",
      },
-     deviceCountOn: {
-          color: "#1e40af",
+     statusTextOn: {
+          color: "#2563eb",
      },
 })
