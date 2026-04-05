@@ -1,12 +1,13 @@
 import { Colors } from "@/components/styles"
+import { Ionicons } from "@expo/vector-icons"
 import { wifiService, WifiStatus } from "@/lib/services/wifi.service"
-import { isAxiosError } from "axios"
 import { useRouter } from "expo-router"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
      ActivityIndicator,
      Keyboard,
      KeyboardAvoidingView,
+     Modal,
      Platform,
      Pressable,
      ScrollView,
@@ -18,20 +19,25 @@ import {
      View,
 } from "react-native"
 
-const STATUS_LABEL: Record<WifiStatus, string> = {
-     idle: "Sẵn sàng",
-     sending: "Đang gửi cấu hình",
-     connecting: "Thiết bị đang kết nối Wi-Fi",
-     connected: "Kết nối thành công",
-     failed: "Kết nối thất bại",
+const REQUIRED_DEVICE_WIFI = "HOME-IQ-HUB"
+const LOG_PREFIX = "[wifi-setup]"
+const POLL_INTERVAL_MS = 2000
+const POLL_MAX_RETRY = 10
+const POLL_ERROR_RETRY = 5
+const READINESS_TIMEOUT_MS = 2500
+
+const STATUS_META: Record<Exclude<WifiStatus, "idle">, { label: string; color: string }> = {
+     sending: { label: "Đang gửi cấu hình", color: "#2563eb" },
+     connecting: { label: "Thiết bị đang kết nối Wi-Fi", color: "#d97706" },
+     connected: { label: "Kết nối thành công", color: "#16a34a" },
+     failed: { label: "Kết nối thất bại", color: "#dc2626" },
 }
 
-const STATUS_COLOR: Record<WifiStatus, string> = {
-     idle: "#64748b",
-     sending: "#2563eb",
-     connecting: "#d97706",
-     connected: "#16a34a",
-     failed: "#dc2626",
+const mapServerStatus = (status?: string | null): WifiStatus => {
+     if (status === "connecting" || status === "connected" || status === "failed") {
+          return status
+     }
+     return "idle"
 }
 
 export default function WifiSetupScreen() {
@@ -42,12 +48,76 @@ export default function WifiSetupScreen() {
      const [password, setPassword] = useState("")
      const [showPassword, setShowPassword] = useState(false)
      const [status, setStatus] = useState<WifiStatus>("idle")
-     const [debugMessage, setDebugMessage] = useState("")
-     const [isCheckingStatus, setIsCheckingStatus] = useState(false)
+     const [message, setMessage] = useState("")
+     const [isCheckingNetwork, setIsCheckingNetwork] = useState(false)
+     const [isOnDeviceNetwork, setIsOnDeviceNetwork] = useState<boolean | null>(null)
+     const [isGuideOpen, setIsGuideOpen] = useState(false)
 
-     const canSubmit = useMemo(() => {
-          return ssid.trim().length > 0 && status !== "sending" && status !== "connecting"
-     }, [ssid, status])
+     const logDebug = useCallback((event: string, payload?: unknown) => {
+          console.log(LOG_PREFIX, event, payload ?? "")
+     }, [])
+
+     const isBusy = isCheckingNetwork || status === "sending" || status === "connecting"
+     const trimmedSsid = ssid.trim()
+
+     const canSubmit = useMemo(() => trimmedSsid.length > 0 && isOnDeviceNetwork === true && !isBusy, [isBusy, isOnDeviceNetwork, trimmedSsid.length])
+
+     const statusDisplay = useMemo(() => {
+          if (isCheckingNetwork) {
+               return { label: "Đang kiểm tra mạng thiết bị", color: "#2563eb" }
+          }
+
+          if (status === "idle") {
+               if (isOnDeviceNetwork === true) {
+                    return { label: "Sẵn sàng gửi cấu hình", color: "#16a34a" }
+               }
+               if (isOnDeviceNetwork === false) {
+                    return { label: `Chưa kết nối ${REQUIRED_DEVICE_WIFI}`, color: "#d97706" }
+               }
+               return { label: "Đang kiểm tra kết nối", color: "#64748b" }
+          }
+
+          return {
+               label: STATUS_META[status].label,
+               color: STATUS_META[status].color,
+          }
+     }, [isCheckingNetwork, isOnDeviceNetwork, status])
+
+     const checkDeviceNetwork = useCallback(async (silent = false) => {
+          setIsCheckingNetwork(true)
+          try {
+               const readiness = await wifiService.checkDeviceReadiness(READINESS_TIMEOUT_MS)
+               logDebug("device-network-check", readiness)
+               setIsOnDeviceNetwork(readiness.reachable)
+
+               if (!readiness.reachable) {
+                    setStatus("idle")
+                    if (!silent) {
+                         setMessage(`Vui lòng kết nối ${REQUIRED_DEVICE_WIFI} trước khi gửi cấu hình.`)
+                    }
+                    return false
+               }
+
+               const serverStatus = mapServerStatus(readiness.status)
+               setStatus(serverStatus)
+
+               if (!silent) {
+                    if (serverStatus === "connected") {
+                         setMessage("Thiết bị đã kết nối Wi-Fi thành công.")
+                    } else if (serverStatus === "connecting") {
+                         setMessage("Thiết bị đang kết nối Wi-Fi...")
+                    } else if (serverStatus === "failed") {
+                         setMessage("Thiết bị từng kết nối thất bại. Bạn có thể gửi lại cấu hình.")
+                    } else {
+                         setMessage(`Đã kết nối ${REQUIRED_DEVICE_WIFI}. Có thể gửi cấu hình.`)
+                    }
+               }
+
+               return true
+          } finally {
+               setIsCheckingNetwork(false)
+          }
+     }, [logDebug])
 
      useEffect(() => {
           return () => {
@@ -57,109 +127,101 @@ export default function WifiSetupScreen() {
           }
      }, [])
 
-     const schedulePoll = (retry = 0) => {
+     useEffect(() => {
+          void checkDeviceNetwork(true)
+     }, [checkDeviceNetwork])
+
+     const schedulePoll = useCallback((retry = 0) => {
           pollTimer.current = setTimeout(async () => {
                try {
                     const data = await wifiService.getStatus()
+                    const nextStatus = mapServerStatus(data.status)
+                    logDebug("poll-status", { retry, status: nextStatus })
 
-                    if (data.status === "connected") {
-                         setStatus("connected")
-                         setDebugMessage(JSON.stringify(data, null, 2))
+                    if (nextStatus === "connected") {
+                         setStatus(nextStatus)
+                         setMessage("Thiết bị đã kết nối Wi-Fi thành công.")
                          return
                     }
 
-                    if (data.status === "failed") {
-                         setStatus("failed")
-                         setDebugMessage(JSON.stringify(data, null, 2))
+                    if (nextStatus === "failed") {
+                         setStatus(nextStatus)
+                         setMessage("Thiết bị kết nối Wi-Fi thất bại. Vui lòng kiểm tra lại thông tin.")
                          return
                     }
 
-                    if (retry >= 10) {
+                    if (retry >= POLL_MAX_RETRY) {
                          setStatus("failed")
-                         setDebugMessage("Hết thời gian chờ phản hồi từ thiết bị")
+                         setMessage("Hết thời gian chờ phản hồi từ thiết bị")
                          return
                     }
 
                     setStatus("connecting")
-                    setDebugMessage(JSON.stringify(data, null, 2))
+                    setMessage("Thiết bị đang kết nối Wi-Fi...")
                     schedulePoll(retry + 1)
                } catch (error) {
-                    if (retry >= 5) {
+                    logDebug("poll-status-error", { retry, error })
+                    if (retry >= POLL_ERROR_RETRY) {
                          setStatus("failed")
-                         if (isAxiosError(error)) {
-                              setDebugMessage(error.message)
-                         } else {
-                              setDebugMessage("Không thể lấy trạng thái thiết bị")
-                         }
+                         setMessage("Không thể lấy trạng thái thiết bị")
                          return
                     }
 
                     schedulePoll(retry + 1)
                }
-          }, 2000)
-     }
+          }, POLL_INTERVAL_MS)
+     }, [logDebug])
 
      const handleSendWifi = async () => {
           Keyboard.dismiss()
 
-          if (!ssid.trim()) {
-               setDebugMessage("Vui lòng nhập tên Wi-Fi")
+          if (!trimmedSsid) {
+               setMessage("Vui lòng nhập tên Wi-Fi")
+               return
+          }
+
+          if (pollTimer.current) {
+               clearTimeout(pollTimer.current)
+          }
+
+          const isReady = await checkDeviceNetwork()
+          if (!isReady) {
+               setStatus("idle")
                return
           }
 
           try {
                setStatus("sending")
-               setDebugMessage("")
+               setMessage("Đang gửi cấu hình...")
+               logDebug("send-config", { ssid: trimmedSsid })
 
                const data = await wifiService.sendConfig({
-                    ssid: ssid.trim(),
+                    ssid: trimmedSsid,
                     password,
                })
+               logDebug("send-config-result", data)
 
-               setDebugMessage(JSON.stringify(data, null, 2))
+               const nextStatus = mapServerStatus(data.status)
 
-               if (data.status === "connecting") {
-                    setStatus("connecting")
-                    schedulePoll(0)
+               if (nextStatus === "connected") {
+                    setStatus(nextStatus)
+                    setMessage("Thiết bị đã kết nối Wi-Fi thành công.")
                     return
                }
 
-               if (data.status === "connected") {
-                    setStatus("connected")
+               if (nextStatus === "failed") {
+                    setStatus(nextStatus)
+                    setMessage("Thiết bị từ chối cấu hình. Vui lòng thử lại.")
                     return
                }
 
-               setStatus("failed")
+               setStatus("connecting")
+               setMessage("Cấu hình đã gửi. Đang chờ thiết bị kết nối Wi-Fi...")
+               schedulePoll(0)
           } catch (error) {
+               logDebug("send-config-error", error)
                setStatus("failed")
-               if (isAxiosError(error)) {
-                    setDebugMessage(error.message)
-               } else {
-                    setDebugMessage("Không gửi được cấu hình Wi-Fi")
-               }
-          }
-     }
-
-     const handleDebugStatus = async () => {
-          try {
-               setIsCheckingStatus(true)
-               const data = await wifiService.getStatus()
-               if (data.status === "connected") {
-                    setStatus("connected")
-               } else if (data.status === "failed") {
-                    setStatus("failed")
-               } else if (data.status === "connecting") {
-                    setStatus("connecting")
-               }
-               setDebugMessage(JSON.stringify(data, null, 2))
-          } catch (error) {
-               if (isAxiosError(error)) {
-                    setDebugMessage(error.message)
-               } else {
-                    setDebugMessage("Không thể debug trạng thái")
-               }
-          } finally {
-               setIsCheckingStatus(false)
+               setMessage("Không gửi được cấu hình Wi-Fi")
           }
      }
 
@@ -174,11 +236,19 @@ export default function WifiSetupScreen() {
                          keyboardShouldPersistTaps="handled"
                          showsVerticalScrollIndicator={false}
                     >
-                         <View style={styles.headerRow}>
-                              <Text style={styles.title}>Kết nối Wi-Fi cho thiết bị</Text>
-                              <TouchableOpacity onPress={() => router.back()}>
-                                   <Text style={styles.backButton}>Quay lại</Text>
-                              </TouchableOpacity>
+                         <View style={styles.header}>
+                              <View style={styles.headerTop}>
+                                   <Pressable onPress={() => router.back()} style={styles.backButton}>
+                                        <Ionicons name="chevron-back" size={24} color="#334155" />
+                                   </Pressable>
+                                   <Text style={styles.title}>Wi-Fi Setup</Text>
+                              </View>
+
+                              <View style={styles.headerBottom}>
+                                   <TouchableOpacity onPress={() => setIsGuideOpen(true)} style={styles.guideButton}>
+                                        <Text style={styles.guideText}>Hướng dẫn</Text>
+                                   </TouchableOpacity>
+                              </View>
                          </View>
 
                          <Text style={styles.subtitle}>
@@ -186,6 +256,25 @@ export default function WifiSetupScreen() {
                          </Text>
 
                          <View style={styles.card}>
+                              <View style={[styles.networkBox, isOnDeviceNetwork ? styles.networkBoxOk : styles.networkBoxWarn]}>
+                                   <View style={styles.networkHead}>
+                                        <Text style={styles.networkTitle}>Mạng thiết bị</Text>
+                                        <View style={[styles.networkPill, isOnDeviceNetwork ? styles.networkPillOk : styles.networkPillWarn]}>
+                                             <Text style={[styles.networkPillText, isOnDeviceNetwork ? styles.networkPillTextOk : styles.networkPillTextWarn]}>
+                                                  {isOnDeviceNetwork ? "Sẵn sàng" : "Chưa sẵn sàng"}
+                                             </Text>
+                                        </View>
+                                   </View>
+
+                                   <Text style={styles.networkText}>
+                                        {isOnDeviceNetwork === null
+                                             ? "Đang kiểm tra kết nối..."
+                                             : isOnDeviceNetwork
+                                                  ? `Đang kết nối ${REQUIRED_DEVICE_WIFI}`
+                                                  : `Chưa kết nối ${REQUIRED_DEVICE_WIFI}`}
+                                   </Text>
+                              </View>
+
                               <Text style={styles.label}>Tên Wi-Fi (SSID)</Text>
                               <TextInput
                                    value={ssid}
@@ -218,7 +307,7 @@ export default function WifiSetupScreen() {
                                    disabled={!canSubmit}
                                    style={[styles.primaryButton, !canSubmit && styles.buttonDisabled]}
                               >
-                                   {status === "sending" || status === "connecting" ? (
+                                   {isBusy ? (
                                         <ActivityIndicator color="#ffffff" />
                                    ) : (
                                         <Text style={styles.primaryButtonText}>Gửi cấu hình Wi-Fi</Text>
@@ -226,31 +315,54 @@ export default function WifiSetupScreen() {
                               </TouchableOpacity>
 
                               <TouchableOpacity
-                                   onPress={handleDebugStatus}
-                                   disabled={isCheckingStatus}
-                                   style={[styles.secondaryButton, isCheckingStatus && styles.buttonDisabled]}
+                                   onPress={() => {
+                                        void checkDeviceNetwork()
+                                   }}
+                                   disabled={isCheckingNetwork}
+                                   style={[styles.secondaryButton, isCheckingNetwork && styles.buttonDisabled]}
                               >
-                                   {isCheckingStatus ? (
+                                   {isCheckingNetwork ? (
                                         <ActivityIndicator color={Colors.primary} />
                                    ) : (
-                                        <Text style={styles.secondaryButtonText}>Debug trạng thái</Text>
+                                        <Text style={styles.secondaryButtonText}>Kiểm tra {REQUIRED_DEVICE_WIFI}</Text>
                                    )}
                               </TouchableOpacity>
+
+                              <Text style={styles.helperText}>Thiết bị chỉ nhận cấu hình khi điện thoại đang ở mạng {REQUIRED_DEVICE_WIFI}.</Text>
                          </View>
 
                          <View style={styles.statusBox}>
-                              <View style={[styles.dot, { backgroundColor: STATUS_COLOR[status] }]} />
-                              <Text style={styles.statusText}>{STATUS_LABEL[status]}</Text>
+                              <View style={[styles.dot, { backgroundColor: statusDisplay.color }]} />
+                              <Text style={[styles.statusText, { color: statusDisplay.color }]}>{statusDisplay.label}</Text>
                          </View>
 
-                         {!!debugMessage && (
-                              <View style={styles.debugBox}>
-                                   <Text style={styles.debugTitle}>debug: </Text>
-                                   <Text style={styles.debugText}>{debugMessage}</Text>
+                         {!!message && (
+                              <View style={styles.messageBox}>
+                                   <Text style={styles.messageText}>{message}</Text>
                               </View>
                          )}
                     </ScrollView>
                </TouchableWithoutFeedback>
+
+               <Modal
+                    visible={isGuideOpen}
+                    transparent
+                    animationType="fade"
+                    onRequestClose={() => setIsGuideOpen(false)}
+               >
+                    <View style={styles.modalOverlay}>
+                         <View style={styles.modalCard}>
+                              <Text style={styles.modalTitle}>Hướng dẫn nhanh</Text>
+                              <Text style={styles.modalStep}>1. Mở cài đặt Wi-Fi điện thoại và kết nối mạng {REQUIRED_DEVICE_WIFI}.</Text>
+                              <Text style={styles.modalStep}>2. Quay lại màn hình này, nhập tên và mật khẩu Wi-Fi nhà của bạn.</Text>
+                              <Text style={styles.modalStep}>3. Bấm Gửi cấu hình Wi-Fi để thiết bị tự kết nối mạng nhà.</Text>
+
+                              <TouchableOpacity style={styles.modalCloseButton} onPress={() => setIsGuideOpen(false)}>
+                                   <Text style={styles.modalCloseText}>Đã hiểu</Text>
+                              </TouchableOpacity>
+                         </View>
+                    </View>
+               </Modal>
           </KeyboardAvoidingView>
      )
 }
@@ -262,29 +374,53 @@ const styles = StyleSheet.create({
      },
      scrollContent: {
           padding: 20,
-          paddingTop: 60,
+          paddingTop: 36,
           paddingBottom: 40,
      },
-     headerRow: {
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 8,
+     header: {
+          marginTop: 20,
+          marginBottom: 10,
+          gap: 8,
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'space-between'
      },
-     title: {
-          flex: 1,
-          fontSize: 24,
-          fontWeight: "700",
-          color: "#0f172a",
-          marginRight: 12,
+     headerTop: {
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 10,
      },
      backButton: {
+          width: 36,
+          height: 36,
+          borderRadius: 18,
+          backgroundColor: "#ffffff",
+          alignItems: "center",
+          justifyContent: "center",
+     },
+     title: {
+          fontSize: 22,
+          fontWeight: "700",
+          color: "#0f172a",
+     },
+     headerBottom: {
+          alignItems: "flex-end",
+     },
+     guideButton: {
+          borderRadius: 999,
+          // borderWidth: 1,
+          // borderColor: "#bfdbfe",
+          // backgroundColor: "#eff6ff",
+          paddingHorizontal: 12,
+          paddingVertical: 6,
+     },
+     guideText: {
           color: Colors.primary,
           fontWeight: "600",
      },
      subtitle: {
           color: "#475569",
-          marginBottom: 20,
+          marginBottom: 16,
           lineHeight: 20,
      },
      card: {
@@ -293,7 +429,65 @@ const styles = StyleSheet.create({
           padding: 16,
           borderWidth: 1,
           borderColor: "#e2e8f0",
-          gap: 10,
+          gap: 12,
+          shadowColor: "#0f172a",
+          shadowOpacity: 0.05,
+          shadowRadius: 12,
+          shadowOffset: {
+               width: 0,
+               height: 6,
+          },
+          elevation: 2,
+     },
+     networkBox: {
+          borderRadius: 12,
+          borderWidth: 1,
+          padding: 12,
+          marginBottom: 2,
+          gap: 8,
+     },
+     networkBoxOk: {
+          borderColor: "#86efac",
+          backgroundColor: "#f0fdf4",
+     },
+     networkBoxWarn: {
+          borderColor: "#fed7aa",
+          backgroundColor: "#fff7ed",
+     },
+     networkTitle: {
+          color: "#334155",
+          fontSize: 12,
+          fontWeight: "700",
+     },
+     networkHead: {
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+     },
+     networkPill: {
+          borderRadius: 99,
+          paddingHorizontal: 10,
+          paddingVertical: 4,
+     },
+     networkPillOk: {
+          backgroundColor: "#dcfce7",
+     },
+     networkPillWarn: {
+          backgroundColor: "#ffedd5",
+     },
+     networkPillText: {
+          fontSize: 11,
+          fontWeight: "700",
+     },
+     networkPillTextOk: {
+          color: "#15803d",
+     },
+     networkPillTextWarn: {
+          color: "#b45309",
+     },
+     networkText: {
+          color: "#0f172a",
+          fontWeight: "600",
      },
      label: {
           fontSize: 13,
@@ -359,6 +553,12 @@ const styles = StyleSheet.create({
           fontWeight: "700",
           fontSize: 15,
      },
+     helperText: {
+          color: "#64748b",
+          fontSize: 12,
+          lineHeight: 18,
+          marginTop: 2,
+     },
      buttonDisabled: {
           opacity: 0.6,
      },
@@ -379,23 +579,51 @@ const styles = StyleSheet.create({
           borderRadius: 100,
      },
      statusText: {
-          color: "#0f172a",
           fontWeight: "600",
      },
-     debugBox: {
+     messageBox: {
           marginTop: 16,
-          backgroundColor: "#0f172a",
+          backgroundColor: "#ffffff",
           borderRadius: 14,
           padding: 14,
+          borderWidth: 1,
+          borderColor: "#e2e8f0",
      },
-     debugTitle: {
-          color: "#93c5fd",
-          fontWeight: "700",
-          marginBottom: 8,
-     },
-     debugText: {
-          color: "#e2e8f0",
-          fontSize: 12,
+     messageText: {
+          color: "#334155",
+          fontSize: 13,
           lineHeight: 18,
+     },
+     modalOverlay: {
+          flex: 1,
+          backgroundColor: "rgba(15,23,42,0.45)",
+          justifyContent: "center",
+          padding: 20,
+     },
+     modalCard: {
+          backgroundColor: "#ffffff",
+          borderRadius: 18,
+          padding: 18,
+          gap: 10,
+     },
+     modalTitle: {
+          fontSize: 18,
+          fontWeight: "700",
+          color: "#0f172a",
+     },
+     modalStep: {
+          color: "#334155",
+          lineHeight: 20,
+     },
+     modalCloseButton: {
+          marginTop: 4,
+          backgroundColor: Colors.primary,
+          borderRadius: 12,
+          paddingVertical: 12,
+          alignItems: "center",
+     },
+     modalCloseText: {
+          color: "#ffffff",
+          fontWeight: "700",
      },
 })
