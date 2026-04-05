@@ -6,16 +6,16 @@ import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type TabVisual = {
-  label: string;
-  icon: keyof typeof MaterialCommunityIcons.glyphMap;
-};
+  label: string
+  icon: keyof typeof MaterialCommunityIcons.glyphMap
+}
 
 const TAB_VISUALS: Record<string, TabVisual> = {
-  home: { label: "Căn hộ", icon: "home-outline" },
+  home: { label: "Trang chủ", icon: "home-outline" },
   apartment: { label: "Căn hộ", icon: "office-building-outline" },
-  analytic: { label: "Căn hộ", icon: "meter-electric-outline" },
-  profile: { label: "Profile", icon: "account-outline" },
-};
+  analytic: { label: "Chỉ số", icon: "meter-electric-outline" },
+  profile: { label: "Cá nhân", icon: "account-outline" },
+}
 
 const ACTIVE_BADGE_WIDTH = 66;
 const ACTIVE_UNDERLINE_WIDTH = 34;
@@ -28,9 +28,15 @@ function getIcon(routeName: string) {
   return TAB_VISUALS[routeName]?.icon ?? "circle-outline";
 }
 
-function FloatingAnimatedTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+function FloatingAnimatedTabBar({
+  state,
+  descriptors,
+  navigation,
+}: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const [tabLayouts, setTabLayouts] = useState<Record<number, { x: number; width: number }>>({});
+  const [tabLayouts, setTabLayouts] = useState<
+    Record<number, { x: number; width: number }>
+  >({});
   const sliderX = useRef(new Animated.Value(0)).current;
   const indicatorX = useRef(new Animated.Value(0)).current;
   const isPositionInitialized = useRef(false);
@@ -39,8 +45,10 @@ function FloatingAnimatedTabBar({ state, descriptors, navigation }: BottomTabBar
     const activeLayout = tabLayouts[state.index];
     if (!activeLayout) return;
 
-    const targetX = activeLayout.x + (activeLayout.width - ACTIVE_BADGE_WIDTH) / 2.2;
-    const targetLineX = activeLayout.x + (activeLayout.width - ACTIVE_UNDERLINE_WIDTH) / 2.2;
+    const targetX =
+      activeLayout.x + (activeLayout.width - ACTIVE_BADGE_WIDTH) / 2.2;
+    const targetLineX =
+      activeLayout.x + (activeLayout.width - ACTIVE_UNDERLINE_WIDTH) / 2.2;
 
     if (!isPositionInitialized.current) {
       sliderX.setValue(targetX);
@@ -68,17 +76,28 @@ function FloatingAnimatedTabBar({ state, descriptors, navigation }: BottomTabBar
   }, [state.index, tabLayouts, sliderX, indicatorX]);
 
   return (
-    <View style={[styles.tabBarShell, { paddingBottom: Math.max(insets.bottom, 10) }]}>
+    <View
+      style={[
+        styles.tabBarShell,
+        { paddingBottom: Math.max(insets.bottom, 10) },
+      ]}
+    >
       <View style={styles.tabBar}>
         {!!tabLayouts[state.index] && (
           <>
             <Animated.View
               pointerEvents="none"
-              style={[styles.activeBadge, { transform: [{ translateX: sliderX }] }]}
+              style={[
+                styles.activeBadge,
+                { transform: [{ translateX: sliderX }] },
+              ]}
             />
             <Animated.View
               pointerEvents="none"
-              style={[styles.activeLine, { transform: [{ translateX: indicatorX }] }]}
+              style={[
+                styles.activeLine,
+                { transform: [{ translateX: indicatorX }] },
+              ]}
             />
           </>
         )}
@@ -145,7 +164,9 @@ function FloatingAnimatedTabBar({ state, descriptors, navigation }: BottomTabBar
                 color={color}
                 style={[styles.icon, focused && styles.iconFocused]}
               />
-              <Text style={[styles.label, focused && styles.labelFocused]}>{labelFromOptions}</Text>
+              <Text style={[styles.label, focused && styles.labelFocused]}>
+                {labelFromOptions}
+              </Text>
             </Pressable>
           );
         })}
@@ -166,13 +187,13 @@ export default function TabLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: "Căn hộ",
+          title: "Trang chủ",
         }}
       />
       <Tabs.Screen
         name="apartment"
         options={{
-          title: "Thuê",
+          title: "Căn hộ",
         }}
       />
       <Tabs.Screen
