@@ -3,7 +3,9 @@ import { StyledContainer } from "@/components/styles"
 import { useUnreadNotificationCount } from "@/hooks/query/useNotifications"
 import { useRouter } from "expo-router"
 import React from "react"
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native"
+import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native"
+
+const SUPPORT_PHONE = "0332667829"
 
 type QuickAction = {
      id: "smart-home" | "service" | "invoice" | "more"
@@ -12,7 +14,7 @@ type QuickAction = {
 }
 
 const quickActions: QuickAction[] = [
-     { id: "smart-home", label: "Điều khiển nhà thông minh", icon: "home-automation" },
+     { id: "smart-home", label: "Điều khiển", icon: "home-automation" },
      { id: "service", label: "Dịch vụ", icon: "tools" },
      { id: "invoice", label: "Hóa đơn", icon: "file-document-outline" },
      { id: "more", label: "Xem thêm", icon: "dots-grid" },
@@ -22,12 +24,24 @@ export default function HomeScreen() {
      const router = useRouter()
      const { data: unreadCount = 0 } = useUnreadNotificationCount()
 
-     const onPressSupportCall = () => {
-          Alert.alert("Hỗ trợ", "Liên hệ ban quản lý: 1900 6868")
+     const onPressSupportCall = async () => {
+          const phoneUrl = `tel:${SUPPORT_PHONE}`
+
+          try {
+               const supported = await Linking.canOpenURL(phoneUrl)
+               if (!supported) {
+                    Alert.alert("Hỗ trợ", `Không thể mở ứng dụng gọi điện. Vui lòng gọi: ${SUPPORT_PHONE}`)
+                    return
+               }
+
+               await Linking.openURL(phoneUrl)
+          } catch {
+               Alert.alert("Hỗ trợ", `Không thể mở ứng dụng gọi điện. Vui lòng gọi: ${SUPPORT_PHONE}`)
+          }
      }
 
      const onPressSupportGuide = () => {
-          Alert.alert("Hỗ trợ", "Trung tâm trợ giúp sẽ được mở trong bản cập nhật tiếp theo.")
+          Alert.alert("Hỗ trợ", "Function trung tâm hỗ trợ.")
      }
 
      const onPressAction = (id: QuickAction["id"]) => {
@@ -42,7 +56,7 @@ export default function HomeScreen() {
           }
 
           if (id === "more") {
-               router.push("/more")
+               router.push("/more-services")
                return
           }
 
@@ -75,7 +89,6 @@ export default function HomeScreen() {
                               ) : null}
                          </Pressable>
                     </View>
-
                     <View style={styles.actionsCard}>
                          {quickActions.map((item) => (
                               <Pressable
@@ -100,7 +113,7 @@ export default function HomeScreen() {
                          </View>
 
                          <Pressable
-                              onPress={() => router.push("/(tabs)/apartment")}
+                              onPress={() => router.push("/my-apartment-detail")}
                               style={styles.detailButton}
                          >
                               <Text style={styles.detailButtonText}>Xem chi tiết</Text>

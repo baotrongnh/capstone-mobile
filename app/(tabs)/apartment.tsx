@@ -1,11 +1,13 @@
-import DeviceGrid, { DeviceGridItem } from '@/components/home/DeviceGrid'
-import DoorAccessCard from '@/components/home/DoorAccessCard'
-import WeatherOverviewCard from '@/components/home/WeatherOverviewCard'
+import DeviceGrid, { DeviceGridItem } from '@/components/apartment/DeviceGrid'
+import DoorAccessCard from '@/components/apartment/DoorAccessCard'
+import WeatherOverviewCard from '@/components/apartment/WeatherOverviewCard'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { StyledContainer } from '@/components/styles'
 import { useDeviceIot } from '@/hooks/query/useDevices'
 import { IotControlParams } from '@/lib/services/iot.service'
+import { useRouter } from 'expo-router'
 import React from 'react'
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 const devices: DeviceGridItem[] = [
      { id: 'device-1', deviceId: '1', title: 'Rèm cửa', subtitle: 'Ban công', icon: 'curtains-closed', topic: 'curtain' },
@@ -17,7 +19,8 @@ const devices: DeviceGridItem[] = [
 //debug
 const espId = 'ESP_A101'
 
-export default function MyApartmentScreen() {
+export default function ApartmentControlScreen() {
+     const router = useRouter()
      const { mutate } = useDeviceIot()
 
      const onDeviceToggle = (data: IotControlParams) => {
@@ -34,6 +37,10 @@ export default function MyApartmentScreen() {
           console.log('Door opened')
      }
 
+     const onOpenWifiSetup = () => {
+          router.navigate('/wifi-setup')
+     }
+
      return (
           <StyledContainer style={styles.container}>
                <ScrollView
@@ -41,6 +48,25 @@ export default function MyApartmentScreen() {
                     showsVerticalScrollIndicator={false}
                >
                     <WeatherOverviewCard />
+
+                    <View style={styles.sectionBlock}>
+                         <Text style={styles.sectionTitle}>Thiết lập thiết bị</Text>
+                         <Pressable
+                              onPress={onOpenWifiSetup}
+                              style={({ pressed }) => [styles.wifiSetupCard, pressed && styles.wifiSetupCardPressed]}
+                         >
+                              <View style={styles.wifiSetupIconWrap}>
+                                   <MaterialCommunityIcons name="wifi-cog" size={22} color="#2563eb" />
+                              </View>
+
+                              <View style={styles.wifiSetupContent}>
+                                   <Text style={styles.wifiSetupTitle}>Wi-Fi</Text>
+                                   <Text style={styles.wifiSetupSubtitle}>Cấu hình mạng cho HOME-IQ-HUB</Text>
+                              </View>
+
+                              <MaterialCommunityIcons name="chevron-right" size={22} color="#94a3b8" />
+                         </Pressable>
+                    </View>
 
                     <View style={styles.sectionBlock}>
                          <Text style={styles.sectionTitle}>Thiết bị trong nhà</Text>
@@ -76,5 +102,39 @@ const styles = StyleSheet.create({
           fontSize: 19,
           fontWeight: '700',
           color: '#0f172a',
+     },
+     wifiSetupCard: {
+          backgroundColor: '#ffffff',
+          borderWidth: 1,
+          borderColor: '#e2e8f0',
+          borderRadius: 18,
+          padding: 14,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 12,
+     },
+     wifiSetupCardPressed: {
+          opacity: 0.82,
+     },
+     wifiSetupIconWrap: {
+          width: 42,
+          height: 42,
+          borderRadius: 21,
+          backgroundColor: '#eff6ff',
+          alignItems: 'center',
+          justifyContent: 'center',
+     },
+     wifiSetupContent: {
+          flex: 1,
+          gap: 2,
+     },
+     wifiSetupTitle: {
+          fontSize: 16,
+          fontWeight: '700',
+          color: '#0f172a',
+     },
+     wifiSetupSubtitle: {
+          fontSize: 13,
+          color: '#64748b',
      },
 })

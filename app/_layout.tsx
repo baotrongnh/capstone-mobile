@@ -12,7 +12,7 @@ export default function RootLayout() {
           <Stack.Screen name='wifi-setup' options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="notifications" options={{ headerShown: false }} />
-          <Stack.Screen name="more" options={{ headerShown: false }} />
+          <Stack.Screen name="more-services" options={{ headerShown: false }} />
         </Stack>
       </AuthProvider>
     </ReactQueryProvider>

@@ -12,8 +12,7 @@ type MoreAction = {
 
 const actions: MoreAction[] = [
      { id: "support", title: "Hỗ trợ cư dân", icon: "lifebuoy" },
-     { id: "payments", title: "Thanh toán nhanh", icon: "cash-multiple" },
-     { id: "documents", title: "Tài liệu nội bộ", icon: "file-document-outline" },
+     { id: "documents", title: "Hướng dẫn thiết bị", icon: "file-document-outline" },
      { id: "feedback", title: "Góp ý ứng dụng", icon: "message-text-outline" },
 ]
 
