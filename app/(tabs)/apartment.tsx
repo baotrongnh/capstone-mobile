@@ -89,7 +89,7 @@ export default function ApartmentControlScreen() {
 const styles = StyleSheet.create({
      container: {
           backgroundColor: '#f3f5f9',
-          paddingHorizontal: 18,
+          paddingHorizontal: 10,
      },
      content: {
           paddingBottom: 130,
