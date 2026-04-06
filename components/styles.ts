@@ -14,7 +14,7 @@ export const Colors = {
 
 export const StyledContainer = styled.View`
     flex: 1;
-    padding: 25px;
+    padding: 15px;
     padding-top: ${StatusBarHeight + 10}px;
     background-color: ${Colors.backgroundPrimary};
     justify-content: flex-start
