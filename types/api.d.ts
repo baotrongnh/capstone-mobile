@@ -670,8 +670,8 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Operator reject partner cooperation apartment
-         * @description Operator rejects partner cooperation apartment, sets apartment status to inactive, and sends notification to partner with reject reason.
+         * Operator từ chối căn hộ hợp tác của partner
+         * @description Operator từ chối căn hộ hợp tác của partner, chuyển trạng thái căn hộ sang inactive và gửi thông báo kèm lý do từ chối cho partner.
          */
         patch: operations["ApartmentsController_rejectPartnerCooperation"];
         trace?: never;
@@ -737,7 +737,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Send notification (admin/operator only) */
+        /** Gửi thông báo (chỉ admin/operator) */
         post: operations["NotificationsController_create"];
         delete?: never;
         options?: never;
@@ -1240,6 +1240,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/maintenance/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get maintenance request history */
+        get: operations["MaintenanceController_findHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/maintenance/{id}": {
         parameters: {
             query?: never;
@@ -1450,8 +1467,8 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Assigned staff accepts viewing request
-         * @description Assigned staff accepts a viewing request by appointmentId. System sets status to confirmed and notifies user.
+         * Nhân viên được phân công chấp nhận yêu cầu xem nhà
+         * @description Nhân viên được phân công chấp nhận yêu cầu xem nhà theo appointmentId. Hệ thống chuyển trạng thái sang confirmed và gửi thông báo cho người dùng.
          */
         patch: operations["ViewingRequestsController_acceptViewingRequest"];
         trace?: never;
@@ -1470,8 +1487,8 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Assigned staff denies viewing request
-         * @description Assigned staff denies a viewing request by appointmentId. System sets status to cancelled and notifies user.
+         * Nhân viên được phân công từ chối yêu cầu xem nhà
+         * @description Nhân viên được phân công từ chối yêu cầu xem nhà theo appointmentId. Hệ thống chuyển trạng thái sang cancelled và gửi thông báo cho người dùng.
          */
         patch: operations["ViewingRequestsController_denyViewingRequest"];
         trace?: never;
@@ -5617,6 +5634,25 @@ export interface components {
             roomNumber: string;
             /** @example bedroom */
             roomType: string;
+        };
+        MaintenanceHistoryItemDto: {
+            id: string;
+            /** @example Broken AC in bedroom */
+            title: string;
+            /** @example hvac */
+            category: string;
+            /** @example high */
+            urgency: string;
+            /** @example completed */
+            status: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            completedAt?: string | null;
+            /** Format: date-time */
+            updatedAt: string;
+            apartment: components["schemas"]["MaintenanceApartmentDto"];
+            room?: components["schemas"]["MaintenanceRoomDto"] | null;
         };
         MaintenanceUserDto: {
             id: string;
@@ -9819,7 +9855,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Notification sent + FCM push */
+            /** @description Đã gửi thông báo và đẩy FCM */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -11167,6 +11203,55 @@ export interface operations {
                         meta?: {
                             /** @example 2026-02-26T10:21:00.000Z */
                             timestamp?: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    MaintenanceController_findHistory: {
+        parameters: {
+            query?: {
+                /** @description Filter by maintenance status */
+                status?: "submitted" | "acknowledged" | "scheduled" | "in_progress" | "completed" | "cancelled";
+                /** @description Filter from created date (ISO 8601) */
+                fromDate?: string;
+                /** @description Filter to created date (ISO 8601) */
+                toDate?: string;
+                /** @description Page number */
+                page?: number;
+                /** @description Items per page (max 100) */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated maintenance request history */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example 200 */
+                        statusCode?: number;
+                        /** @example Success */
+                        message?: string;
+                        data?: components["schemas"]["MaintenanceHistoryItemDto"][];
+                        meta?: {
+                            /** @example 2026-02-26T10:21:00.000Z */
+                            timestamp?: string;
+                            /** @example 25 */
+                            total?: number;
+                            /** @example 1 */
+                            page?: number;
+                            /** @example 10 */
+                            limit?: number;
+                            /** @example 3 */
+                            totalPages?: number;
                         };
                     };
                 };

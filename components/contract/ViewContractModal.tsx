@@ -19,7 +19,6 @@ import * as FileSystem from "expo-file-system/legacy";
 import { ContractWithMembers } from "@/types/contract";
 import { useUploadContractPdf } from "@/hooks/query/useContracts";
 import * as base64js from "base64-js";
-import { rgb } from "pdf-lib";
 interface ViewContractModalProps {
   visible: boolean;
   contract: ContractWithMembers | null;
@@ -60,6 +59,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#1a1a1a",
     marginBottom: 4,
+    marginTop: 20,
   },
   headerSubtitle: {
     fontSize: 12,
@@ -72,9 +72,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 50,
     backgroundColor: "#f5f5f5",
+    marginTop: 20,
   },
   content: {
-    padding: 20,
+    padding: 10,
   },
   alertBox: {
     backgroundColor: "#e3f2fd",
@@ -336,27 +337,17 @@ export const ViewContractModal = ({
   onDownload,
 }: ViewContractModalProps) => {
   const signatureRef = useRef<any>(null);
-  const { mutateAsync: uploadPdf, isPending } = useUploadContractPdf(
-    contract?.id || "",
-  );
+  const { mutateAsync: uploadPdf } = useUploadContractPdf(contract?.id || "");
 
   const [agreePolicy, setAgreePolicy] = useState(false);
   const [showSignatureModal, setShowSignatureModal] = useState(false);
   const [signatureImage, setSignatureImage] = useState<string | null>(null);
-  const [isSigning, setIsSigning] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(true);
-
-  const [embeddedPdfUri, setEmbeddedPdfUri] = useState<string | null>(null);
   const [modifiedPdfBase64, setModifiedPdfBase64] = useState<string | null>(
     null,
   );
 
-  const SIGNATURE_CONFIG = {
-    x: 130,
-    y: 200,
-    width: 100,
-    height: 50,
-  };
+  console.log("AAA", contract);
 
   const getPdfUrl = () => {
     if (!contract?.pdfUrl) return "";
@@ -384,73 +375,73 @@ export const ViewContractModal = ({
     try {
       setPdfLoading(true);
 
-      // ===== 1. Extract base64 =====
-      const signatureBase64 = signature.includes(",")
-        ? signature.split(",")[1]
-        : signature;
+      // 🔥 SỬA LẠI 1: Cắt chính xác tiền tố data URI bằng Regex cho an toàn
+      const signatureBase64 = signature.replace(
+        /^data:image\/(png|jpeg|jpg);base64,/,
+        "",
+      );
 
-      // ===== 2. Download PDF =====
       const tempDownloadUri = FileSystem.cacheDirectory + "temp_contract.pdf";
-      const { uri } = await FileSystem.downloadAsync(
+      const downloadRes = await FileSystem.downloadAsync(
         originalPdfUrl,
         tempDownloadUri,
       );
 
-      // ===== 3. Read PDF =====
-      const pdfBase64 = await FileSystem.readAsStringAsync(uri, {
+      if (downloadRes.status !== 200) {
+        Alert.alert("Lỗi", "Không thể tải file gốc từ server.");
+        setPdfLoading(false);
+        return;
+      }
+
+      const pdfBase64 = await FileSystem.readAsStringAsync(downloadRes.uri, {
         encoding: FileSystem.EncodingType.Base64,
       });
 
-      // 🔥 FIX QUAN TRỌNG: load bằng bytes
       const pdfBytes = base64js.toByteArray(pdfBase64);
       const pdfDoc = await PDFDocument.load(pdfBytes);
 
-      // ===== 4. Convert signature =====
-      const signatureBytes = base64js.toByteArray(signatureBase64);
-
-      // 🔥 FIX QUAN TRỌNG: detect format
+      // 🔥 SỬA LẠI 2: Truyền trực tiếp chuỗi Base64 vào pdf-lib, KHÔNG dùng toByteArray cho ảnh
       let image;
-      if (signature.startsWith("data:image/png")) {
-        image = await pdfDoc.embedPng(signatureBytes);
-      } else {
-        image = await pdfDoc.embedJpg(signatureBytes);
+      try {
+        // Mặc định SignatureCanvas trả về PNG
+        image = await pdfDoc.embedPng(signatureBase64);
+      } catch (e) {
+        console.warn("Lỗi nhúng PNG, thử JPG...", e);
+        image = await pdfDoc.embedJpg(signatureBase64);
       }
 
-      // ===== 5. Draw thử rectangle (debug - có thể xoá sau) =====
+      // Lấy trang cuối cùng
       const pages = pdfDoc.getPages();
       const lastPage = pages[pages.length - 1];
+      const { width } = lastPage.getSize();
 
-      lastPage.drawRectangle({
-        x: 80,
-        y: 320,
-        width: 120,
-        height: 60,
-        color: rgb(1, 0, 0), // đỏ -> để test
-      });
+      // Sửa lại tọa độ này
+      const sigX = width - 250; // Canh lề phải, dưới chữ BÊN THUÊ
+      const sigY = 210; // Vị trí chữ ký
+      const sigWidth = 180;
+      const sigHeight = 80;
 
-      // ===== 6. Draw signature =====
+      // Vẽ chữ ký
       lastPage.drawImage(image, {
-        x: 80,
-        y: 320,
-        width: 120,
-        height: 60,
+        x: sigX,
+        y: sigY,
+        width: sigWidth,
+        height: sigHeight,
       });
 
-      // ===== 7. Save PDF =====
       const modifiedPdfBytes = await pdfDoc.save();
-
       const modifiedBase64 = base64js.fromByteArray(modifiedPdfBytes);
 
       setModifiedPdfBase64(modifiedBase64);
 
-      // ===== 8. Write file =====
+      // Lưu ra file local
       const signedPdfPath = `${FileSystem.cacheDirectory}signed_${Date.now()}.pdf`;
-
       await FileSystem.writeAsStringAsync(signedPdfPath, modifiedBase64, {
         encoding: FileSystem.EncodingType.Base64,
       });
 
-      setEmbeddedPdfUri(signedPdfPath);
+      // Tự động upload sau khi embed thành công
+      await handleUploadSignedPdf(signedPdfPath);
     } catch (error) {
       console.error("Lỗi nhúng chữ ký:", error);
       Alert.alert("Lỗi", "Không thể xử lý chữ ký vào PDF.");
@@ -459,18 +450,37 @@ export const ViewContractModal = ({
     }
   };
 
-  const handleStartSignature = () => {
-    setShowSignatureModal(true);
+  const handleUploadSignedPdf = async (pdfPath: string) => {
+    if (!contract?.id) return;
+
+    try {
+      const formData = new FormData();
+      formData.append("signedDate", new Date().toISOString());
+      formData.append("contractPdf", {
+        uri: pdfPath,
+        name: `contract_signed_${Date.now()}.pdf`,
+        type: "application/pdf",
+      } as any);
+
+      await uploadPdf(formData);
+
+      setAgreePolicy(false);
+      setSignatureImage(null);
+      setModifiedPdfBase64(null);
+      handleClose();
+      Alert.alert("Thành công", "Hợp đồng đã được ký và gửi");
+    } catch (_error) {
+      console.error("Error signing contract:", _error);
+      Alert.alert("Lỗi", "Lỗi khi ký hợp đồng. Vui lòng thử lại.");
+    }
   };
 
   const handleClose = () => {
     // Reset all signature and modal states
     setAgreePolicy(false);
     setSignatureImage(null);
-    setEmbeddedPdfUri(null);
     setModifiedPdfBase64(null);
     setShowSignatureModal(false);
-    setIsSigning(false);
     setPdfLoading(true);
     // Call parent's onClose
     onClose();
@@ -478,7 +488,6 @@ export const ViewContractModal = ({
 
   const handleClearSignature = () => {
     setSignatureImage(null);
-    setEmbeddedPdfUri(null);
     setModifiedPdfBase64(null);
   };
 
@@ -491,89 +500,6 @@ export const ViewContractModal = ({
   const handleConfirmSignature = () => {
     if (signatureRef.current) {
       signatureRef.current.readSignature();
-    }
-  };
-
-  const handleSignAndSend = async () => {
-    if (!agreePolicy) {
-      Alert.alert("Thông báo", "Vui lòng đồng ý với chính sách trước khi ký");
-      return;
-    }
-
-    if (!signatureImage) {
-      Alert.alert("Thông báo", "Vui lòng ký hợp đồng trước khi gửi");
-      return;
-    }
-
-    if (!contract?.id) return;
-
-    try {
-      setIsSigning(true);
-
-      console.log("\n=== STEP 1: Prepare FormData ===");
-      const formData = new FormData();
-      formData.append("signedDate", new Date().toISOString());
-      console.log("✓ Added signedDate");
-
-      // Append PDF with signature embedded
-      if (modifiedPdfBase64) {
-        console.log("\n=== STEP 2: Convert PDF Base64 to Blob ===");
-        console.log("modifiedPdfBase64 length:", modifiedPdfBase64.length);
-
-        // Convert base64 to blob using fetch (React Native compatible)
-        const response = await fetch(
-          `data:application/pdf;base64,${modifiedPdfBase64}`,
-        );
-        const blob = await response.blob();
-        console.log("✓ PDF Blob created, size:", blob.size, "type:", blob.type);
-
-        formData.append("contractDocumentUrl", blob, "contract_signed.pdf");
-        console.log("✓ PDF appended to formData");
-      } else {
-        console.warn("⚠️  modifiedPdfBase64 is null/undefined!");
-      }
-
-      // Append signature image
-      if (signatureImage) {
-        console.log("\n=== STEP 3: Convert Signature to Blob ===");
-        console.log("signatureImage length:", signatureImage.length);
-
-        const response = await fetch(signatureImage);
-        const blob = await response.blob();
-        console.log(
-          "✓ Signature Blob created, size:",
-          blob.size,
-          "type:",
-          blob.type,
-        );
-
-        formData.append("signature", blob, "signature.png");
-        console.log("✓ Signature appended to formData");
-      }
-
-      console.log("\n=== STEP 4: Send to API ===");
-      console.log("Contract ID:", contract?.id);
-      console.log("FormData ready, sending...");
-
-      await uploadPdf(formData);
-
-      console.log("✓ Upload successful!");
-
-      setAgreePolicy(false);
-      setSignatureImage(null);
-      setEmbeddedPdfUri(null);
-      setModifiedPdfBase64(null);
-      handleClose();
-      Alert.alert("Thành công", "Hợp đồng đã được ký và gửi");
-    } catch (error) {
-      console.error("Error signing contract:", error);
-      console.error("Error details:", {
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : "No stack",
-      });
-      Alert.alert("Lỗi", "Lỗi khi ký hợp đồng. Vui lòng thử lại.");
-    } finally {
-      setIsSigning(false);
     }
   };
 
@@ -705,32 +631,17 @@ export const ViewContractModal = ({
             showsVerticalScrollIndicator={false}
             nestedScrollEnabled={true}
           >
-            <View style={styles.alertBox}>
-              <MaterialCommunityIcons
-                name="information"
-                color="#2196f3"
-                size={20}
-              />
-              <View style={styles.alertContent}>
-                <Text style={styles.alertTitle}>
-                  Hợp đồng: {contract.contractNumber}
-                </Text>
-                <Text style={styles.alertDescription}>
-                  Người thuê: {primaryTenant?.user?.fullName}
-                </Text>
-              </View>
-            </View>
-
             {contract.hasPdf && (
               <>
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Tệp hợp đồng</Text>
                   <View style={styles.pdfContainer}>
                     {getPdfUrl() ? (
                       <WebView
                         source={
-                          embeddedPdfUri
-                            ? { uri: embeddedPdfUri }
+                          modifiedPdfBase64
+                            ? {
+                                uri: `data:application/pdf;base64,${modifiedPdfBase64}`,
+                              }
                             : { uri: getGoogleViewerUrl() }
                         }
                         style={styles.pdfWebView}
@@ -738,6 +649,7 @@ export const ViewContractModal = ({
                         allowFileAccess={true}
                         allowFileAccessFromFileURLs={true}
                         allowUniversalAccessFromFileURLs={true}
+                        startInLoadingState={true}
                         onLoadStart={() => {
                           console.log("PDF loading started");
                           setPdfLoading(true);
@@ -750,16 +662,18 @@ export const ViewContractModal = ({
                           const { nativeEvent } = syntheticEvent;
                           console.warn("WebView error: ", nativeEvent);
                           setPdfLoading(false);
-                          Alert.alert(
-                            "Lỗi",
-                            "Không thể hiển thị file PDF. Vui lòng thử tải xuống.",
-                          );
+                        }}
+                        onHttpError={(syntheticEvent) => {
+                          const { nativeEvent } = syntheticEvent;
+                          console.warn("WebView HTTP error: ", nativeEvent);
+                          setPdfLoading(false);
                         }}
                         scalesPageToFit={true}
                         javaScriptEnabled={true}
                         nestedScrollEnabled={true}
                         scrollEnabled={true}
                         bounces={false}
+                        incognito={true}
                       />
                     ) : null}
                     {pdfLoading && (
@@ -776,193 +690,120 @@ export const ViewContractModal = ({
               </>
             )}
 
-            {contract.status === "signed" && (
-              <View style={styles.notificationBox}>
-                <MaterialCommunityIcons
-                  name="alert-circle"
-                  color="#2196f3"
-                  size={18}
-                />
-                <Text style={styles.notificationText}>
-                  Hợp đồng đã ký. Vui lòng chờ xác nhận kích hoạt
-                </Text>
-              </View>
-            )}
-
-            {contract.status === "active" && (
-              <View
-                style={[
-                  styles.notificationBox,
-                  { borderLeftColor: "#4caf50", backgroundColor: "#f0f8f5" },
-                ]}
-              >
-                <MaterialCommunityIcons
-                  name="check-circle"
-                  color="#4caf50"
-                  size={18}
-                />
-                <Text style={[styles.notificationText, { color: "#1b5e20" }]}>
-                  Hợp đồng đã được kích hoạt. Thanh toán định kỳ sẽ được yêu cầu
-                </Text>
-              </View>
-            )}
-
             {contract.status === "draft" && (
-              <>
-                <View style={styles.divider} />
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Ký điện tử</Text>
-                  <View style={styles.notificationBox}>
-                    <MaterialCommunityIcons
-                      name="shield-check"
-                      color="#2196f3"
-                      size={18}
-                    />
-                    <Text style={styles.notificationText}>
-                      Hãy đọc kỹ các điều khoản trước khi ký
-                    </Text>
-                  </View>
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Ký điện tử</Text>
 
-                  <Pressable
+                <View style={styles.notificationBox}>
+                  <MaterialCommunityIcons
+                    name="shield-check"
+                    color="#2196f3"
+                    size={18}
+                  />
+                  <Text style={styles.notificationText}>
+                    Hãy đọc kỹ các điều khoản trước khi ký
+                  </Text>
+                </View>
+
+                <Pressable
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 10,
+                    marginTop: 14,
+                    padding: 14,
+                    backgroundColor: "#fafafa",
+                    borderRadius: 10,
+                    borderWidth: 1,
+                    borderColor: "#eee",
+                  }}
+                  onPress={() => setAgreePolicy(!agreePolicy)}
+                >
+                  <View
                     style={{
-                      flexDirection: "row",
+                      width: 22,
+                      height: 22,
+                      borderRadius: 6,
+                      borderWidth: 2,
+                      borderColor: agreePolicy ? "#2196f3" : "#ddd",
+                      backgroundColor: agreePolicy ? "#2196f3" : "transparent",
+                      justifyContent: "center",
                       alignItems: "center",
-                      gap: 10,
-                      marginTop: 14,
-                      padding: 14,
-                      backgroundColor: "#fafafa",
-                      borderRadius: 10,
-                      borderWidth: 1,
-                      borderColor: "#eee",
                     }}
-                    onPress={() => setAgreePolicy(!agreePolicy)}
                   >
-                    <View
-                      style={{
-                        width: 22,
-                        height: 22,
-                        borderRadius: 6,
-                        borderWidth: 2,
-                        borderColor: agreePolicy ? "#2196f3" : "#ddd",
-                        backgroundColor: agreePolicy
-                          ? "#2196f3"
-                          : "transparent",
-                        justifyContent: "center",
-                        alignItems: "center",
-                      }}
-                    >
-                      {agreePolicy && (
-                        <MaterialCommunityIcons
-                          name="check"
-                          color="#fff"
-                          size={14}
-                        />
-                      )}
-                    </View>
-                    <Text
-                      style={{
-                        flex: 1,
-                        fontSize: 13,
-                        color: "#333",
-                        fontWeight: "500",
-                        lineHeight: 18,
-                      }}
-                    >
-                      Tôi đồng ý với các điều khoản và điều kiện của hợp đồng
-                      này
-                    </Text>
-                  </Pressable>
-
-                  <View style={styles.signaturePreviewSection}>
-                    <Text style={styles.previewLabel}>Chữ ký điện tử</Text>
-                    {signatureImage ? (
-                      <>
-                        <Image
-                          source={{ uri: signatureImage }}
-                          style={styles.signaturePreview}
-                          resizeMode="contain"
-                        />
-                        <Pressable
-                          style={[styles.button, styles.secondaryButton]}
-                          onPress={handleClearSignature}
-                        >
-                          <MaterialCommunityIcons
-                            name="refresh"
-                            color="#f44336"
-                            size={16}
-                          />
-                          <Text
-                            style={[
-                              styles.secondaryButtonText,
-                              { color: "#f44336" },
-                            ]}
-                          >
-                            Ký lại
-                          </Text>
-                        </Pressable>
-                      </>
-                    ) : (
-                      <Pressable
-                        style={[
-                          styles.button,
-                          styles.primaryButton,
-                          !agreePolicy && { opacity: 0.5 },
-                        ]}
-                        onPress={handleStartSignature}
-                        disabled={!agreePolicy}
-                      >
-                        <MaterialCommunityIcons
-                          name="pen-plus"
-                          color="#fff"
-                          size={16}
-                        />
-                        <Text style={styles.primaryButtonText}>
-                          Bắt đầu vẽ chữ ký
-                        </Text>
-                      </Pressable>
+                    {agreePolicy && (
+                      <MaterialCommunityIcons
+                        name="check"
+                        color="#fff"
+                        size={14}
+                      />
                     )}
                   </View>
+                  <Text
+                    style={{
+                      flex: 1,
+                      fontSize: 13,
+                      color: "#333",
+                      fontWeight: "500",
+                      lineHeight: 18,
+                    }}
+                  >
+                    Tôi đồng ý với các điều khoản và điều kiện của hợp đồng này
+                  </Text>
+                </Pressable>
+
+                <View style={styles.signaturePreviewSection}>
+                  <Text style={styles.previewLabel}>Chữ ký điện tử</Text>
+                  {signatureImage ? (
+                    <>
+                      <Image
+                        source={{ uri: signatureImage }}
+                        style={styles.signaturePreview}
+                        resizeMode="contain"
+                      />
+                      <Pressable
+                        style={[styles.button, styles.secondaryButton]}
+                        onPress={handleClearSignature}
+                      >
+                        <MaterialCommunityIcons
+                          name="refresh"
+                          color="#f44336"
+                          size={16}
+                        />
+                        <Text
+                          style={[
+                            styles.secondaryButtonText,
+                            { color: "#f44336" },
+                          ]}
+                        >
+                          Ký lại
+                        </Text>
+                      </Pressable>
+                    </>
+                  ) : (
+                    <Pressable
+                      style={[
+                        styles.button,
+                        styles.primaryButton,
+                        !agreePolicy && { opacity: 0.5 },
+                      ]}
+                      onPress={() => setShowSignatureModal(true)}
+                      disabled={!agreePolicy}
+                    >
+                      <MaterialCommunityIcons
+                        name="pen-plus"
+                        color="#fff"
+                        size={16}
+                      />
+                      <Text style={styles.primaryButtonText}>
+                        Bắt đầu vẽ chữ ký
+                      </Text>
+                    </Pressable>
+                  )}
                 </View>
-              </>
+              </View>
             )}
           </ScrollView>
-
-          <View style={styles.footer}>
-            {contract.status === "draft" && (
-              <Pressable
-                style={[
-                  styles.button,
-                  styles.primaryButton,
-                  (!agreePolicy ||
-                    !signatureImage ||
-                    isSigning ||
-                    isPending) && {
-                    opacity: 0.6,
-                  },
-                ]}
-                onPress={handleSignAndSend}
-                disabled={
-                  !agreePolicy || !signatureImage || isSigning || isPending
-                }
-              >
-                {isSigning || isPending ? (
-                  <ActivityIndicator color="#fff" size="small" />
-                ) : (
-                  <>
-                    <MaterialCommunityIcons name="pen" color="#fff" size={16} />
-                    <Text style={styles.primaryButtonText}>Ký & Gửi</Text>
-                  </>
-                )}
-              </Pressable>
-            )}
-
-            <Pressable
-              style={[styles.button, styles.secondaryButton]}
-              onPress={handleClose}
-            >
-              <Text style={styles.secondaryButtonText}>Đóng</Text>
-            </Pressable>
-          </View>
         </View>
 
         <SignatureModal />
