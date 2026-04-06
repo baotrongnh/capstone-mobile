@@ -12,7 +12,7 @@ import {
   FlatList,
   RefreshControl,
 } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -23,6 +23,7 @@ import { ViewContractModal } from "@/components/contract/ViewContractModal";
 import { CancelContractModal } from "@/components/contract/CancelContractModal";
 import { ExtendContractModal } from "@/components/contract/ExtendContractModal";
 import { AddMemberModal } from "@/components/contract/AddMemberModal";
+import { router, Stack } from "expo-router";
 
 export default function ContractPage() {
   const insets = useSafeAreaInsets(); // Lấy giá trị tai thỏ/status bar
@@ -55,7 +56,9 @@ export default function ContractPage() {
   // Statistics
   const stats = {
     total: contractsList.length,
-    active: contractsList.filter((c) => c.status === "active").length,
+    active: contractsList.filter(
+      (c) => c.status === "signed" || c.status === "active",
+    ).length,
     pending: contractsList.filter((c) => c.status === "draft").length,
     expired: contractsList.filter((c) => c.status === "terminated").length,
   };
@@ -100,6 +103,7 @@ export default function ContractPage() {
   if (isLoading) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
+        <Stack.Screen options={{ headerShown: false }} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#2196f3" />
           <Text style={styles.refreshText}>Đang tải danh sách hợp đồng...</Text>
@@ -110,14 +114,21 @@ export default function ContractPage() {
 
   return (
     <View style={styles.container}>
-      {/* Header Container - Tràn màu trắng lên hết tai thỏ */}
+      <Stack.Screen options={{ headerShown: false }} />
       <View style={[styles.headerContainer, { paddingTop: insets.top + 16 }]}>
-        <Text style={styles.headerTitle}>Hợp đồng</Text>
+        <View style={{ display: "flex", gap: 5 }}>
+          <MaterialIcons
+            onPress={router.back}
+            name="arrow-back"
+            size={24}
+            color="black"
+          />
+          <Text style={styles.headerTitle}>Hợp đồng</Text>
+        </View>
         <Text style={styles.headerSubtitle}>
           Quản lý và xem các hợp đồng của bạn
         </Text>
 
-        {/* Stats */}
         <View style={styles.statsContainer}>
           <StatCard label="Tổng cộng" value={stats.total} />
           <StatCard
@@ -129,7 +140,6 @@ export default function ContractPage() {
           <StatCard label="Đã hết hạn" value={stats.expired} color="#f44336" />
         </View>
 
-        {/* Filter Buttons */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -199,14 +209,13 @@ export default function ContractPage() {
         }
       />
 
-      {/* Modals */}
       <ViewContractModal
         visible={showViewModal}
         contract={selectedContract}
         onClose={handleCloseModals}
-        onDownload={() =>
-          selectedContract && handleDownloadContract(selectedContract.id)
-        }
+        onDownload={() => {
+          if (selectedContract?.id) handleDownloadContract(selectedContract.id);
+        }}
       />
       <CancelContractModal
         visible={showCancelModal}
