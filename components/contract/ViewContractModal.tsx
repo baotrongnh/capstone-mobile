@@ -19,8 +19,6 @@ import * as FileSystem from "expo-file-system/legacy";
 import { ContractWithMembers } from "@/types/contract";
 import { useUploadContractPdf } from "@/hooks/query/useContracts";
 import * as base64js from "base64-js";
-import { rgb } from "pdf-lib";
-import { Link } from "expo-router";
 interface ViewContractModalProps {
   visible: boolean;
   contract: ContractWithMembers | null;
@@ -339,17 +337,12 @@ export const ViewContractModal = ({
   onDownload,
 }: ViewContractModalProps) => {
   const signatureRef = useRef<any>(null);
-  const { mutateAsync: uploadPdf, isPending } = useUploadContractPdf(
-    contract?.id || "",
-  );
+  const { mutateAsync: uploadPdf } = useUploadContractPdf(contract?.id || "");
 
   const [agreePolicy, setAgreePolicy] = useState(false);
   const [showSignatureModal, setShowSignatureModal] = useState(false);
   const [signatureImage, setSignatureImage] = useState<string | null>(null);
-  const [isSigning, setIsSigning] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(true);
-
-  const [embeddedPdfUri, setEmbeddedPdfUri] = useState<string | null>(null);
   const [modifiedPdfBase64, setModifiedPdfBase64] = useState<string | null>(
     null,
   );
@@ -420,7 +413,7 @@ export const ViewContractModal = ({
       // Lấy trang cuối cùng
       const pages = pdfDoc.getPages();
       const lastPage = pages[pages.length - 1];
-      const { width, height } = lastPage.getSize();
+      const { width } = lastPage.getSize();
 
       // Sửa lại tọa độ này
       const sigX = width - 250; // Canh lề phải, dưới chữ BÊN THUÊ
@@ -447,8 +440,6 @@ export const ViewContractModal = ({
         encoding: FileSystem.EncodingType.Base64,
       });
 
-      setEmbeddedPdfUri(signedPdfPath);
-
       // Tự động upload sau khi embed thành công
       await handleUploadSignedPdf(signedPdfPath);
     } catch (error) {
@@ -463,7 +454,6 @@ export const ViewContractModal = ({
     if (!contract?.id) return;
 
     try {
-      setIsSigning(true);
       const formData = new FormData();
       formData.append("signedDate", new Date().toISOString());
       formData.append("contractPdf", {
@@ -476,15 +466,12 @@ export const ViewContractModal = ({
 
       setAgreePolicy(false);
       setSignatureImage(null);
-      setEmbeddedPdfUri(null);
       setModifiedPdfBase64(null);
       handleClose();
       Alert.alert("Thành công", "Hợp đồng đã được ký và gửi");
-    } catch (error) {
-      console.error("Error signing contract:", error);
+    } catch (_error) {
+      console.error("Error signing contract:", _error);
       Alert.alert("Lỗi", "Lỗi khi ký hợp đồng. Vui lòng thử lại.");
-    } finally {
-      setIsSigning(false);
     }
   };
 
@@ -492,10 +479,8 @@ export const ViewContractModal = ({
     // Reset all signature and modal states
     setAgreePolicy(false);
     setSignatureImage(null);
-    setEmbeddedPdfUri(null);
     setModifiedPdfBase64(null);
     setShowSignatureModal(false);
-    setIsSigning(false);
     setPdfLoading(true);
     // Call parent's onClose
     onClose();
@@ -503,7 +488,6 @@ export const ViewContractModal = ({
 
   const handleClearSignature = () => {
     setSignatureImage(null);
-    setEmbeddedPdfUri(null);
     setModifiedPdfBase64(null);
   };
 

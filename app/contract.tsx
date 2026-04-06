@@ -86,7 +86,7 @@ export default function ContractPage() {
     try {
       const pdfUrl = `${process.env.EXPO_PUBLIC_API_BASE_URL}${process.env.EXPO_PUBLIC_API_PREFIX}${contract.pdfUrl}`;
       await WebBrowser.openBrowserAsync(pdfUrl);
-    } catch (error) {
+    } catch {
       Alert.alert("Lỗi", "Lỗi khi mở file PDF");
     }
   };
