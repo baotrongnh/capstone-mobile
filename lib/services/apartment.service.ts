@@ -2,26 +2,28 @@ import {
   ApartmentDetailResponse,
   ApartmentListResponse,
   ApartmentSearchQueryParams,
-} from "../../types/apartment"
-import { apiClient } from "../apis/client"
-import { endpoints } from "../apis/endpoints"
+} from "../../types/apartment";
+import { apiClient } from "../apis/client";
+import { endpoints } from "../apis/endpoints";
 
 export const apartmentService = {
-  getList: async (params?: ApartmentSearchQueryParams): Promise<ApartmentListResponse> => {
+  getList: async (
+    params?: ApartmentSearchQueryParams,
+  ): Promise<ApartmentListResponse> => {
     const { data } = await apiClient.get(`${endpoints.apartments}/search`, {
       params,
-    })
-    return data
+    });
+    return data;
   },
 
   getById: async (id: string | number): Promise<ApartmentDetailResponse> => {
-    const { data } = await apiClient.get(`${endpoints.apartments}/${id}`)
-    return data
+    const { data } = await apiClient.get(`${endpoints.apartments}/${id}`);
+    return data;
   },
 
   create: async (apartmentData: string) => {
-    const { data } = await apiClient.post(endpoints.apartments, apartmentData)
-    return data
+    const { data } = await apiClient.post(endpoints.apartments, apartmentData);
+    return data;
   },
 
   update: async (id: string | number, apartmentData: string) => {
@@ -29,11 +31,15 @@ export const apartmentService = {
       `${endpoints.apartments}/${id}`,
       apartmentData,
     );
-    return data
+    return data;
   },
 
   delete: async (id: string | number) => {
-    const { data } = await apiClient.delete(`${endpoints.apartments}/${id}`)
-    return data
+    const { data } = await apiClient.delete(`${endpoints.apartments}/${id}`);
+    return data;
   },
-}
+  getMyApartment: async (): Promise<ApartmentDetailResponse> => {
+    const { data } = await apiClient.get(`${endpoints.myApartment}`);
+    return data;
+  },
+};
