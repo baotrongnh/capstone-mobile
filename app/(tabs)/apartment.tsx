@@ -1,27 +1,144 @@
+import ApartmentSelector, { ApartmentSelectorOption } from '@/components/apartment/ApartmentSelector'
 import DeviceGrid, { DeviceGridItem } from '@/components/apartment/DeviceGrid'
-import DoorAccessCard from '@/components/apartment/DoorAccessCard'
-import WeatherOverviewCard from '@/components/apartment/WeatherOverviewCard'
 import { StyledContainer } from '@/components/styles'
-import { useDeviceIot } from '@/hooks/query/useDevices'
+import { useIotBoards, useDeviceIot } from '@/hooks/query/useDevices'
 import { IoTControlVariables } from '@/lib/services/iot.service'
+import { useUserApartment } from '@/hooks/query/useUserApartment'
+import { storage } from '@/stores/storage'
+import { UserApartmentItem } from '@/types/userApartment'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
-import React from 'react'
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import React, { useEffect, useMemo, useState } from 'react'
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 
-const devices: DeviceGridItem[] = [
-     { id: 'device-1', deviceId: 1, title: 'Rèm cửa', subtitle: 'Ban công', icon: 'curtains-closed', topic: 'curtain' },
-     { id: 'device-2', deviceId: 2, title: 'Đèn trần', subtitle: 'Phòng trẻ em', icon: 'lightbulb-outline', topic: 'light' },
-     { id: 'device-3', deviceId: 1, title: 'Đèn phòng ngủ', subtitle: 'Phòng ngủ', icon: 'lightbulb-outline', topic: 'light' },
-     { id: 'device-4', deviceId: 1, title: 'Báo động', subtitle: 'Toàn căn hộ', icon: 'alarm-light-outline', topic: 'alarm' },
-]
+const APARTMENT_STORAGE_KEY = 'selectedApartmentId'
 
-//debug
-const espId = 'ESP_A101'
+const formatApartmentLabel = (item: UserApartmentItem) => {
+     const buildingName = item.apartment?.buildingName || 'Tòa nhà'
+     const apartmentNumber = item.apartment?.apartmentNumber || '--'
+
+     return `${buildingName} - Căn ${apartmentNumber}`
+}
+
+const mapTopicIcon = (topic: IoTControlVariables['topic']): DeviceGridItem['icon'] => {
+     if (topic === 'curtain') return 'curtains-closed'
+     if (topic === 'alarm') return 'alarm-light-outline'
+     if (topic === 'door') return 'door'
+
+     return 'lightbulb-outline'
+}
 
 export default function ApartmentControlScreen() {
      const router = useRouter()
      const { mutate } = useDeviceIot()
+     const [selectedApartmentId, setSelectedApartmentId] = useState('')
+     const [isHydratedStorage, setIsHydratedStorage] = useState(false)
+
+     const { data: apartmentData, isLoading: isApartmentLoading } = useUserApartment()
+
+     const myApartments = useMemo<UserApartmentItem[]>(() => {
+          return (apartmentData?.data as UserApartmentItem[] | undefined) ?? []
+     }, [apartmentData?.data])
+
+     const apartmentOptions = useMemo<ApartmentSelectorOption[]>(() => {
+          return myApartments.map((item) => ({
+               id: String(item.apartmentId),
+               label: formatApartmentLabel(item),
+          }))
+     }, [myApartments])
+
+     useEffect(() => {
+          const loadSavedApartment = async () => {
+               const savedApartmentId = await storage.getItem(APARTMENT_STORAGE_KEY)
+
+               setSelectedApartmentId(savedApartmentId ?? '')
+               setIsHydratedStorage(true)
+          }
+
+          void loadSavedApartment()
+     }, [])
+
+     useEffect(() => {
+          if (!isHydratedStorage || isApartmentLoading) {
+               return
+          }
+
+          if (apartmentOptions.length === 0) {
+               if (!selectedApartmentId) {
+                    return
+               }
+
+               setSelectedApartmentId('')
+               void storage.removeItem(APARTMENT_STORAGE_KEY)
+               return
+          }
+
+          const isValidSelection = apartmentOptions.some((item) => item.id === selectedApartmentId)
+          const nextSelectedApartmentId = isValidSelection ? selectedApartmentId : apartmentOptions[0].id
+
+          if (nextSelectedApartmentId === selectedApartmentId) {
+               return
+          }
+
+          setSelectedApartmentId(nextSelectedApartmentId)
+          void storage.setItem(APARTMENT_STORAGE_KEY, nextSelectedApartmentId)
+     }, [apartmentOptions, isApartmentLoading, isHydratedStorage, selectedApartmentId])
+
+     const { data: boardsData, isLoading: isBoardsLoading } = useIotBoards(selectedApartmentId || undefined)
+
+     const boards = useMemo(() => boardsData?.data ?? [], [boardsData?.data])
+
+     const devices = useMemo<DeviceGridItem[]>(() => {
+          return boards.flatMap((board) => {
+               return board.devices
+                    .filter((device) => device.isControllableByTenant && device.mqttDeviceId !== null && device.mqttTopic !== null)
+                    .map((device) => ({
+                         id: device.id,
+                         espId: board.id,
+                         deviceId: device.mqttDeviceId as number,
+                         title: device.deviceName,
+                         subtitle: device.room?.roomNumber ? `Phòng ${device.room.roomNumber}` : board.name,
+                         icon: mapTopicIcon(device.mqttTopic as IoTControlVariables['topic']),
+                         topic: device.mqttTopic as IoTControlVariables['topic'],
+                         initial: device.mqttState === 'ON',
+                    }))
+          })
+     }, [boards])
+
+     useEffect(() => {
+          if (!selectedApartmentId) {
+               return
+          }
+
+          const apartmentDevices = boards.flatMap((board) =>
+               board.devices.map((device) => ({
+                    ...device,
+                    boardId: board.id,
+                    boardName: board.name,
+               })),
+          )
+
+          console.log('[APARTMENT] selectedApartmentId:', selectedApartmentId)
+          console.log('[APARTMENT] boards:', boards)
+          console.log('[APARTMENT] devices:', apartmentDevices)
+     }, [boards, selectedApartmentId])
+
+     const selectedApartmentLabel = useMemo(() => {
+          const selectedApartment = apartmentOptions.find((item) => item.id === selectedApartmentId)
+
+          return selectedApartment?.label || ''
+     }, [apartmentOptions, selectedApartmentId])
+
+     const onSelectApartment = (apartmentId: string) => {
+          setSelectedApartmentId(apartmentId)
+
+          if (!apartmentId) {
+               void storage.removeItem(APARTMENT_STORAGE_KEY)
+               return
+          }
+
+          void storage.setItem(APARTMENT_STORAGE_KEY, apartmentId)
+     }
 
      const onDeviceToggle = (data: IoTControlVariables) => {
           mutate({
@@ -34,11 +151,22 @@ export default function ApartmentControlScreen() {
      }
 
      const onOpenDoor = () => {
-          console.log('Door opened')
+          console.log('Door opened at apartment:', selectedApartmentId)
      }
 
      const onOpenWifiSetup = () => {
           router.navigate('/wifi-setup')
+     }
+
+     if (!isHydratedStorage || isApartmentLoading) {
+          return (
+               <StyledContainer style={styles.container}>
+                    <View style={styles.loadingWrap}>
+                         <ActivityIndicator size="large" color="#2563eb" />
+                         <Text style={styles.loadingText}>Đang tải căn hộ của bạn...</Text>
+                    </View>
+               </StyledContainer>
+          )
      }
 
      return (
@@ -47,7 +175,17 @@ export default function ApartmentControlScreen() {
                     contentContainerStyle={styles.content}
                     showsVerticalScrollIndicator={false}
                >
-                    <WeatherOverviewCard />
+                    <View style={styles.sectionBlock}>
+                         <Text style={styles.sectionTitle}>Căn hộ điều khiển</Text>
+
+                         <ApartmentSelector
+                              options={apartmentOptions}
+                              selectedApartmentId={selectedApartmentId}
+                              selectedApartmentLabel={selectedApartmentLabel}
+                              onSelectApartment={onSelectApartment}
+                              onViewApartments={() => router.push('/my-apartments')}
+                         />
+                    </View>
 
                     <View style={styles.sectionBlock}>
                          <Text style={styles.sectionTitle}>Thiết lập thiết bị</Text>
@@ -70,18 +208,31 @@ export default function ApartmentControlScreen() {
 
                     <View style={styles.sectionBlock}>
                          <Text style={styles.sectionTitle}>Thiết bị trong nhà</Text>
-                         <DeviceGrid
-                              devices={devices}
-                              onDeviceToggle={onDeviceToggle}
-                              espId={espId}
-                         />
-                    </View>
 
-                    <View style={styles.sectionBlock}>
-                         <Text style={styles.sectionTitle}>Cửa ra vào</Text>
-                         <DoorAccessCard title="Mở cửa chính" onOpenDoor={onOpenDoor} />
+                         {!selectedApartmentId ? (
+                              <View style={styles.emptyCard}>
+                                   <Text style={styles.emptyText}>Chọn căn hộ trước để tải danh sách thiết bị.</Text>
+                              </View>
+                         ) : isBoardsLoading ? (
+                              <View style={styles.loadingInline}>
+                                   <ActivityIndicator size="small" color="#2563eb" />
+                                   <Text style={styles.loadingInlineText}>Đang tải mạch và thiết bị...</Text>
+                              </View>
+                         ) : devices.length === 0 ? (
+                              <View style={styles.emptyCard}>
+                                   <Text style={styles.emptyText}>Căn hộ này chưa có thiết bị điều khiển.</Text>
+                              </View>
+                         ) : (
+                              <DeviceGrid
+                                   devices={devices}
+                                   onDeviceToggle={onDeviceToggle}
+                                   espId={devices[0]?.espId ?? ''}
+                                   onOpenDoor={onOpenDoor}
+                              />
+                         )}
                     </View>
                </ScrollView>
+
           </StyledContainer>
      )
 }
@@ -91,12 +242,35 @@ const styles = StyleSheet.create({
           backgroundColor: '#f3f5f9',
           paddingHorizontal: 10,
      },
+     loadingWrap: {
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 10,
+     },
+     loadingText: {
+          fontSize: 14,
+          color: '#475569',
+          fontWeight: '600',
+     },
      content: {
           paddingBottom: 130,
           gap: 14,
      },
      sectionBlock: {
           gap: 10,
+     },
+     emptyCard: {
+          backgroundColor: '#ffffff',
+          borderWidth: 1,
+          borderColor: '#e2e8f0',
+          borderRadius: 18,
+          padding: 14,
+          gap: 8,
+     },
+     emptyText: {
+          fontSize: 13,
+          color: '#64748b',
      },
      sectionTitle: {
           fontSize: 19,
@@ -136,5 +310,20 @@ const styles = StyleSheet.create({
      wifiSetupSubtitle: {
           fontSize: 13,
           color: '#64748b',
+     },
+     loadingInline: {
+          backgroundColor: '#ffffff',
+          borderWidth: 1,
+          borderColor: '#e2e8f0',
+          borderRadius: 18,
+          padding: 14,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 10,
+     },
+     loadingInlineText: {
+          fontSize: 13,
+          color: '#64748b',
+          fontWeight: '600',
      },
 })

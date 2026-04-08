@@ -1,4 +1,5 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons"
+import WeatherOverviewCard from "@/components/apartment/WeatherOverviewCard"
 import { StyledContainer } from "@/components/styles"
 import { useUnreadNotificationCount } from "@/hooks/query/useNotifications"
 import { useRouter } from "expo-router"
@@ -70,11 +71,16 @@ export default function HomeScreen() {
                     showsVerticalScrollIndicator={false}
                >
                     <View style={styles.heroCard}>
-                         <View>
+                         <View style={styles.heroContent}>
                               <Text style={styles.greetingLabel}>Xin chào,</Text>
                               <Text numberOfLines={1} style={styles.greetingName}>
                                    Nguyễn Huỳnh Bảo Trọng
                               </Text>
+
+                              <View style={styles.heroWeatherWrap}>
+                                   <Text style={styles.heroWeatherLabel}>Thời tiết hôm nay</Text>
+                                   <WeatherOverviewCard variant="inline" />
+                              </View>
                          </View>
 
                          <Pressable
@@ -107,16 +113,16 @@ export default function HomeScreen() {
                     </View>
 
                     <View style={styles.apartmentCard}>
-                         <View>
-                              <Text style={styles.apartmentCode}>BS1607.16</Text>
-                              <Text style={styles.apartmentAddress}>Vinhomes Grand Park</Text>
+                         <View style={styles.apartmentInfo}>
+                              <Text numberOfLines={1} style={styles.apartmentCode}>Tất cả căn hộ</Text>
+                              <Text numberOfLines={2} style={styles.apartmentAddress}>Xem những căn hộ bạn thuê</Text>
                          </View>
 
                          <Pressable
                               onPress={() => router.push("/my-apartments")}
                               style={styles.detailButton}
                          >
-                              <Text style={styles.detailButtonText}>Xem chi tiết</Text>
+                              <Text style={styles.detailButtonText}>Xem tất cả</Text>
                          </Pressable>
                     </View>
 
@@ -169,8 +175,13 @@ const styles = StyleSheet.create({
           backgroundColor: "#3b82f6",
           padding: 18,
           flexDirection: "row",
-          alignItems: "center",
+          alignItems: "flex-start",
           justifyContent: "space-between",
+          gap: 12,
+     },
+     heroContent: {
+          flex: 1,
+          minWidth: 0,
      },
      greetingLabel: {
           fontSize: 18,
@@ -179,10 +190,20 @@ const styles = StyleSheet.create({
      },
      greetingName: {
           marginTop: 4,
-          maxWidth: 220,
+          maxWidth: 240,
           fontSize: 28,
           fontWeight: "800",
           color: "#ffffff",
+     },
+     heroWeatherWrap: {
+          marginTop: 12,
+          width: "100%",
+          gap: 4,
+     },
+     heroWeatherLabel: {
+          fontSize: 12,
+          color: "rgba(255,255,255,0.88)",
+          fontWeight: "600",
      },
      bellButton: {
           width: 42,
@@ -249,8 +270,13 @@ const styles = StyleSheet.create({
           borderColor: "#e2e8f0",
           padding: 15,
           flexDirection: "row",
-          alignItems: "center",
+          alignItems: "flex-start",
           justifyContent: "space-between",
+          gap: 10,
+     },
+     apartmentInfo: {
+          flex: 1,
+          minWidth: 0,
      },
      apartmentCode: {
           fontSize: 22,
@@ -267,6 +293,8 @@ const styles = StyleSheet.create({
           paddingHorizontal: 14,
           borderRadius: 999,
           backgroundColor: "#3b82f6",
+          flexShrink: 0,
+          alignSelf: "flex-start",
      },
      detailButtonText: {
           color: "#ffffff",
