@@ -384,80 +384,6 @@ export interface paths {
         patch: operations["UsersController_updateOperator"];
         trace?: never;
     };
-    "/api/v1/users/staff": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List staff accounts */
-        get: operations["UsersController_findAllStaff"];
-        put?: never;
-        /** Create staff account */
-        post: operations["UsersController_createStaff"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/users/staff/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get staff account by ID */
-        get: operations["UsersController_findOneStaff"];
-        put?: never;
-        post?: never;
-        /** Deactivate staff account */
-        delete: operations["UsersController_removeStaff"];
-        options?: never;
-        head?: never;
-        /** Update staff account */
-        patch: operations["UsersController_updateStaff"];
-        trace?: never;
-    };
-    "/api/v1/users/operators": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List operator accounts */
-        get: operations["UsersController_findAllOperators"];
-        put?: never;
-        /** Create operator account */
-        post: operations["UsersController_createOperator"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/users/operators/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get operator account by ID */
-        get: operations["UsersController_findOneOperator"];
-        put?: never;
-        post?: never;
-        /** Deactivate operator account */
-        delete: operations["UsersController_removeOperator"];
-        options?: never;
-        head?: never;
-        /** Update operator account */
-        patch: operations["UsersController_updateOperator"];
-        trace?: never;
-    };
     "/api/v1/users/{id}": {
         parameters: {
             query?: never;
@@ -1494,40 +1420,6 @@ export interface paths {
         patch: operations["MaintenanceController_reject"];
         trace?: never;
     };
-    "/api/v1/maintenance/{id}/accept": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Staff accept maintenance request */
-        patch: operations["MaintenanceController_accept"];
-        trace?: never;
-    };
-    "/api/v1/maintenance/{id}/reject": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Staff reject maintenance request */
-        patch: operations["MaintenanceController_reject"];
-        trace?: never;
-    };
     "/api/v1/maintenance/{id}/complete": {
         parameters: {
             query?: never;
@@ -1543,23 +1435,6 @@ export interface paths {
         head?: never;
         /** Complete maintenance request */
         patch: operations["MaintenanceController_complete"];
-        trace?: never;
-    };
-    "/api/v1/maintenance/{id}/rate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** User rate completed maintenance support */
-        patch: operations["MaintenanceController_rate"];
         trace?: never;
     };
     "/api/v1/maintenance/{id}/rate": {
@@ -1838,7 +1713,6 @@ export interface paths {
         trace?: never;
     };
     "/api/v1/iot/devices/{espId}/config-door-password/{id}": {
-    "/api/v1/iot/devices/{espId}/config-door-password/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1849,15 +1723,12 @@ export interface paths {
         put?: never;
         /** Send door password directly to MQTT device */
         post: operations["IoTController_configureDoorPassword"];
-        /** Send door password directly to MQTT device */
-        post: operations["IoTController_configureDoorPassword"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/iot/devices/{espId}/get-telemetry": {
     "/api/v1/iot/devices/{espId}/get-telemetry": {
         parameters: {
             query?: never;
@@ -1869,15 +1740,12 @@ export interface paths {
         put?: never;
         /** Request telemetry from MQTT board */
         post: operations["IoTController_requestTelemetry"];
-        /** Request telemetry from MQTT board */
-        post: operations["IoTController_requestTelemetry"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/iot/devices/{espId}/check-health": {
     "/api/v1/iot/devices/{espId}/check-health": {
         parameters: {
             query?: never;
@@ -1887,10 +1755,7 @@ export interface paths {
         };
         /** Send health check signal to MQTT board */
         get: operations["IoTController_checkHealth"];
-        /** Send health check signal to MQTT board */
-        get: operations["IoTController_checkHealth"];
         put?: never;
-        post?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -1898,7 +1763,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/iot/devices/{espId}/test-sequence": {
     "/api/v1/iot/devices/{espId}/test-sequence": {
         parameters: {
             query?: never;
@@ -1910,15 +1774,12 @@ export interface paths {
         put?: never;
         /** Run MQTT device test sequence */
         post: operations["IoTController_runTestSequence"];
-        /** Run MQTT device test sequence */
-        post: operations["IoTController_runTestSequence"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/iot/devices/{espId}/{deviceId}": {
     "/api/v1/iot/devices/{espId}/{deviceId}": {
         parameters: {
             query?: never;
@@ -1928,8 +1789,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Publish a generic MQTT device command by topic and device id */
-        post: operations["IoTController_controlDeviceByTopic"];
         /** Publish a generic MQTT device command by topic and device id */
         post: operations["IoTController_controlDeviceByTopic"];
         delete?: never;
@@ -1968,7 +1827,6 @@ export interface paths {
         put?: never;
         post?: never;
         /** Deactivate IoT board and all its child devices */
-        /** Deactivate IoT board and all its child devices */
         delete: operations["IoTController_removeBoard"];
         options?: never;
         head?: never;
@@ -2004,11 +1862,9 @@ export interface paths {
         put?: never;
         post?: never;
         /** Deactivate a child device from an IoT board */
-        /** Deactivate a child device from an IoT board */
         delete: operations["IoTController_removeBoardDevice"];
         options?: never;
         head?: never;
-        /** Update an IoT board child device */
         /** Update an IoT board child device */
         patch: operations["IoTController_updateBoardDevice"];
         trace?: never;
@@ -3597,118 +3453,6 @@ export interface components {
             /** @default true */
             isActive: boolean;
         };
-        CreateStaffDto: {
-            /**
-             * Format: email
-             * @example staff1@intelliservops.vn
-             */
-            email: string;
-            /** @example 0901234567 */
-            phone: string;
-            /** @example Nguyen Van Staff */
-            fullName: string;
-            /** @example STF-001 */
-            employeeCode: string;
-            /**
-             * @example general
-             * @enum {string}
-             */
-            role: "technician" | "customer_service" | "maintenance" | "general";
-            /** @example Operations */
-            department?: string;
-            /** @example HCM */
-            workingCity?: string;
-            /** @example District 1 */
-            workingDistrict?: string;
-            /** @example 10.7769 */
-            latitude?: number;
-            /** @example 106.7009 */
-            longitude?: number;
-            /** @example 2026-04-06 */
-            hireDate: string;
-            /** @example Staff@1234 */
-            password: string;
-            /** @default true */
-            isActive: boolean;
-        };
-        UpdateStaffDto: {
-            /**
-             * Format: email
-             * @example staff1@intelliservops.vn
-             */
-            email?: string;
-            /** @example 0901234567 */
-            phone?: string;
-            /** @example Nguyen Van Staff */
-            fullName?: string;
-            /** @example STF-001 */
-            employeeCode?: string;
-            /**
-             * @example general
-             * @enum {string}
-             */
-            role?: "technician" | "customer_service" | "maintenance" | "general";
-            /** @example Operations */
-            department?: string;
-            /** @example HCM */
-            workingCity?: string;
-            /** @example District 1 */
-            workingDistrict?: string;
-            /** @example 10.7769 */
-            latitude?: number;
-            /** @example 106.7009 */
-            longitude?: number;
-            /** @example 2026-04-06 */
-            hireDate?: string;
-            /** @example Staff@1234 */
-            password?: string;
-            /** @default true */
-            isActive: boolean;
-        };
-        CreateOperatorDto: {
-            /**
-             * Format: email
-             * @example operator1@intelliservops.vn
-             */
-            email: string;
-            /** @example 0901234567 */
-            phone: string;
-            /** @example Tran Van Operator */
-            fullName: string;
-            /** @example OP-001 */
-            employeeCode: string;
-            /**
-             * @example flexible
-             * @enum {string}
-             */
-            shift?: "morning" | "afternoon" | "night" | "flexible";
-            /** @example Operator@1234 */
-            password: string;
-            /** @default true */
-            isActive: boolean;
-        };
-        UpdateOperatorDto: {
-            /**
-             * Format: email
-             * @example operator1@intelliservops.vn
-             */
-            email?: string;
-            /** @example 0901234567 */
-            phone?: string;
-            /** @example Tran Van Operator */
-            fullName?: string;
-            /** @example OP-001 */
-            employeeCode?: string;
-            /**
-             * @example flexible
-             * @enum {string}
-             */
-            shift?: "morning" | "afternoon" | "night" | "flexible";
-            /** @example Operator@1234 */
-            password?: string;
-            /** @default true */
-            isActive: boolean;
-        };
         UserCreatedDto: {
             /** @example a1b2c3d4-e5f6-7890-abcd-ef1234567890 */
             id: string;
@@ -4131,35 +3875,10 @@ export interface components {
              */
             districtName?: string | null;
             /**
-             * @description Tên phường/xã (resolve từ wardCode)
-             * @example Phường Bến Nghé
-             */
-            wardName?: string | null;
-            /**
-             * @description Mã quận/huyện (resolve từ wardCode)
-             * @example 760
-             */
-            districtCode?: number | null;
-            /**
-             * @description Tên quận/huyện (resolve từ wardCode)
-             * @example Quận 1
-             */
-            districtName?: string | null;
-            /**
              * @description Mã tỉnh/thành (v2), auto-resolved từ wardCode
              * @example 79
              */
             provinceCode?: number | null;
-            /**
-             * @description Tên tỉnh/thành (resolve từ wardCode)
-             * @example Thành phố Hồ Chí Minh
-             */
-            provinceName?: string | null;
-            /**
-             * @description Địa chỉ hành chính đầy đủ (resolve từ wardCode)
-             * @example Phường Bến Nghé, Quận 1, Thành phố Hồ Chí Minh
-             */
-            fullAddress?: string | null;
             /**
              * @description Tên tỉnh/thành (resolve từ wardCode)
              * @example Thành phố Hồ Chí Minh
@@ -4337,35 +4056,10 @@ export interface components {
              */
             districtName?: string | null;
             /**
-             * @description Tên phường/xã (resolve từ wardCode)
-             * @example Phường Bến Nghé
-             */
-            wardName?: string | null;
-            /**
-             * @description Mã quận/huyện (resolve từ wardCode)
-             * @example 760
-             */
-            districtCode?: number | null;
-            /**
-             * @description Tên quận/huyện (resolve từ wardCode)
-             * @example Quận 1
-             */
-            districtName?: string | null;
-            /**
              * @description Mã tỉnh/thành (v2), auto-resolved từ wardCode
              * @example 79
              */
             provinceCode?: number | null;
-            /**
-             * @description Tên tỉnh/thành (resolve từ wardCode)
-             * @example Thành phố Hồ Chí Minh
-             */
-            provinceName?: string | null;
-            /**
-             * @description Địa chỉ hành chính đầy đủ (resolve từ wardCode)
-             * @example Phường Bến Nghé, Quận 1, Thành phố Hồ Chí Minh
-             */
-            fullAddress?: string | null;
             /**
              * @description Tên tỉnh/thành (resolve từ wardCode)
              * @example Thành phố Hồ Chí Minh
@@ -6418,7 +6112,6 @@ export interface components {
             urgency: string;
         };
         CreateMaintenanceRequestDto: {
-        CreateMaintenanceRequestDto: {
             /**
              * Format: uuid
              * @description Apartment ID
@@ -6445,7 +6138,6 @@ export interface components {
              */
             priority: "low" | "medium" | "high" | "emergency";
             /** @description Issue images (JPEG, PNG, WebP), max 10 files */
-            /** @description Issue images (JPEG, PNG, WebP), max 10 files */
             images?: string[];
         };
         MaintenanceUpdatedDto: {
@@ -6454,22 +6146,6 @@ export interface components {
             title: string;
             /** @example in_progress */
             status: string;
-        };
-        AcceptMaintenanceDto: {
-            /**
-             * @description Staff acceptance note
-             * @example I will handle this request this afternoon.
-             */
-            note?: string;
-        };
-        RejectMaintenanceRequestDto: {
-            /**
-             * @description Reason for rejection
-             * @example Issue is outside apartment responsibility.
-             */
-            reason: string;
-            /** @description Optional rejection evidence images (JPEG, PNG, WebP) */
-            images?: string[];
         };
         AcceptMaintenanceDto: {
             /**
@@ -6500,32 +6176,6 @@ export interface components {
             resolutionNotes?: string;
             /** @description Maintenance cost */
             cost?: number;
-        };
-        CompleteMaintenanceRequestDto: {
-            /**
-             * @description Resolution details after completion
-             * @example Replaced leaking pipe and tested water flow.
-             */
-            resolutionNotes: string;
-            /**
-             * @description Actual maintenance cost
-             * @example 250000
-             */
-            cost?: number;
-            /** @description Optional completion proof images (JPEG, PNG, WebP) */
-            completionImages?: string[];
-        };
-        RateMaintenanceDto: {
-            /**
-             * @description Rating from 1 to 5
-             * @example 5
-             */
-            rating: number;
-            /**
-             * @description User feedback for staff support
-             * @example Staff solved quickly and politely.
-             */
-            feedback?: string;
         };
         CompleteMaintenanceRequestDto: {
             /**
@@ -6861,20 +6511,6 @@ export interface components {
              * @example 2000
              */
             holdMs: number;
-        };
-        DirectMqttControlDto: {
-            /**
-             * @description MQTT topic segment configured on the ESP board for this device
-             * @example light
-             * @enum {string}
-             */
-            topic: "light" | "alarm" | "door" | "curtain";
-            /**
-             * @description Only ON/OFF are accepted by the current IoT backend
-             * @example ON
-             * @enum {string}
-             */
-            action: "ON" | "OFF";
         };
         DirectMqttControlDto: {
             /**
@@ -9677,214 +9313,6 @@ export interface operations {
             };
         };
     };
-    UsersController_findAllStaff: {
-        parameters: {
-            query?: {
-                /** @description Search by fullName, email, phone, employeeCode */
-                search?: string;
-                page?: number;
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    UsersController_createStaff: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateStaffDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    UsersController_findOneStaff: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    UsersController_removeStaff: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    UsersController_updateStaff: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateStaffDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    UsersController_findAllOperators: {
-        parameters: {
-            query?: {
-                /** @description Search by fullName, email, phone, employeeCode */
-                search?: string;
-                page?: number;
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    UsersController_createOperator: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateOperatorDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    UsersController_findOneOperator: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    UsersController_removeOperator: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    UsersController_updateOperator: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateOperatorDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     UsersController_findOne: {
         parameters: {
             query?: never;
@@ -12393,10 +11821,8 @@ export interface operations {
             cookie?: never;
         };
         /** @description Create maintenance request with optional issue images */
-        /** @description Create maintenance request with optional issue images */
         requestBody: {
             content: {
-                "multipart/form-data": components["schemas"]["CreateMaintenanceRequestDto"];
                 "multipart/form-data": components["schemas"]["CreateMaintenanceRequestDto"];
             };
         };
@@ -12626,79 +12052,6 @@ export interface operations {
             };
         };
     };
-    MaintenanceController_accept: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AcceptMaintenanceDto"];
-            };
-        };
-        responses: {
-            /** @description Request accepted by staff */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["MaintenanceUpdatedDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    MaintenanceController_reject: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        /** @description Reject maintenance request with optional evidence images */
-        requestBody: {
-            content: {
-                "multipart/form-data": components["schemas"]["RejectMaintenanceRequestDto"];
-            };
-        };
-        responses: {
-            /** @description Request rejected by staff */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["MaintenanceUpdatedDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
     MaintenanceController_complete: {
         parameters: {
             query?: never;
@@ -12707,12 +12060,6 @@ export interface operations {
                 id: string;
             };
             cookie?: never;
-        };
-        /** @description Complete maintenance request with optional completion images */
-        requestBody: {
-            content: {
-                "multipart/form-data": components["schemas"]["CompleteMaintenanceRequestDto"];
-            };
         };
         /** @description Complete maintenance request with optional completion images */
         requestBody: {
@@ -12746,42 +12093,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-        };
-    };
-    MaintenanceController_rate: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RateMaintenanceDto"];
-            };
-        };
-        responses: {
-            /** @description Request rated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["MaintenanceUpdatedDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
             };
         };
     };
@@ -13452,7 +12763,6 @@ export interface operations {
         };
     };
     IoTController_configureDoorPassword: {
-    IoTController_configureDoorPassword: {
         parameters: {
             query?: never;
             header?: never;
@@ -13465,11 +12775,9 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["SetDoorPasswordDto"];
-                "application/json": components["schemas"]["SetDoorPasswordDto"];
             };
         };
         responses: {
-            /** @description Door password published to MQTT broker */
             /** @description Door password published to MQTT broker */
             200: {
                 headers: {
@@ -13498,7 +12806,6 @@ export interface operations {
         };
     };
     IoTController_requestTelemetry: {
-    IoTController_requestTelemetry: {
         parameters: {
             query?: never;
             header?: never;
@@ -13508,9 +12815,7 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
-        requestBody?: never;
         responses: {
-            /** @description Telemetry request published to MQTT broker */
             /** @description Telemetry request published to MQTT broker */
             200: {
                 headers: {
@@ -13522,7 +12827,6 @@ export interface operations {
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
-                        data?: components["schemas"]["IoTMqttSignalResultDto"];
                         data?: components["schemas"]["IoTMqttSignalResultDto"];
                         meta?: {
                             /** @example 2026-02-26T10:21:00.000Z */
@@ -13540,7 +12844,6 @@ export interface operations {
         };
     };
     IoTController_checkHealth: {
-    IoTController_checkHealth: {
         parameters: {
             query?: never;
             header?: never;
@@ -13550,9 +12853,7 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
-        requestBody?: never;
         responses: {
-            /** @description Health check signal published to MQTT broker */
             /** @description Health check signal published to MQTT broker */
             200: {
                 headers: {
@@ -13565,7 +12866,6 @@ export interface operations {
                         /** @example Success */
                         message?: string;
                         data?: components["schemas"]["IoTMqttSignalResultDto"];
-                        data?: components["schemas"]["IoTMqttSignalResultDto"];
                         meta?: {
                             /** @example 2026-02-26T10:21:00.000Z */
                             timestamp?: string;
@@ -13573,9 +12873,6 @@ export interface operations {
                     };
                 };
             };
-        };
-    };
-    IoTController_runTestSequence: {
         };
     };
     IoTController_runTestSequence: {
@@ -13590,11 +12887,9 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["TestSequenceDto"];
-                "application/json": components["schemas"]["TestSequenceDto"];
             };
         };
         responses: {
-            /** @description MQTT test sequence completed */
             /** @description MQTT test sequence completed */
             200: {
                 headers: {
@@ -13606,7 +12901,6 @@ export interface operations {
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
-                        data?: components["schemas"]["IoTTestSequenceResponseDto"];
                         data?: components["schemas"]["IoTTestSequenceResponseDto"];
                         meta?: {
                             /** @example 2026-02-26T10:21:00.000Z */
@@ -13624,13 +12918,11 @@ export interface operations {
         };
     };
     IoTController_controlDeviceByTopic: {
-    IoTController_controlDeviceByTopic: {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 espId: string;
-                deviceId: number;
                 deviceId: number;
             };
             cookie?: never;
@@ -13638,12 +12930,9 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["DirectMqttControlDto"];
-                "application/json": components["schemas"]["DirectMqttControlDto"];
             };
         };
         responses: {
-            /** @description Generic MQTT command published to MQTT broker */
-            201: {
             /** @description Generic MQTT command published to MQTT broker */
             201: {
                 headers: {
@@ -13651,7 +12940,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 201 */
                         /** @example 201 */
                         statusCode?: number;
                         /** @example Success */
@@ -13712,7 +13000,6 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Board created successfully */
             /** @description Board created successfully */
             201: {
                 headers: {
@@ -13785,7 +13072,6 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Board deactivated successfully */
-            /** @description Board deactivated successfully */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -13821,7 +13107,6 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Board updated successfully */
             /** @description Board updated successfully */
             200: {
                 headers: {
@@ -13859,7 +13144,6 @@ export interface operations {
         };
         responses: {
             /** @description Child device created successfully */
-            /** @description Child device created successfully */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -13870,7 +13154,6 @@ export interface operations {
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
-                        data?: components["schemas"]["IoTBoardDetailDto"];
                         data?: components["schemas"]["IoTBoardDetailDto"];
                         meta?: {
                             /** @example 2026-02-26T10:21:00.000Z */
@@ -13894,7 +13177,6 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Child device deactivated successfully */
-            /** @description Child device deactivated successfully */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -13905,7 +13187,6 @@ export interface operations {
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
-                        data?: components["schemas"]["IoTBoardDetailDto"];
                         data?: components["schemas"]["IoTBoardDetailDto"];
                         meta?: {
                             /** @example 2026-02-26T10:21:00.000Z */
@@ -13932,7 +13213,6 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Child device updated successfully */
             /** @description Child device updated successfully */
             200: {
                 headers: {

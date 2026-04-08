@@ -6,6 +6,7 @@ export const createEndpoints = (resource: string) => {
 
 export const endpoints = {
   apartments: createEndpoints("apartments"),
+  userApartments: createEndpoints("user-apartments"),
   viewRequest: createEndpoints("viewing-requests"),
   apartmentPolicies: createEndpoints("apartment-policies/apartment"),
   contracts: createEndpoints("contracts"),
@@ -16,7 +17,6 @@ export const endpoints = {
   invoices: createEndpoints("invoices"),
   notifications: createEndpoints("notifications"),
   iot: createEndpoints("iot"),
-  userApartments: createEndpoints("user-apartments"),
   myApartment: createEndpoints("user-apartments/my"),
   maintenance: createEndpoints("maintenance"),
 };
