@@ -19,6 +19,90 @@ import {
      View,
 } from 'react-native'
 
+const NETWORK_ERROR_MESSAGE = 'Không thể kết nối máy chủ. Vui lòng kiểm tra mạng và thử lại.'
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const PHONE_REGEX = /^(\+84|0)\d{9,10}$/
+
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+     return typeof value === 'object' && value !== null
+}
+
+const getFriendlyAuthErrorMessage = (error: unknown, isGoogleLogin = false): string => {
+     const defaultMessage = isGoogleLogin
+          ? 'Đăng nhập Google không thành công. Vui lòng thử lại.'
+          : 'Đăng nhập không thành công. Vui lòng thử lại.'
+
+     if (!isRecord(error)) {
+          return defaultMessage
+     }
+
+     const response = isRecord(error.response) ? error.response : null
+     const status = typeof response?.status === 'number' ? response.status : undefined
+
+     if (!response) {
+          return NETWORK_ERROR_MESSAGE
+     }
+
+     if (status === 401) {
+          return isGoogleLogin
+               ? 'Phiên đăng nhập Google đã hết hạn hoặc không hợp lệ. Vui lòng thử lại.'
+               : 'Email/số điện thoại hoặc mật khẩu chưa đúng.'
+     }
+
+     if (status && status >= 500) {
+          return 'Hệ thống đang bận. Vui lòng thử lại sau ít phút.'
+     }
+
+     const responseData = isRecord(response.data) ? response.data : null
+     const rawMessage = responseData?.message
+
+     if (typeof rawMessage === 'string' && rawMessage.trim().length > 0) {
+          return rawMessage
+     }
+
+     if (Array.isArray(rawMessage)) {
+          const firstMessage = rawMessage.find((item) => typeof item === 'string' && item.trim().length > 0)
+          if (firstMessage) {
+               return firstMessage
+          }
+     }
+
+     const errorMessage = typeof error.message === 'string' ? error.message : ''
+     if (
+          errorMessage.includes('Network Error') ||
+          errorMessage.includes('timeout') ||
+          errorMessage.includes('Request failed with status code')
+     ) {
+          return status === 401
+               ? (isGoogleLogin
+                    ? 'Phiên đăng nhập Google đã hết hạn hoặc không hợp lệ. Vui lòng thử lại.'
+                    : 'Email/số điện thoại hoặc mật khẩu chưa đúng.')
+               : defaultMessage
+     }
+
+     return defaultMessage
+}
+
+const validateLoginInput = (identifier: string, password: string): string | null => {
+     if (!identifier) {
+          return 'Vui lòng nhập email hoặc số điện thoại.'
+     }
+
+     if (!EMAIL_REGEX.test(identifier) && !PHONE_REGEX.test(identifier)) {
+          return 'Email hoặc số điện thoại chưa đúng định dạng.'
+     }
+
+     if (!password) {
+          return 'Vui lòng nhập mật khẩu.'
+     }
+
+     if (password.length < 6) {
+          return 'Mật khẩu cần có ít nhất 6 ký tự.'
+     }
+
+     return null
+}
+
 export default function LoginScreen() {
      const loginMutation = useLogin()
      const googleLogin = useGoogleLogin()
@@ -41,10 +125,12 @@ export default function LoginScreen() {
 
      const handleGoogleLogin = async () => {
           try {
-               await googleLogin.login()
-               router.replace('/(tabs)/home')
-          } catch {
-               Alert.alert('Đăng nhập Google thất bại')
+               const isSuccess = await googleLogin.login()
+               if (isSuccess) {
+                    router.replace('/(tabs)/home')
+               }
+          } catch (error) {
+               Alert.alert('Đăng nhập Google thất bại', getFriendlyAuthErrorMessage(error, true))
           }
      }
 
@@ -83,14 +169,23 @@ export default function LoginScreen() {
                                    <Formik<LoginDTO>
                                         initialValues={{ identifier: '', password: '' }}
                                         onSubmit={async (values) => {
+                                             const normalizedIdentifier = values.identifier.trim()
+                                             const normalizedPassword = values.password.trim()
+                                             const validationMessage = validateLoginInput(normalizedIdentifier, normalizedPassword)
+
+                                             if (validationMessage) {
+                                                  Alert.alert('Thông tin chưa hợp lệ', validationMessage)
+                                                  return
+                                             }
+
                                              try {
                                                   await loginMutation.mutateAsync({
-                                                       identifier: values.identifier.trim(),
-                                                       password: values.password,
+                                                       identifier: normalizedIdentifier,
+                                                       password: normalizedPassword,
                                                   })
                                                   router.replace('/(tabs)/home')
-                                             } catch {
-                                                  Alert.alert('Đăng nhập thất bại')
+                                             } catch (error) {
+                                                  Alert.alert('Đăng nhập thất bại', getFriendlyAuthErrorMessage(error))
                                              }
                                         }}
                                    >
@@ -240,7 +335,7 @@ const loginStyles = StyleSheet.create({
      logoBlock: {
           justifyContent: 'center',
           alignItems: 'center',
-          marginTop: 100 ,
+          marginTop: 100,
           marginBottom: 24,
      },
      inputForm: {
