@@ -1,5 +1,5 @@
-import { IoTControlVariables, iotServices } from "@/lib/services/iot.service"
-import { useMutation, useQuery } from "@tanstack/react-query"
+import { IoTControlVariables, IotBoardDeviceUpdateVariables, iotServices } from "@/lib/services/iot.service"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 export const useIotBoards = (apartmentId?: string) => {
      return useQuery({
@@ -20,5 +20,20 @@ export const useDeviceIot = () => {
           onError: (error) => {
                console.log(error)
           }
+     })
+}
+
+export const useUpdateIotBoardDevice = () => {
+     const queryClient = useQueryClient()
+
+     return useMutation({
+          mutationFn: ({ boardId, deviceId, payload }: IotBoardDeviceUpdateVariables) =>
+               iotServices.updateBoardDevice({ boardId, deviceId, payload }),
+          onSuccess: () => {
+               queryClient.invalidateQueries({ queryKey: ["iot-boards"] })
+          },
+          onError: (error) => {
+               console.log(error)
+          },
      })
 }

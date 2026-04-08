@@ -10,16 +10,16 @@ export type ApartmentQueryParams = NonNullable<ApartmentSearchQueryParams>
 export type FurnishingType = NonNullable<ApartmentQueryParams['furnishingStatus']>
 
 export type ApartmentFilterPatch = {
-     keyword?: ApartmentQueryParams['keyword']
-     minBedrooms?: ApartmentQueryParams['minBedrooms']
-     maxBedrooms?: ApartmentQueryParams['maxBedrooms']
-     minPrice?: ApartmentQueryParams['minPrice']
-     maxPrice?: ApartmentQueryParams['maxPrice']
-     minArea?: ApartmentQueryParams['minArea']
-     maxArea?: ApartmentQueryParams['maxArea']
-     furnishingStatus?: ApartmentQueryParams['furnishingStatus']
-     // Keep fallback while BE/OpenAPI has not synced wardCode yet.
-     wardCode?: number
+    keyword?: ApartmentQueryParams['keyword']
+    minBedrooms?: ApartmentQueryParams['minBedrooms']
+    maxBedrooms?: ApartmentQueryParams['maxBedrooms']
+    minPrice?: ApartmentQueryParams['minPrice']
+    maxPrice?: ApartmentQueryParams['maxPrice']
+    minArea?: ApartmentQueryParams['minArea']
+    maxArea?: ApartmentQueryParams['maxArea']
+    furnishingStatus?: ApartmentQueryParams['furnishingStatus']
+    // Keep fallback while BE/OpenAPI has not synced wardCode yet.
+    wardCode?: number
 }
 
 export type ApartmentHeaderProps = {
@@ -37,6 +37,8 @@ export type ChangeHousePasswordModalProps = {
     newHousePassword: string
     confirmNewHousePassword: string
     isUpdating: boolean
+    helperText?: string
+    passwordLength?: number
     onChangeNewPassword: (value: string) => void
     onChangeConfirmPassword: (value: string) => void
     onClose: () => void

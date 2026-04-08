@@ -2,8 +2,11 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons"
 import WeatherOverviewCard from "@/components/apartment/WeatherOverviewCard"
 import { StyledContainer } from "@/components/styles"
 import { useUnreadNotificationCount } from "@/hooks/query/useNotifications"
+import { useUserProfile } from "@/hooks/query/useUser"
+import { useAuthStore } from "@/stores/auth.store"
+import { toUserText } from "@/utils/user"
 import { useRouter } from "expo-router"
-import React from "react"
+import React, { useMemo } from "react"
 import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native"
 
 const SUPPORT_PHONE = "0332667829"
@@ -24,6 +27,14 @@ const quickActions: QuickAction[] = [
 export default function HomeScreen() {
      const router = useRouter()
      const { data: unreadCount = 0 } = useUnreadNotificationCount()
+     const userFromStore = useAuthStore((state) => state.user)
+     const { data: userProfile } = useUserProfile()
+
+     const greetingName = useMemo(() => {
+          const preferredName = userFromStore?.fullName || userProfile?.fullName || userFromStore?.email || userProfile?.email
+          const safeText = toUserText(preferredName)
+          return safeText === "-" ? "Cư dân" : safeText
+     }, [userFromStore?.email, userFromStore?.fullName, userProfile?.email, userProfile?.fullName])
 
      const onPressSupportCall = async () => {
           const phoneUrl = `tel:${SUPPORT_PHONE}`
@@ -74,7 +85,7 @@ export default function HomeScreen() {
                          <View style={styles.heroContent}>
                               <Text style={styles.greetingLabel}>Xin chào,</Text>
                               <Text numberOfLines={1} style={styles.greetingName}>
-                                   Nguyễn Huỳnh Bảo Trọng
+                                   {greetingName}
                               </Text>
 
                               <View style={styles.heroWeatherWrap}>

@@ -1,31 +1,31 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { UserApartmentItem } from '@/types/userApartment'
 import React, { useEffect, useRef, useState } from 'react'
 import { Animated, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 
-export type ApartmentSelectorOption = {
-     id: string
-     label: string
-}
+const getApartmentId = (item: UserApartmentItem) => String(item.apartmentId)
+const getApartmentLabel = (item: UserApartmentItem) => item.apartment?.apartmentNumber || String(item.apartmentId)
 
 type ApartmentSelectorProps = {
-     options: ApartmentSelectorOption[]
+     apartments: UserApartmentItem[]
      selectedApartmentId: string
-     selectedApartmentLabel: string
      onSelectApartment: (apartmentId: string) => void
      onViewApartments: () => void
 }
 
 export default function ApartmentSelector({
-     options,
+     apartments,
      selectedApartmentId,
-     selectedApartmentLabel,
      onSelectApartment,
      onViewApartments,
 }: ApartmentSelectorProps) {
      const [isModalVisible, setIsModalVisible] = useState(false)
      const overlayOpacity = useRef(new Animated.Value(0)).current
      const sheetTranslateY = useRef(new Animated.Value(280)).current
-     const isMultiple = options.length > 1
+     const isMultiple = apartments.length > 1
+
+     const selectedApartment = apartments.find((item) => getApartmentId(item) === selectedApartmentId)
+     const selectedApartmentLabel = selectedApartment ? getApartmentLabel(selectedApartment) : ''
 
      useEffect(() => {
           if (!isMultiple && isModalVisible) {
@@ -71,7 +71,7 @@ export default function ApartmentSelector({
           })
      }
 
-     if (options.length === 0) {
+     if (apartments.length === 0) {
           return (
                <View style={styles.emptyCard}>
                     <Text style={styles.emptyTitle}>Bạn chưa có căn hộ để điều khiển</Text>
@@ -128,20 +128,21 @@ export default function ApartmentSelector({
                               <Text style={styles.sheetTitle}>Chọn căn hộ</Text>
 
                               <ScrollView contentContainerStyle={styles.sheetList} showsVerticalScrollIndicator={false}>
-                                   {options.map((item) => {
-                                        const isActive = item.id === selectedApartmentId
+                                   {apartments.map((item) => {
+                                        const apartmentId = getApartmentId(item)
+                                        const isActive = apartmentId === selectedApartmentId
 
                                         return (
                                              <Pressable
-                                                  key={item.id}
+                                                  key={apartmentId}
                                                   onPress={() => {
-                                                       onSelectApartment(item.id)
+                                                       onSelectApartment(apartmentId)
                                                        closeSelectModal()
                                                   }}
                                                   style={[styles.sheetOption, isActive && styles.sheetOptionActive]}
                                              >
                                                   <Text numberOfLines={1} style={[styles.sheetOptionText, isActive && styles.sheetOptionTextActive]}>
-                                                       {item.label}
+                                                       {getApartmentLabel(item)}
                                                   </Text>
 
                                                   {isActive ? (

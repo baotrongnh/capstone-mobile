@@ -16,6 +16,8 @@ export default function ChangeHousePasswordModal({
     newHousePassword,
     confirmNewHousePassword,
     isUpdating,
+    helperText,
+    passwordLength = 12,
     onChangeNewPassword,
     onChangeConfirmPassword,
     onClose,
@@ -41,17 +43,17 @@ export default function ChangeHousePasswordModal({
             <View style={styles.modalOverlay}>
                 <View style={styles.modalCard}>
                     <Text style={styles.modalTitle}>Đổi mật khẩu cửa</Text>
-                    <Text style={styles.modalSubtitle}>Nhập mật khẩu mới gồm 4 đến 12 chữ số</Text>
+                    <Text style={styles.modalSubtitle}>{helperText || "Nhập mật khẩu mới gồm 4 đến 12 chữ số"}</Text>
 
                     <View style={styles.modalInputWrap}>
                         <TextInput
                             value={newHousePassword}
-                            onChangeText={(text) => onChangeNewPassword(text.replace(/\D/g, "").slice(0, 12))}
+                            onChangeText={(text) => onChangeNewPassword(text.replace(/\D/g, "").slice(0, passwordLength))}
                             placeholder="Mật khẩu mới"
                             placeholderTextColor="#94a3b8"
                             keyboardType="number-pad"
                             secureTextEntry={!showNewPassword}
-                            maxLength={12}
+                            maxLength={passwordLength}
                             style={styles.modalInput}
                         />
                         <Pressable
@@ -69,12 +71,12 @@ export default function ChangeHousePasswordModal({
                     <View style={styles.modalInputWrap}>
                         <TextInput
                             value={confirmNewHousePassword}
-                            onChangeText={(text) => onChangeConfirmPassword(text.replace(/\D/g, "").slice(0, 12))}
+                            onChangeText={(text) => onChangeConfirmPassword(text.replace(/\D/g, "").slice(0, passwordLength))}
                             placeholder="Xác nhận mật khẩu mới"
                             placeholderTextColor="#94a3b8"
                             keyboardType="number-pad"
                             secureTextEntry={!showConfirmPassword}
-                            maxLength={12}
+                            maxLength={passwordLength}
                             style={styles.modalInput}
                         />
                         <Pressable
