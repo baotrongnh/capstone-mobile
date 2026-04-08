@@ -1,4 +1,6 @@
-import React from "react"
+import { ChangeHousePasswordModalProps } from "@/types/apartment"
+import { MaterialCommunityIcons } from "@expo/vector-icons"
+import React, { useEffect, useState } from "react"
 import {
     ActivityIndicator,
     Modal,
@@ -8,17 +10,6 @@ import {
     TextInput,
     View,
 } from "react-native"
-
-type ChangeHousePasswordModalProps = {
-    visible: boolean
-    newHousePassword: string
-    confirmNewHousePassword: string
-    isUpdating: boolean
-    onChangeNewPassword: (value: string) => void
-    onChangeConfirmPassword: (value: string) => void
-    onClose: () => void
-    onSubmit: () => void
-}
 
 export default function ChangeHousePasswordModal({
     visible,
@@ -30,6 +21,16 @@ export default function ChangeHousePasswordModal({
     onClose,
     onSubmit,
 }: ChangeHousePasswordModalProps) {
+    const [showNewPassword, setShowNewPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+    useEffect(() => {
+        if (!visible) {
+            setShowNewPassword(false)
+            setShowConfirmPassword(false)
+        }
+    }, [visible])
+
     return (
         <Modal
             visible={visible}
@@ -42,27 +43,51 @@ export default function ChangeHousePasswordModal({
                     <Text style={styles.modalTitle}>Đổi mật khẩu cửa</Text>
                     <Text style={styles.modalSubtitle}>Nhập mật khẩu mới gồm 4 đến 12 chữ số</Text>
 
-                    <TextInput
-                        value={newHousePassword}
-                        onChangeText={(text) => onChangeNewPassword(text.replace(/\D/g, "").slice(0, 12))}
-                        placeholder="Mật khẩu mới"
-                        placeholderTextColor="#94a3b8"
-                        keyboardType="number-pad"
-                        secureTextEntry
-                        maxLength={12}
-                        style={styles.modalInput}
-                    />
+                    <View style={styles.modalInputWrap}>
+                        <TextInput
+                            value={newHousePassword}
+                            onChangeText={(text) => onChangeNewPassword(text.replace(/\D/g, "").slice(0, 12))}
+                            placeholder="Mật khẩu mới"
+                            placeholderTextColor="#94a3b8"
+                            keyboardType="number-pad"
+                            secureTextEntry={!showNewPassword}
+                            maxLength={12}
+                            style={styles.modalInput}
+                        />
+                        <Pressable
+                            style={styles.inputActionButton}
+                            onPress={() => setShowNewPassword((prev) => !prev)}
+                        >
+                            <MaterialCommunityIcons
+                                name={showNewPassword ? "eye-off-outline" : "eye-outline"}
+                                size={18}
+                                color="#475569"
+                            />
+                        </Pressable>
+                    </View>
 
-                    <TextInput
-                        value={confirmNewHousePassword}
-                        onChangeText={(text) => onChangeConfirmPassword(text.replace(/\D/g, "").slice(0, 12))}
-                        placeholder="Xác nhận mật khẩu mới"
-                        placeholderTextColor="#94a3b8"
-                        keyboardType="number-pad"
-                        secureTextEntry
-                        maxLength={12}
-                        style={styles.modalInput}
-                    />
+                    <View style={styles.modalInputWrap}>
+                        <TextInput
+                            value={confirmNewHousePassword}
+                            onChangeText={(text) => onChangeConfirmPassword(text.replace(/\D/g, "").slice(0, 12))}
+                            placeholder="Xác nhận mật khẩu mới"
+                            placeholderTextColor="#94a3b8"
+                            keyboardType="number-pad"
+                            secureTextEntry={!showConfirmPassword}
+                            maxLength={12}
+                            style={styles.modalInput}
+                        />
+                        <Pressable
+                            style={styles.inputActionButton}
+                            onPress={() => setShowConfirmPassword((prev) => !prev)}
+                        >
+                            <MaterialCommunityIcons
+                                name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
+                                size={18}
+                                color="#475569"
+                            />
+                        </Pressable>
+                    </View>
 
                     <View style={styles.modalActions}>
                         <Pressable
@@ -116,15 +141,28 @@ const styles = StyleSheet.create({
         color: "#64748b",
         marginBottom: 4,
     },
-    modalInput: {
+    modalInputWrap: {
         borderWidth: 1,
         borderColor: "#dbe5f3",
         borderRadius: 12,
         backgroundColor: "#f8fafc",
-        paddingHorizontal: 12,
+        paddingLeft: 12,
+        paddingRight: 6,
+        flexDirection: "row",
+        alignItems: "center",
+    },
+    modalInput: {
+        flex: 1,
         paddingVertical: 11,
         color: "#0f172a",
         fontSize: 14,
+    },
+    inputActionButton: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        alignItems: "center",
+        justifyContent: "center",
     },
     modalActions: {
         marginTop: 4,

@@ -1,4 +1,5 @@
 import {
+    GetUserApartmentByIdRes,
     ListMyUserApartmentsRes,
     UpdateMyHousePasswordParams,
     UpdateMyHousePasswordRes,
@@ -8,6 +9,11 @@ import { endpoints } from '../apis/endpoints'
 
 export const getMyUserApartments = async (): Promise<ListMyUserApartmentsRes> => {
     const res = await apiClient.get(`${endpoints.userApartments}/my`)
+    return res.data
+}
+
+export const getUserApartmentById = async (id: string): Promise<GetUserApartmentByIdRes> => {
+    const res = await apiClient.get(`${endpoints.userApartments}/${id}`)
     return res.data
 }
 

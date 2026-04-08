@@ -161,3 +161,11 @@ export const getApiErrorMessage = (error: unknown, fallback = "Đã xảy ra l�
 
     return fallback
 }
+
+export const extractFirstImage = (images: unknown): string | undefined => {
+    if (!Array.isArray(images)) {
+        return undefined
+    }
+
+    return images.find((image): image is string => typeof image === "string" && image.trim().length > 0)
+}

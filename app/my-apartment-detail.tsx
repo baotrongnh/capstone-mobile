@@ -4,11 +4,10 @@ import ChangeHousePasswordModal from "@/components/my-apartment/ChangeHousePassw
 import DetailRow from "@/components/my-apartment/DetailRow"
 import SectionCard from "@/components/my-apartment/SectionCard"
 import { StyledContainer } from "@/components/styles"
-import { useUpdateMyHousePassword, useUserApartment } from "@/hooks/query/useUserApartment"
-import { UserApartmentItem } from "@/types/userApartment"
+import { useUpdateMyHousePassword, useUserApartment, useUserApartmentDetail } from "@/hooks/query/useUserApartment"
+import { UserApartmentDetailItem, UserApartmentItem } from "@/types/userApartment"
 import {
     formatAddress,
-    formatAmenities,
     formatArea,
     formatCurrency,
     formatDate,
@@ -19,10 +18,12 @@ import {
     maskSecret,
     toDisplayText,
 } from "@/utils/userApartment"
+import { useLocalSearchParams, useRouter } from "expo-router"
 import React, { useMemo, useState } from "react"
 import {
     ActivityIndicator,
     Alert,
+    BackHandler,
     Pressable,
     RefreshControl,
     ScrollView,
@@ -32,17 +33,29 @@ import {
 } from "react-native"
 
 export default function MyApartmentDetail() {
+    const router = useRouter()
+    const params = useLocalSearchParams<{ id?: string }>()
+    const userApartmentId = typeof params?.id === "string" ? params.id : ""
+
     const [showDoorPassword, setShowDoorPassword] = useState(false)
     const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
     const [newHousePassword, setNewHousePassword] = useState("")
     const [confirmNewHousePassword, setConfirmNewHousePassword] = useState("")
 
     const {
-        data,
-        isLoading,
-        isRefetching,
-        refetch,
-        error,
+        data: detailData,
+        isLoading: isDetailLoading,
+        isRefetching: isDetailRefetching,
+        refetch: refetchDetail,
+        error: detailError,
+    } = useUserApartmentDetail(userApartmentId)
+
+    const {
+        data: myData,
+        isLoading: isMyLoading,
+        isRefetching: isMyRefetching,
+        refetch: refetchMy,
+        error: myError,
     } = useUserApartment()
 
     const {
@@ -50,16 +63,80 @@ export default function MyApartmentDetail() {
         isPending: isUpdatingHousePassword,
     } = useUpdateMyHousePassword()
 
-    const userApartment = useMemo<UserApartmentItem | undefined>(() => {
-        const firstApartment = data?.data?.[0]
-        return firstApartment ? (firstApartment as UserApartmentItem) : undefined
-    }, [data])
+    React.useEffect(() => {
+        const onBackPress = () => {
+            if (showChangePasswordModal) {
+                if (isUpdatingHousePassword) {
+                    return true
+                }
+
+                setShowChangePasswordModal(false)
+                return true
+            }
+
+            router.replace("/my-apartments")
+            return true
+        }
+
+        const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress)
+        return () => subscription.remove()
+    }, [isUpdatingHousePassword, router, showChangePasswordModal])
+
+    const userApartment = useMemo<UserApartmentDetailItem | undefined>(() => {
+        if (userApartmentId) {
+            return detailData?.data as UserApartmentDetailItem | undefined
+        }
+
+        const firstApartment = myData?.data?.[0] as UserApartmentItem | undefined
+        if (!firstApartment) {
+            return undefined
+        }
+
+        return firstApartment as unknown as UserApartmentDetailItem
+    }, [detailData, myData, userApartmentId])
+
+    const isLoading = userApartmentId ? isDetailLoading : isMyLoading
+    const isRefetching = userApartmentId ? isDetailRefetching : isMyRefetching
+    const refetch = userApartmentId ? refetchDetail : refetchMy
+    const error = userApartmentId ? detailError : myError
 
     const apartment = userApartment?.apartment
     const statusMeta = getApartmentStatusMeta(apartment?.status)
-    const amenities = formatAmenities(apartment?.amenities)
-    const apartmentImage = apartment?.images?.find(
-        (image): image is string => typeof image === "string" && image.trim().length > 0,
+    const amenities = useMemo(
+        () => {
+            const amenityList = apartment?.apartmentAmenities
+
+            if (Array.isArray(amenityList)) {
+                return amenityList
+                    .map((item) => toDisplayText(item.amenity?.name ?? item.amenity?.code, ""))
+                    .filter((item) => item.length > 0)
+            }
+
+            const rawAmenities = apartment?.amenities
+            if (Array.isArray(rawAmenities)) {
+                return rawAmenities
+                    .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+                    .map((item) => item.replace(/_/g, " "))
+            }
+
+            return []
+        },
+        [apartment],
+    )
+
+    const apartmentImages = useMemo(
+        () => {
+            const rawImages = apartment?.images as unknown
+
+            if (!Array.isArray(rawImages)) {
+                return []
+            }
+
+            return rawImages.filter(
+                (image): image is string => typeof image === "string" && image.trim().length > 0,
+            )
+        },
+        [apartment?.images],
     )
 
     const buildingName = toDisplayText(apartment?.buildingName)
@@ -70,6 +147,8 @@ export default function MyApartmentDetail() {
             : apartmentNumber !== "--"
                 ? `Căn ${apartmentNumber}`
                 : "Căn hộ của tôi"
+
+    const displayedAddress = formatAddress(apartment?.streetAddress, apartment?.wardCode, apartment?.provinceCode)
 
     const displayedDoorPassword = showDoorPassword
         ? toDisplayText(userApartment?.apartmentDoorPassword)
@@ -150,12 +229,12 @@ export default function MyApartmentDetail() {
                     <>
                         <ApartmentHeader
                             apartmentTitle={apartmentTitle}
-                            address={formatAddress(apartment?.streetAddress, apartment?.wardCode, apartment?.provinceCode)}
+                            address={displayedAddress}
                             statusLabel={statusMeta.label}
                             statusBackgroundColor={statusMeta.backgroundColor}
                             statusTextColor={statusMeta.textColor}
                             isPrimaryTenant={Boolean(userApartment?.isPrimaryTenant)}
-                            apartmentImage={apartmentImage}
+                            apartmentImages={apartmentImages}
                         />
                         <SectionCard title="Thông tin thuê">
                             <DetailRow label="Trạng thái cư dân" value={formatTenantStatus(userApartment.status)} />
@@ -171,14 +250,7 @@ export default function MyApartmentDetail() {
                             <DetailRow label="Mã căn hộ" value={apartmentNumber} />
                             <DetailRow label="Tòa nhà" value={buildingName} />
                             <DetailRow label="Tầng" value={toDisplayText(apartment?.floorNumber)} />
-                            <DetailRow
-                                label="Địa chỉ"
-                                value={formatAddress(
-                                    apartment?.streetAddress,
-                                    apartment?.wardCode,
-                                    apartment?.provinceCode,
-                                )}
-                            />
+                            <DetailRow label="Địa chỉ" value={displayedAddress} />
                             <DetailRow label="Phòng ngủ" value={toDisplayText(apartment?.numberOfBedrooms)} />
                             <DetailRow label="Phòng tắm" value={toDisplayText(apartment?.numberOfBathrooms)} />
                             <DetailRow label="Tổng diện tích" value={formatArea(apartment?.totalArea)} />
@@ -257,6 +329,9 @@ export default function MyApartmentDetail() {
                         <Text style={styles.errorText}>Không thể tải dữ liệu căn hộ. Vui lòng thử lại.</Text>
                         <Pressable style={styles.retryButton} onPress={() => refetch()}>
                             <Text style={styles.retryButtonText}>Thử lại</Text>
+                        </Pressable>
+                        <Pressable style={[styles.retryButton, { backgroundColor: "#2563eb", marginTop: 4 }]} onPress={() => router.replace("/my-apartments")}>
+                            <Text style={styles.retryButtonText}>Về danh sách căn hộ</Text>
                         </Pressable>
                     </View>
                 ) : null}
