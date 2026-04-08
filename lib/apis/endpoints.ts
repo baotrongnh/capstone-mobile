@@ -17,4 +17,6 @@ export const endpoints = {
   notifications: createEndpoints("notifications"),
   iot: createEndpoints("iot"),
   userApartments: createEndpoints("user-apartments"),
+  myApartment: createEndpoints("user-apartments/my"),
+  maintenance: createEndpoints("maintenance"),
 };

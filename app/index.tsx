@@ -2,7 +2,7 @@ import { useRouter } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function Index() {
-  const router = useRouter()
+  const router = useRouter();
 
   return (
     <View style={styles.container}>
@@ -29,8 +29,22 @@ export default function Index() {
       >
         <Text style={styles.buttonSecondaryText}>Đến trang đăng nhập</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.buttonSecondary}
+        onPress={() => router.navigate("/contract")}
+      >
+        <Text style={styles.buttonSecondaryText}>Đến trang hợp đồng</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.buttonSecondary}
+        onPress={() => router.navigate("/maintenance")}
+      >
+        <Text style={styles.buttonSecondaryText}>Đến trang bảo trì</Text>
+      </TouchableOpacity>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -77,4 +91,4 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 15,
   },
-})
+});
