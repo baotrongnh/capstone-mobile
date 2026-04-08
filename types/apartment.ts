@@ -21,3 +21,24 @@ export type ApartmentFilterPatch = {
      // Keep fallback while BE/OpenAPI has not synced wardCode yet.
      wardCode?: number
 }
+
+export type ApartmentHeaderProps = {
+    apartmentTitle: string
+    address: string
+    statusLabel: string
+    statusBackgroundColor: string
+    statusTextColor: string
+    isPrimaryTenant: boolean
+    apartmentImages?: (string | null | undefined)[]
+}
+
+export type ChangeHousePasswordModalProps = {
+    visible: boolean
+    newHousePassword: string
+    confirmNewHousePassword: string
+    isUpdating: boolean
+    onChangeNewPassword: (value: string) => void
+    onChangeConfirmPassword: (value: string) => void
+    onClose: () => void
+    onSubmit: () => void
+}

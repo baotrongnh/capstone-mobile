@@ -7544,6 +7544,7 @@ export interface components {
             provinceCode?: number | null;
             /** @example 12 Nguyen Hue, Phuong Ben Nghe */
             streetAddress?: string | null;
+            images?: Record<string, never> | null;
             /** @example available */
             status: string;
         };

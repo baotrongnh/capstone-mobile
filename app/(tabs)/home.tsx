@@ -113,7 +113,7 @@ export default function HomeScreen() {
                          </View>
 
                          <Pressable
-                              onPress={() => router.push("/my-apartment-detail")}
+                              onPress={() => router.push("/my-apartments")}
                               style={styles.detailButton}
                          >
                               <Text style={styles.detailButtonText}>Xem chi tiết</Text>
