@@ -66,7 +66,7 @@ const INITIAL_FORM_STATE = {
   images: [] as string[],
 };
 
-export default function ElegantMaintenanceModal({
+export default function ModalCreateMaintenance({
   visible,
   onClose,
   onSubmit,
@@ -269,9 +269,9 @@ export default function ElegantMaintenanceModal({
             <View style={styles.row}>
               <View style={{ flex: 1, marginRight: 8 }}>
                 <SelectDropdown
-                  label="Căn hộ"
+                  label="Mã căn hộ"
                   icon="office-building-outline"
-                  placeholder="Chọn căn hộ"
+                  placeholder="Chọn mã căn hộ"
                   value={formData.apartmentId}
                   onSelect={(val: string) =>
                     handleFormChange("apartmentId", val)
@@ -280,7 +280,7 @@ export default function ElegantMaintenanceModal({
                   searchable={false}
                 />
               </View>
-              <View style={{ flex: 1, marginLeft: 8 }}>
+              {/* <View style={{ flex: 1, marginLeft: 8 }}>
                 <FormInput
                   label="Mã Phòng (Tùy chọn)"
                   icon="door-open"
@@ -290,7 +290,7 @@ export default function ElegantMaintenanceModal({
                     handleFormChange("roomId", text)
                   }
                 />
-              </View>
+              </View> */}
             </View>
 
             <View style={styles.row}>

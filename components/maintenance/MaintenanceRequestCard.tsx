@@ -14,6 +14,7 @@ interface MaintenanceRequestUI {
   apartment: string;
   assignedTo: string | null;
   room: string | null;
+  isRated?: boolean;
 }
 
 interface MaintenanceRequestCardProps {
@@ -172,24 +173,29 @@ export default function MaintenanceRequestCard({
               }}
             >
               <View></View>
-              <Pressable
-                onPress={() => onRating?.(item)}
-                style={({ pressed }) => [
-                  {
-                    backgroundColor: pressed ? "#059669" : "#10b981", // đổi màu khi nhấn
-                    padding: 8,
-                    borderRadius: 6,
-                    marginTop: 12,
-                    width: "30%",
-                    alignItems: "center",
-                    opacity: pressed ? 0.8 : 1, // hiệu ứng nhẹ
-                  },
-                ]}
-              >
-                <Text style={{ color: "#ffffff", fontWeight: "600" }}>
-                  Đánh giá
-                </Text>
-              </Pressable>
+
+              {item.isRated === true && (
+                <>
+                  <Pressable
+                    onPress={() => onRating?.(item)}
+                    style={({ pressed }) => [
+                      {
+                        backgroundColor: pressed ? "#059669" : "#10b981", // đổi màu khi nhấn
+                        padding: 8,
+                        borderRadius: 6,
+                        marginTop: 12,
+                        width: "30%",
+                        alignItems: "center",
+                        opacity: pressed ? 0.8 : 1, // hiệu ứng nhẹ
+                      },
+                    ]}
+                  >
+                    <Text style={{ color: "#ffffff", fontWeight: "600" }}>
+                      Đánh giá
+                    </Text>
+                  </Pressable>
+                </>
+              )}
             </View>
           </>
         )}

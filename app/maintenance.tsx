@@ -1,14 +1,9 @@
-import {
-  CreateMaintenanceModal,
-  MaintenanceRequestCard,
-} from "@/components/maintenance";
+import { MaintenanceRequestCard } from "@/components/maintenance";
+import ModalCreateMaintenance from "@/components/maintenance/CreateMaintenanceModal";
 import ModalRatingMaintenance from "@/components/maintenance/RatingMaintenanceModal";
 import { Colors } from "@/components/styles";
 import { useGetMaintenanceRequests } from "@/hooks/query/useMaintenance";
-import {
-  MaintenanceRequest,
-  maintenanceService,
-} from "@/lib/services/maintenance.service";
+import { MaintenanceRequest } from "@/lib/services/maintenance.service";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { router, Stack } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -16,12 +11,12 @@ import {
   FlatList,
   Pressable,
   RefreshControl,
-  SafeAreaView,
   StatusBar,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Extract item type from MaintenanceRequest response
 type MaintenanceRequestItem = NonNullable<MaintenanceRequest["data"]>[number];
@@ -205,7 +200,7 @@ export default function MaintenanceScreen() {
         contentContainerStyle={styles.listContainer}
       />
 
-      <CreateMaintenanceModal
+      <ModalCreateMaintenance
         visible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
         onSubmit={handleCreateRequest}
@@ -227,7 +222,6 @@ const styles = StyleSheet.create({
   headerContainer: {
     paddingHorizontal: 20,
     paddingVertical: 20,
-    marginTop: 30,
   },
   headerTitle: {
     fontSize: 28,
