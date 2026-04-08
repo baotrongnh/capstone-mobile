@@ -229,7 +229,7 @@ export default function ProfileDetails({
           </View>
 
           {hasIdentityInfo ? (
-            <View style={styles.card}>
+            <View style={styles.identityCard}>
               <Text style={styles.cardTitle}>Thông tin định danh</Text>
               {identityFields.map(({ key, label, value }) => {
                 if (!hasUserValue(value)) {
@@ -280,6 +280,15 @@ const styles = StyleSheet.create({
     padding: 14,
     gap: 10,
   },
+  identityCard: {
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 14,
+    backgroundColor: "#ffffff",
+    padding: 14,
+    gap: 10,
+    marginBottom: 100,
+  },
   cardTitle: {
     fontSize: 16,
     fontWeight: "700",
@@ -312,12 +321,12 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   rowLabel: {
-    fontSize: 12,
+    fontSize: 10,
     color: "#6b7280",
     fontWeight: "500",
   },
   rowValue: {
-    fontSize: 15,
+    fontSize: 14,
     color: "#111827",
     fontWeight: "600",
   },
@@ -332,8 +341,8 @@ const styles = StyleSheet.create({
     height: 44,
     paddingHorizontal: 12,
     color: "#0f172a",
-    fontSize: 15,
-    fontWeight: "500",
+    fontSize: 14,
+    fontWeight: "400",
   },
   actionsRow: {
     marginTop: 6,
