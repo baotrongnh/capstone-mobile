@@ -7,18 +7,11 @@ import { useUserApartment } from '@/hooks/query/useUserApartment'
 import { storage } from '@/stores/storage'
 import { UserApartmentItem } from '@/types/userApartment'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
-import { useRouter } from 'expo-router'
-import React, { useEffect, useMemo, useState } from 'react'
+import { useFocusEffect, useRouter } from 'expo-router'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 const APARTMENT_STORAGE_KEY = 'selectedApartmentId'
-
-const formatApartmentLabel = (item: UserApartmentItem) => {
-     const buildingName = item.apartment?.buildingName || 'Tòa nhà'
-     const apartmentNumber = item.apartment?.apartmentNumber || '--'
-
-     return `${buildingName} - Căn ${apartmentNumber}`
-}
 
 const mapTopicIcon = (topic: IoTControlVariables['topic']): DeviceGridItem['icon'] => {
      if (topic === 'curtain') return 'curtains-closed'
@@ -43,20 +36,27 @@ export default function ApartmentControlScreen() {
      const apartmentOptions = useMemo<ApartmentSelectorOption[]>(() => {
           return myApartments.map((item) => ({
                id: String(item.apartmentId),
-               label: formatApartmentLabel(item),
+               label: item.apartment?.apartmentNumber || String(item.apartmentId),
           }))
      }, [myApartments])
 
-     useEffect(() => {
-          const loadSavedApartment = async () => {
-               const savedApartmentId = await storage.getItem(APARTMENT_STORAGE_KEY)
+     const syncSelectedApartmentFromStorage = useCallback(async () => {
+          const savedApartmentId = await storage.getItem(APARTMENT_STORAGE_KEY)
+          const nextSelectedApartmentId = savedApartmentId ?? ''
 
-               setSelectedApartmentId(savedApartmentId ?? '')
-               setIsHydratedStorage(true)
-          }
-
-          void loadSavedApartment()
+          setSelectedApartmentId((prev) => (prev === nextSelectedApartmentId ? prev : nextSelectedApartmentId))
+          setIsHydratedStorage(true)
      }, [])
+
+     useEffect(() => {
+          void syncSelectedApartmentFromStorage()
+     }, [syncSelectedApartmentFromStorage])
+
+     useFocusEffect(
+          useCallback(() => {
+               void syncSelectedApartmentFromStorage()
+          }, [syncSelectedApartmentFromStorage]),
+     )
 
      useEffect(() => {
           if (!isHydratedStorage || isApartmentLoading) {
@@ -176,8 +176,6 @@ export default function ApartmentControlScreen() {
                     showsVerticalScrollIndicator={false}
                >
                     <View style={styles.sectionBlock}>
-                         <Text style={styles.sectionTitle}>Căn hộ điều khiển</Text>
-
                          <ApartmentSelector
                               options={apartmentOptions}
                               selectedApartmentId={selectedApartmentId}

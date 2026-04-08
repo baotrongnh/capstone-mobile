@@ -89,7 +89,7 @@ export default function ApartmentSelector({
                <View style={styles.selectedCard}>
                     <View style={styles.selectedRow}>
                          <View style={styles.selectedContent}>
-                              <Text style={styles.selectedTitle}>Đang điều khiển</Text>
+                              <Text style={styles.selectedTitle}>Căn hộ mặc định</Text>
                               <Text numberOfLines={1} style={styles.selectedValue}>
                                    {selectedApartmentLabel || 'Chưa chọn căn hộ'}
                               </Text>
@@ -191,6 +191,7 @@ const styles = StyleSheet.create({
           fontWeight: '600',
      },
      selectedValue: {
+          paddingTop: 5,
           fontSize: 15,
           color: '#0f172a',
           fontWeight: '700',
@@ -229,16 +230,18 @@ const styles = StyleSheet.create({
           color: '#64748b',
      },
      linkButton: {
-          alignSelf: 'flex-start',
           borderRadius: 999,
           paddingHorizontal: 12,
           paddingVertical: 8,
           backgroundColor: '#eff6ff',
+          marginTop: 15
      },
      linkButtonText: {
           fontSize: 12,
           fontWeight: '700',
           color: '#2563eb',
+          margin: 'auto',
+          paddingVertical: 5
      },
      modalRoot: {
           flex: 1,
