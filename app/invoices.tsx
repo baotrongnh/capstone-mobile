@@ -6,6 +6,7 @@ import {
     type InvoiceItem
 } from '@/types/invoice'
 import { formatCurrency, formatDate } from '@/utils/invoices'
+import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import React, { useMemo, useState } from 'react'
 import {
@@ -135,9 +136,25 @@ export default function Invoices() {
         updateRightFade(offsetX, tabsViewportWidth, tabsContentWidth)
     }
 
+    const handleBack = () => {
+        if (router.canGoBack()) {
+            router.back()
+            return
+        }
+
+        router.replace('/(tabs)/home')
+    }
+
     if (error) {
         return (
             <StyledContainer>
+                <View style={styles.pageHeader}>
+                    <Pressable onPress={handleBack} style={styles.backButton} hitSlop={10}>
+                        <Ionicons name='chevron-back' size={24} color='#6b7280' />
+                        <Text style={styles.backButtonText}>Quay lại</Text>
+                    </Pressable>
+                </View>
+
                 <View style={styles.centered}>
                     <Text style={styles.errorTitle}>Không thể tải danh sách hóa đơn</Text>
                     <Text style={styles.errorMessage}>Hãy kéo để làm mới và thử lại.</Text>
@@ -148,6 +165,13 @@ export default function Invoices() {
 
     return (
         <StyledContainer>
+            <View style={styles.pageHeader}>
+                <Pressable onPress={handleBack} style={styles.backButton} hitSlop={10}>
+                    <Ionicons name='chevron-back' size={24} color='#6b7280' />
+                    <Text style={styles.backButtonText}>Quay lại</Text>
+                </Pressable>
+            </View>
+
             <Text style={styles.title}>Danh sách hóa đơn</Text>
 
             <View style={styles.tabsWrapper}>
@@ -242,6 +266,22 @@ export default function Invoices() {
 }
 
 const styles = StyleSheet.create({
+    pageHeader: {
+        marginBottom: 6,
+    },
+    backButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        gap: 4,
+        paddingVertical: 4,
+        paddingRight: 4,
+    },
+    backButtonText: {
+        fontSize: 18,
+        fontWeight: 600,
+        color: '#6d6d6d',
+    },
     title: {
         fontSize: 24,
         fontWeight: 700,

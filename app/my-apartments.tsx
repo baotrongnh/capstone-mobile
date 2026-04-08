@@ -9,7 +9,7 @@ import {
     getApartmentStatusMeta,
     toDisplayText,
 } from "@/utils/userApartment"
-import { MaterialCommunityIcons } from "@expo/vector-icons"
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
 import React, { useMemo, useState } from "react"
 import {
@@ -74,9 +74,25 @@ export default function MyApartmentsPage() {
         })
     }, [apartments, search, statusFilter])
 
+    const handleBack = () => {
+        if (router.canGoBack()) {
+            router.back()
+            return
+        }
+
+        router.replace("/(tabs)/apartment")
+    }
+
     if (isLoading) {
         return (
             <StyledContainer style={styles.container}>
+                <View style={styles.breadcrumbRow}>
+                    <Pressable style={styles.breadcrumbBack} onPress={handleBack} hitSlop={10}>
+                        <Ionicons name="chevron-back" size={24} color="#6b7280" />
+                        <Text style={styles.breadcrumbBackText}>Quay lại</Text>
+                    </Pressable>
+                </View>
+
                 <View style={styles.centerContent}>
                     <ActivityIndicator size="large" color="#3b82f6" />
                     <Text style={styles.centerText}>Đang tải danh sách căn hộ...</Text>
@@ -87,6 +103,13 @@ export default function MyApartmentsPage() {
 
     return (
         <StyledContainer style={styles.container}>
+            <View style={styles.breadcrumbRow}>
+                <Pressable style={styles.breadcrumbBack} onPress={handleBack} hitSlop={10}>
+                    <Ionicons name="chevron-back" size={24} color="#6b7280" />
+                    <Text style={styles.breadcrumbBackText}>Quay lại</Text>
+                </Pressable>
+            </View>
+
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.content}
@@ -255,6 +278,22 @@ const styles = StyleSheet.create({
     content: {
         gap: 12,
         paddingBottom: 130,
+    },
+    breadcrumbRow: {
+        marginBottom: 4,
+    },
+    breadcrumbBack: {
+        flexDirection: "row",
+        alignItems: "center",
+        alignSelf: "flex-start",
+        gap: 4,
+        paddingVertical: 4,
+        paddingRight: 4,
+    },
+    breadcrumbBackText: {
+        fontSize: 18,
+        fontWeight: "600",
+        color: "#6d6d6d",
     },
     centerContent: {
         flex: 1,

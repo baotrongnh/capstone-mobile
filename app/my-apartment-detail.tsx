@@ -18,6 +18,7 @@ import {
     maskSecret,
     toDisplayText,
 } from "@/utils/userApartment"
+import { Ionicons } from "@expo/vector-icons"
 import { useLocalSearchParams, useRouter } from "expo-router"
 import React, { useMemo, useState } from "react"
 import {
@@ -36,6 +37,15 @@ export default function MyApartmentDetail() {
     const router = useRouter()
     const params = useLocalSearchParams<{ id?: string }>()
     const userApartmentId = typeof params?.id === "string" ? params.id : ""
+
+    const handleBack = () => {
+        if (router.canGoBack()) {
+            router.back()
+            return
+        }
+
+        router.replace("/my-apartments")
+    }
 
     const [showDoorPassword, setShowDoorPassword] = useState(false)
     const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
@@ -74,12 +84,7 @@ export default function MyApartmentDetail() {
                 return true
             }
 
-            if (router.canGoBack()) {
-                router.back()
-                return true
-            }
-
-            router.replace("/my-apartments")
+            handleBack()
             return true
         }
 
@@ -209,6 +214,13 @@ export default function MyApartmentDetail() {
     if (isLoading) {
         return (
             <StyledContainer style={styles.container}>
+                <View style={styles.breadcrumbRow}>
+                    <Pressable style={styles.breadcrumbBack} onPress={handleBack} hitSlop={10}>
+                        <Ionicons name="chevron-back" size={24} color="#6b7280" />
+                        <Text style={styles.breadcrumbBackText}>Căn hộ</Text>
+                    </Pressable>
+                </View>
+
                 <View style={styles.centerContent}>
                     <ActivityIndicator size="large" color="#3b82f6" />
                     <Text style={styles.centerText}>Đang tải thông tin căn hộ...</Text>
@@ -219,6 +231,13 @@ export default function MyApartmentDetail() {
 
     return (
         <StyledContainer style={styles.container}>
+            <View style={styles.breadcrumbRow}>
+                <Pressable style={styles.breadcrumbBack} onPress={handleBack} hitSlop={10}>
+                    <Ionicons name="chevron-back" size={24} color="#6b7280" />
+                    <Text style={styles.breadcrumbBackText}>Căn hộ</Text>
+                </Pressable>
+            </View>
+
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.content}
@@ -337,14 +356,7 @@ export default function MyApartmentDetail() {
                         </Pressable>
                         <Pressable
                             style={[styles.retryButton, { backgroundColor: "#2563eb", marginTop: 4 }]}
-                            onPress={() => {
-                                if (router.canGoBack()) {
-                                    router.back()
-                                    return
-                                }
-
-                                router.replace("/my-apartments")
-                            }}
+                            onPress={handleBack}
                         >
                             <Text style={styles.retryButtonText}>Về danh sách căn hộ</Text>
                         </Pressable>
@@ -374,6 +386,22 @@ const styles = StyleSheet.create({
     content: {
         gap: 14,
         paddingBottom: 130,
+    },
+    breadcrumbRow: {
+        marginBottom: 4,
+    },
+    breadcrumbBack: {
+        flexDirection: "row",
+        alignItems: "center",
+        alignSelf: "flex-start",
+        gap: 4,
+        paddingVertical: 4,
+        paddingRight: 4,
+    },
+    breadcrumbBackText: {
+        fontSize: 18,
+        fontWeight: "600",
+        color: "#6d6d6d",
     },
     centerContent: {
         flex: 1,

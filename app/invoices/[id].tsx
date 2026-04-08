@@ -105,15 +105,23 @@ export default function InvoiceDetailScreen() {
 
     const breadcrumbTitle = normalizeInvoiceText(invoice?.invoiceNumber || invoiceId || 'Chi tiết')
 
+    const handleBack = () => {
+        if (router.canGoBack()) {
+            router.back()
+            return
+        }
+
+        router.replace('/invoices')
+    }
+
     return (
         <StyledContainer>
             <View style={styles.breadcrumbRow}>
-                <Pressable style={styles.breadcrumbBack} onPress={() => router.push('/invoices')}>
-                    <Ionicons name='chevron-back' size={16} color='#2563eb' />
+                <Pressable style={styles.breadcrumbBack} onPress={handleBack} hitSlop={10}>
+                    <Ionicons name='chevron-back' size={24} color='#6b7280' />
                     <Text style={styles.breadcrumbBackText}>Hóa đơn</Text>
                 </Pressable>
-                <Ionicons name='chevron-forward' size={14} color='#9ca3af' />
-                <Text numberOfLines={1} style={styles.breadcrumbCurrent}>{breadcrumbTitle}</Text>
+                <Text numberOfLines={1} style={styles.breadcrumbCurrent}>/ {breadcrumbTitle}</Text>
             </View>
 
             {isLoading && (
@@ -263,23 +271,25 @@ const styles = StyleSheet.create({
     breadcrumbRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 4,
-        marginBottom: 12,
+        gap: 8,
+        marginBottom: 14,
     },
     breadcrumbBack: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 2,
+        gap: 4,
+        paddingVertical: 4,
+        paddingRight: 4,
     },
     breadcrumbBackText: {
-        color: '#2563eb',
-        fontSize: 13,
+        color: '#6d6d6d',
+        fontSize: 18,
         fontWeight: 600,
     },
     breadcrumbCurrent: {
         flex: 1,
-        color: '#374151',
-        fontSize: 13,
+        color: '#64748b',
+        fontSize: 14,
         fontWeight: 500,
     },
     scroll: {
