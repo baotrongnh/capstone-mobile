@@ -36,6 +36,13 @@ export default function Index() {
       >
         <Text style={styles.buttonSecondaryText}>Đến trang hợp đồng</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.buttonSecondary}
+        onPress={() => router.navigate("/maintenance")}
+      >
+        <Text style={styles.buttonSecondaryText}>Đến trang bảo trì</Text>
+      </TouchableOpacity>
     </View>
   );
 }
