@@ -74,6 +74,11 @@ export default function MyApartmentDetail() {
                 return true
             }
 
+            if (router.canGoBack()) {
+                router.back()
+                return true
+            }
+
             router.replace("/my-apartments")
             return true
         }
@@ -330,7 +335,17 @@ export default function MyApartmentDetail() {
                         <Pressable style={styles.retryButton} onPress={() => refetch()}>
                             <Text style={styles.retryButtonText}>Thử lại</Text>
                         </Pressable>
-                        <Pressable style={[styles.retryButton, { backgroundColor: "#2563eb", marginTop: 4 }]} onPress={() => router.replace("/my-apartments")}>
+                        <Pressable
+                            style={[styles.retryButton, { backgroundColor: "#2563eb", marginTop: 4 }]}
+                            onPress={() => {
+                                if (router.canGoBack()) {
+                                    router.back()
+                                    return
+                                }
+
+                                router.replace("/my-apartments")
+                            }}
+                        >
                             <Text style={styles.retryButtonText}>Về danh sách căn hộ</Text>
                         </Pressable>
                     </View>
