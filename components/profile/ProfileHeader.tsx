@@ -1,6 +1,6 @@
 import React from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { Pressable, Alert, View } from "react-native";
+import { Pressable, Alert, View, Text, ActivityIndicator } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import {
   ProfileHeaderStyled,
@@ -9,18 +9,14 @@ import {
   UserName,
   UserEmail,
 } from "./styles";
-
-interface ProfileHeaderProps {
-  name: string;
-  email: string;
-  avatar: string | null;
-  onAvatarChange?: (uri: string) => void;
-}
+import { ProfileHeaderProps } from "@/types/user";
 
 export default function ProfileHeader({
   name,
   email,
   avatar,
+  isVerified = false,
+  avatarUploading = false,
   onAvatarChange,
 }: ProfileHeaderProps) {
   const handleAvatarPress = async () => {
@@ -30,8 +26,8 @@ export default function ProfileHeader({
 
       if (!permission.granted) {
         Alert.alert(
-          "Permission required",
-          "Please grant permission to access your photos",
+          "Cần quyền truy cập",
+          "Vui lòng cấp quyền truy cập thư viện ảnh để cập nhật ảnh đại diện.",
         );
         return;
       }
@@ -44,23 +40,40 @@ export default function ProfileHeader({
       });
 
       if (!result.canceled && onAvatarChange) {
-        onAvatarChange(result.assets[0].uri);
+        await onAvatarChange(result.assets[0].uri);
       }
     } catch (error) {
       console.error("Error picking image:", error);
-      Alert.alert("Error", "Failed to pick image");
+      Alert.alert("Có lỗi xảy ra", "Không thể chọn ảnh đại diện.");
     }
   };
 
   return (
     <ProfileHeaderStyled>
-      <Pressable onPress={handleAvatarPress}>
+      <Pressable onPress={handleAvatarPress} disabled={avatarUploading}>
         <Avatar>
           {avatar ? (
             <AvatarImage source={{ uri: avatar }} />
           ) : (
             <Ionicons name="person" size={50} color="#6b7280" />
           )}
+          {avatarUploading ? (
+            <View
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                borderRadius: 50,
+                backgroundColor: "rgba(0,0,0,0.35)",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <ActivityIndicator size="small" color="#ffffff" />
+            </View>
+          ) : null}
           <View
             style={{
               position: "absolute",
@@ -82,6 +95,27 @@ export default function ProfileHeader({
       </Pressable>
       <UserName>{name}</UserName>
       <UserEmail>{email}</UserEmail>
+      <View
+        style={{
+          marginTop: -8,
+          paddingHorizontal: 12,
+          paddingVertical: 5,
+          borderRadius: 999,
+          backgroundColor: isVerified ? "#dcfce7" : "#f3f4f6",
+          borderWidth: 1,
+          borderColor: isVerified ? "#86efac" : "#d1d5db",
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 12,
+            fontWeight: "700",
+            color: isVerified ? "#166534" : "#4b5563",
+          }}
+        >
+          {isVerified ? "Đã xác minh" : "Chưa xác minh"}
+        </Text>
+      </View>
     </ProfileHeaderStyled>
   );
 }
