@@ -1,42 +1,59 @@
 import ApartmentModal from "@/components/apartment/ApartmentModal"
+import {
+     DOOR_PASSWORD_LENGTH,
+     isValidDoorPassword,
+     sanitizeDoorPassword,
+} from "@/components/apartment/door-password"
 import { MaterialCommunityIcons } from "@expo/vector-icons"
 import React, { useEffect, useState } from "react"
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native"
 
 type DoorChangePasswordModalProps = {
      visible: boolean
-     value: string
-     confirmValue: string
      isUpdating?: boolean
-     onChangeValue: (value: string) => void
-     onChangeConfirmValue: (value: string) => void
      onClose: () => void
-     onAfterClose?: () => void
-     onSubmit: () => void
-     passwordLength?: number
+     onSubmit: (password: string) => void | Promise<void>
+     title?: string
 }
 
 export default function DoorChangePasswordModal({
      visible,
-     value,
-     confirmValue,
      isUpdating = false,
-     onChangeValue,
-     onChangeConfirmValue,
      onClose,
-     onAfterClose,
      onSubmit,
-     passwordLength = 6,
+     title = "Đổi mật khẩu cửa",
 }: DoorChangePasswordModalProps) {
+     const [value, setValue] = useState("")
+     const [confirmValue, setConfirmValue] = useState("")
      const [showNew, setShowNew] = useState(false)
      const [showConfirm, setShowConfirm] = useState(false)
 
+     const isSubmitDisabled =
+          isUpdating ||
+          !isValidDoorPassword(value) ||
+          !isValidDoorPassword(confirmValue) ||
+          value !== confirmValue
+
      useEffect(() => {
           if (!visible) {
+               setValue("")
+               setConfirmValue("")
                setShowNew(false)
                setShowConfirm(false)
           }
      }, [visible])
+
+     const handleClose = () => {
+          if (!isUpdating) {
+               onClose()
+          }
+     }
+
+     const handleSubmit = () => {
+          if (!isSubmitDisabled) {
+               void onSubmit(value)
+          }
+     }
 
      const renderInput = (
           inputValue: string,
@@ -48,12 +65,12 @@ export default function DoorChangePasswordModal({
           <View style={styles.inputWrap}>
                <TextInput
                     value={inputValue}
-                    onChangeText={(text) => onChange(text.replace(/\D/g, "").slice(0, passwordLength))}
+                    onChangeText={(text) => onChange(sanitizeDoorPassword(text))}
                     placeholder={placeholder}
                     placeholderTextColor="#94a3b8"
                     keyboardType="number-pad"
                     secureTextEntry={secure}
-                    maxLength={passwordLength}
+                    maxLength={DOOR_PASSWORD_LENGTH}
                     style={styles.input}
                />
                <Pressable style={styles.eyeButton} onPress={onToggleSecure}>
@@ -69,24 +86,23 @@ export default function DoorChangePasswordModal({
      return (
           <ApartmentModal
                visible={visible}
-               title="Đổi mật khẩu cửa"
-               description={`Nhập mật khẩu mới gồm đúng ${passwordLength} chữ số`}
-               onClose={onClose}
-               onAfterClose={onAfterClose}
+               title={title}
+               description={`Nhập mật khẩu mới gồm đúng ${DOOR_PASSWORD_LENGTH} chữ số`}
+               onClose={handleClose}
                disableBackdropClose={isUpdating}
                footer={
                     <>
                          <Pressable
-                              onPress={onClose}
+                              onPress={handleClose}
                               disabled={isUpdating}
                               style={[styles.actionBtn, styles.cancelBtn]}
                          >
                               <Text style={styles.cancelText}>Hủy</Text>
                          </Pressable>
                          <Pressable
-                              onPress={onSubmit}
-                              disabled={isUpdating}
-                              style={[styles.actionBtn, styles.submitBtn]}
+                              onPress={handleSubmit}
+                              disabled={isSubmitDisabled}
+                              style={[styles.actionBtn, styles.submitBtn, isSubmitDisabled && styles.submitBtnDisabled]}
                          >
                               {isUpdating ? (
                                    <ActivityIndicator size="small" color="#ffffff" />
@@ -97,14 +113,16 @@ export default function DoorChangePasswordModal({
                     </>
                }
           >
-               {renderInput(value, onChangeValue, "Mật khẩu mới", !showNew, () => setShowNew((prev) => !prev))}
+               {renderInput(value, setValue, "Mật khẩu mới", !showNew, () => setShowNew((prev) => !prev))}
                {renderInput(
                     confirmValue,
-                    onChangeConfirmValue,
+                    setConfirmValue,
                     "Xác nhận mật khẩu mới",
                     !showConfirm,
                     () => setShowConfirm((prev) => !prev),
                )}
+
+               <Text style={styles.hintText}>Mật khẩu cửa phải gồm đúng {DOOR_PASSWORD_LENGTH} chữ số.</Text>
           </ApartmentModal>
      )
 }
@@ -153,8 +171,15 @@ const styles = StyleSheet.create({
      submitBtn: {
           backgroundColor: "#2563eb",
      },
+     submitBtnDisabled: {
+          opacity: 0.6,
+     },
      submitText: {
           color: "#ffffff",
           fontWeight: "700",
+     },
+     hintText: {
+          fontSize: 12,
+          color: "#64748b",
      },
 })

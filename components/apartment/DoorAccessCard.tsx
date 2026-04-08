@@ -1,16 +1,21 @@
-import ApartmentModal from "@/components/apartment/ApartmentModal"
+import DoorAuthModal, { type DoorActionMode } from "@/components/apartment/DoorAuthModal"
 import DoorChangePasswordModal from "@/components/apartment/DoorChangePasswordModal"
 import type { DoorDeviceOption } from "@/components/apartment/DeviceGrid"
+import {
+     DOOR_PASSWORD_LENGTH,
+     DOOR_PASSWORD_LOCK_SECONDS,
+     MAX_DOOR_PASSWORD_FAILED_ATTEMPTS,
+     isValidDoorPassword,
+     sanitizeDoorPassword,
+} from "@/components/apartment/door-password"
 import { getApiErrorMessage } from "@/utils/userApartment"
 import { MaterialCommunityIcons } from "@expo/vector-icons"
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useState } from "react"
 import {
      Alert,
-     ActivityIndicator,
      Pressable,
      StyleSheet,
      Text,
-     TextInput,
      View,
 } from "react-native"
 
@@ -25,23 +30,6 @@ interface DoorAccessCardProps {
      onRequestRenameDoor: (device: DoorDeviceOption) => void
      onChangeHousePassword: (nextPassword: string) => Promise<void>
 }
-
-type DoorActionMode = "open-door" | "change-password"
-
-const PIN_LENGTH = 6
-const MAX_FAILED_ATTEMPTS = 3
-const LOCK_SECONDS = 30
-
-const sanitizePin = (value: string) => value.replace(/\D/g, "").slice(0, PIN_LENGTH)
-const isValidDoorPin = (value: string) => /^\d{6}$/.test(value)
-
-const getAuthTitle = (mode: DoorActionMode) =>
-     mode === "open-door" ? "Xác thực mở cửa" : "Xác thực đổi mật khẩu"
-
-const getAuthDescription = (mode: DoorActionMode) =>
-     mode === "open-door"
-          ? `Nhập đủ ${PIN_LENGTH} số để mở cửa`
-          : "Nhập mật khẩu hiện tại để tiếp tục đổi mật khẩu"
 
 export default function DoorAccessCard({
      title = "Mở cửa chính",
@@ -62,11 +50,8 @@ export default function DoorAccessCard({
      const [selectedDoorId, setSelectedDoorId] = useState("")
      const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
      const [shouldOpenChangePasswordModal, setShouldOpenChangePasswordModal] = useState(false)
-     const [newHousePassword, setNewHousePassword] = useState("")
-     const [confirmNewHousePassword, setConfirmNewHousePassword] = useState("")
      const [mode, setMode] = useState<DoorActionMode>("open-door")
      const [isAuthenticating, setIsAuthenticating] = useState(false)
-     const inputRef = useRef<TextInput>(null)
 
      const selectedDoor = doorDevices.find((item) => item.id === selectedDoorId) ?? doorDevices[0]
      const hasDoorDevice = doorDevices.length > 0
@@ -124,18 +109,17 @@ export default function DoorAccessCard({
      const handleWrongPassword = () => {
           const nextAttempt = failedAttempts + 1
 
-          if (nextAttempt >= MAX_FAILED_ATTEMPTS) {
+          if (nextAttempt >= MAX_DOOR_PASSWORD_FAILED_ATTEMPTS) {
                setFailedAttempts(0)
-               setLockedSeconds(LOCK_SECONDS)
-               setError(`Sai ${MAX_FAILED_ATTEMPTS} lần. Vui lòng thử lại sau ${LOCK_SECONDS} giây.`)
+               setLockedSeconds(DOOR_PASSWORD_LOCK_SECONDS)
+               setError(`Sai ${MAX_DOOR_PASSWORD_FAILED_ATTEMPTS} lần. Vui lòng thử lại sau ${DOOR_PASSWORD_LOCK_SECONDS} giây.`)
                setPin("")
                return
           }
 
           setFailedAttempts(nextAttempt)
-          setError(`Mật khẩu không đúng (${nextAttempt}/${MAX_FAILED_ATTEMPTS})`)
+          setError(`Mật khẩu không đúng (${nextAttempt}/${MAX_DOOR_PASSWORD_FAILED_ATTEMPTS})`)
           setPin("")
-          inputRef.current?.focus()
      }
 
      const handleVerifyPin = async (enteredPin: string) => {
@@ -148,12 +132,12 @@ export default function DoorAccessCard({
                return
           }
 
-          if (!isValidDoorPin(enteredPin)) {
-               setError(`Mật khẩu cửa phải gồm đúng ${PIN_LENGTH} chữ số`)
+          if (!isValidDoorPassword(enteredPin)) {
+               setError(`Mật khẩu cửa phải gồm đúng ${DOOR_PASSWORD_LENGTH} chữ số`)
                return
           }
 
-          if (!expectedPassword || !isValidDoorPin(expectedPassword)) {
+          if (!expectedPassword || !isValidDoorPassword(expectedPassword)) {
                setError("Không lấy được mật khẩu cửa hợp lệ từ hệ thống")
                return
           }
@@ -188,45 +172,31 @@ export default function DoorAccessCard({
                return
           }
 
-          const nextPin = sanitizePin(text)
+          const nextPin = sanitizeDoorPassword(text)
           setPin(nextPin)
           if (error) {
                setError("")
           }
 
-          if (nextPin.length === PIN_LENGTH) {
+          if (nextPin.length === DOOR_PASSWORD_LENGTH) {
                void handleVerifyPin(nextPin)
           }
      }
 
-     const submitChangePassword = async () => {
-          if (!isValidDoorPin(newHousePassword)) {
-               Alert.alert("Thông báo", `Mật khẩu nhà phải gồm đúng ${PIN_LENGTH} chữ số`)
-               return
-          }
-
-          if (newHousePassword !== confirmNewHousePassword) {
-               Alert.alert("Thông báo", "Xác nhận mật khẩu chưa khớp")
+     const submitChangePassword = async (nextPassword: string) => {
+          if (!isValidDoorPassword(nextPassword)) {
+               Alert.alert("Thông báo", `Mật khẩu nhà phải gồm đúng ${DOOR_PASSWORD_LENGTH} chữ số`)
                return
           }
 
           try {
-               await onChangeHousePassword(newHousePassword)
+               await onChangeHousePassword(nextPassword)
                setShowChangePasswordModal(false)
                Alert.alert("Thành công", "Đã đổi mật khẩu cửa nhà")
           } catch (changePasswordError) {
                Alert.alert("Lỗi", getApiErrorMessage(changePasswordError, "Không thể đổi mật khẩu lúc này"))
           }
      }
-
-     useEffect(() => {
-          if (!modalVisible) {
-               return
-          }
-
-          const timer = setTimeout(() => inputRef.current?.focus(), 100)
-          return () => clearTimeout(timer)
-     }, [modalVisible])
 
      useEffect(() => {
           if (lockedSeconds <= 0) {
@@ -290,116 +260,42 @@ export default function DoorAccessCard({
                     )}
                </Pressable>
 
-               <ApartmentModal
+               <DoorAuthModal
                     visible={modalVisible}
-                    title={getAuthTitle(mode)}
-                    description={getAuthDescription(mode)}
+                    mode={mode}
+                    doorDevices={doorDevices}
+                    selectedDoorId={selectedDoor?.id || ""}
+                    pin={pin}
+                    error={error}
+                    lockedSeconds={lockedSeconds}
+                    isDoorPasswordLoading={isDoorPasswordLoading}
+                    isConfirmLoading={mode === "open-door" && (isOpeningDoor || isAuthenticating)}
+                    disableConfirm={
+                         lockedSeconds > 0 ||
+                         isDoorPasswordLoading ||
+                         isAuthenticating ||
+                         (mode === "open-door" && isOpeningDoor) ||
+                         pin.length !== DOOR_PASSWORD_LENGTH
+                    }
+                    onSelectDoor={setSelectedDoorId}
+                    onChangePin={onPinChange}
                     onClose={closeModal}
                     onAfterClose={handleAuthModalClosed}
-                    liftOnKeyboard
-                    keyboardLiftOffset={52}
-                    footer={
-                         <>
-                              <Pressable onPress={closeModal} style={[styles.actionBtn, styles.cancelBtn]}>
-                                   <Text style={styles.cancelText}>Hủy</Text>
-                              </Pressable>
-                              <Pressable
-                                   onPress={() => void handleVerifyPin(pin)}
-                                   disabled={
-                                        lockedSeconds > 0 ||
-                                        isDoorPasswordLoading ||
-                                        (mode === "open-door" && isOpeningDoor) ||
-                                        pin.length !== PIN_LENGTH
-                                   }
-                                   style={[styles.actionBtn, styles.confirmBtn]}
-                              >
-                                   {mode === "open-door" && (isOpeningDoor || isAuthenticating) ? (
-                                        <ActivityIndicator size="small" color="#fff" />
-                                   ) : (
-                                        <Text style={styles.confirmText}>{mode === "open-door" ? "Mở cửa" : "Xác nhận"}</Text>
-                                   )}
-                              </Pressable>
-                         </>
-                    }
-               >
-                    {mode === "open-door" && doorDevices.length > 1 ? (
-                         <View style={styles.doorOptionsWrap}>
-                              {doorDevices.map((item) => {
-                                   const isSelected = item.id === selectedDoor?.id
-                                   return (
-                                        <Pressable
-                                             key={item.id}
-                                             onPress={() => setSelectedDoorId(item.id)}
-                                             style={[styles.doorOption, isSelected && styles.doorOptionActive]}
-                                        >
-                                             <Text
-                                                  numberOfLines={1}
-                                                  style={[styles.doorOptionText, isSelected && styles.doorOptionTextActive]}
-                                             >
-                                                  {item.label}
-                                             </Text>
-                                        </Pressable>
-                                   )
-                              })}
-                         </View>
-                    ) : null}
-
-                    <Pressable style={styles.pinRow} onPress={() => inputRef.current?.focus()}>
-                         {Array.from({ length: PIN_LENGTH }).map((_, index) => (
-                              <View
-                                   key={index}
-                                   style={[
-                                        styles.pinBox,
-                                        pin[index] ? styles.pinBoxFilled : undefined,
-                                        error ? styles.pinBoxError : undefined,
-                                        lockedSeconds > 0 ? styles.pinBoxLocked : undefined,
-                                   ]}
-                              >
-                                   <Text style={styles.pinText}>{pin[index] ? "*" : ""}</Text>
-                              </View>
-                         ))}
-                    </Pressable>
-
-                    <TextInput
-                         ref={inputRef}
-                         value={pin}
-                         onChangeText={onPinChange}
-                         keyboardType="number-pad"
-                         maxLength={PIN_LENGTH}
-                         editable={lockedSeconds <= 0}
-                         style={styles.hiddenInput}
-                    />
-
-                    {isDoorPasswordLoading ? (
-                         <View style={styles.inlineLoading}>
-                              <ActivityIndicator size="small" color="#2563eb" />
-                              <Text style={styles.inlineLoadingText}>Đang lấy mật khẩu cửa...</Text>
-                         </View>
-                    ) : null}
-
-                    {error ? <Text style={styles.errorText}>{error}</Text> : null}
-                    {lockedSeconds > 0 ? <Text style={styles.lockText}>Bạn có thể thử lại sau {lockedSeconds}s</Text> : null}
-               </ApartmentModal>
+                    onConfirm={() => {
+                         void handleVerifyPin(pin)
+                    }}
+               />
 
                <DoorChangePasswordModal
                     visible={showChangePasswordModal}
-                    value={newHousePassword}
-                    confirmValue={confirmNewHousePassword}
                     isUpdating={isChangingHousePassword}
-                    passwordLength={PIN_LENGTH}
-                    onChangeValue={(value) => setNewHousePassword(sanitizePin(value))}
-                    onChangeConfirmValue={(value) => setConfirmNewHousePassword(sanitizePin(value))}
                     onClose={() => {
                          if (!isChangingHousePassword) {
                               setShowChangePasswordModal(false)
                          }
                     }}
-                    onAfterClose={() => {
-                         setNewHousePassword("")
-                         setConfirmNewHousePassword("")
-                    }}
-                    onSubmit={() => {
-                         void submitChangePassword()
+                    onSubmit={(password) => {
+                         void submitChangePassword(password)
                     }}
                />
           </>
@@ -491,113 +387,5 @@ const styles = StyleSheet.create({
           fontSize: 11,
           fontWeight: "600",
           color: "#1d4ed8",
-     },
-     doorOptionsWrap: {
-          flexDirection: "row",
-          flexWrap: "wrap",
-          gap: 8,
-          marginBottom: 10,
-     },
-     doorOption: {
-          maxWidth: "48%",
-          borderRadius: 10,
-          borderWidth: 1,
-          borderColor: "#cbd5e1",
-          backgroundColor: "#f8fafc",
-          paddingHorizontal: 10,
-          paddingVertical: 8,
-     },
-     doorOptionActive: {
-          borderColor: "#2563eb",
-          backgroundColor: "#eff6ff",
-     },
-     doorOptionText: {
-          color: "#0f172a",
-          fontSize: 12,
-          fontWeight: "600",
-     },
-     doorOptionTextActive: {
-          color: "#1d4ed8",
-     },
-     pinRow: {
-          flexDirection: "row",
-          justifyContent: "space-between",
-          gap: 8,
-          marginBottom: 2,
-     },
-     pinBox: {
-          borderWidth: 1,
-          borderColor: "#cbd5e1",
-          borderRadius: 12,
-          backgroundColor: "#f8fafc",
-          width: 44,
-          height: 54,
-          alignItems: "center",
-          justifyContent: "center",
-     },
-     pinBoxFilled: {
-          borderColor: "#2563eb",
-          backgroundColor: "#eff6ff",
-     },
-     pinBoxError: {
-          borderColor: "#ef4444",
-     },
-     pinBoxLocked: {
-          backgroundColor: "#e2e8f0",
-     },
-     pinText: {
-          color: "#0f172a",
-          fontSize: 20,
-          fontWeight: "700",
-     },
-     hiddenInput: {
-          position: "absolute",
-          width: 1,
-          height: 1,
-          opacity: 0,
-     },
-     inlineLoading: {
-          marginTop: 10,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 8,
-     },
-     inlineLoadingText: {
-          fontSize: 12,
-          color: "#64748b",
-     },
-     errorText: {
-          marginTop: 8,
-          color: "#dc2626",
-          fontSize: 13,
-     },
-     lockText: {
-          marginTop: 6,
-          color: "#b45309",
-          fontSize: 12,
-     },
-     actionBtn: {
-          borderRadius: 12,
-          paddingVertical: 10,
-          paddingHorizontal: 12,
-          alignItems: "center",
-          justifyContent: "center",
-          flex: 1,
-     },
-     cancelBtn: {
-          flex: 0,
-          backgroundColor: "#eef2f7",
-     },
-     confirmBtn: {
-          flex: 0,
-          backgroundColor: "#2563eb",
-     },
-     confirmText: {
-          color: "#ffffff",
-          fontWeight: "700",
-     },
-     cancelText: {
-          color: "#0f172a",
-          fontWeight: "600",
      },
 })
