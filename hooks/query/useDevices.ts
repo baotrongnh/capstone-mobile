@@ -1,5 +1,13 @@
 import { IoTControlVariables, iotServices } from "@/lib/services/iot.service"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
+
+export const useIotBoards = (apartmentId?: string) => {
+     return useQuery({
+          queryKey: ["iot-boards", apartmentId],
+          queryFn: () => iotServices.getBoards({ apartmentId }),
+          enabled: Boolean(apartmentId),
+     })
+}
 
 export const useDeviceIot = () => {
 
