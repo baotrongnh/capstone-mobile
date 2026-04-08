@@ -11,15 +11,8 @@ import {
 import { useAuthStore } from "@/stores/auth.store";
 import { useUpdateUser, useUpdateUserAvatar } from "@/hooks/query/useUser";
 import { uploadImageFromUri } from "@/utils/uploadFile";
-import { UserProfileEditableValues } from "@/types/user";
+import { MenuItemData, UserProfileEditableValues } from "@/types/user";
 import { toUserText } from "@/utils/user";
-
-interface MenuItemData {
-  id: string;
-  label: string;
-  icon: string;
-  screen: string;
-}
 
 const menuItems: MenuItemData[] = [
   {

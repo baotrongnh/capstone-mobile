@@ -8,6 +8,14 @@ import * as WebBrowser from "expo-web-browser"
 import Constants from "expo-constants"
 WebBrowser.maybeCompleteAuthSession()
 
+const toErrorMessage = (error: unknown, fallback: string): string => {
+    if (error instanceof Error && error.message.trim().length > 0) {
+        return error.message
+    }
+
+    return fallback
+}
+
 const withRedirectTo = (authUrl: string, redirectUri: string): string => {
     const [base, hash] = authUrl.split('#')
     const [path, query = ''] = base.split('?')
@@ -36,7 +44,7 @@ export const useLogin = () => {
         mutationFn: authServices.login,
         onSuccess: async (data) => {
             queryClient.clear()
-            
+
             const tokens = data?.tokens
             if (!tokens) return
             await setTokens(tokens)
@@ -51,12 +59,12 @@ export const useLogin = () => {
                 console.log('success', user)
             } catch (error) {
                 console.log('profileError')
-                console.error('Fetch profile failed', error)
+                console.log(`Fetch profile failed: ${toErrorMessage(error, 'Unknown error')}`)
             }
         },
         onError: (error) => {
             console.log('loginError')
-            console.error("Login failed", error)
+            console.log(`Login failed: ${toErrorMessage(error, 'Unknown error')}`)
         }
     })
 }
@@ -67,7 +75,7 @@ export const useGoogleLogin = () => {
     const queryClient = useQueryClient()
     const [loading, setLoading] = useState(false)
 
-    const login = async () => {
+    const login = async (): Promise<boolean> => {
         setLoading(true)
         try {
             const redirectUri = getOAuthRedirectUri()
@@ -82,8 +90,7 @@ export const useGoogleLogin = () => {
             console.log('Resul: ', result)
 
             if (result.type !== 'success') {
-                setLoading(false)
-                return
+                return false
             }
 
             const accessToken = result.url?.split("access_token=")[1]?.split("&")[0]
@@ -94,21 +101,25 @@ export const useGoogleLogin = () => {
             const loginRes = await authServices.googleLogin(accessToken)
             console.log("loginRes:", loginRes)
 
-            const tokens = loginRes?.data?.tokens
-            if (tokens) {
-                await setTokens(tokens)
-                const user = await queryClient.fetchQuery({
-                    queryKey: ['user', 'profile'],
-                    queryFn: () => userService.getProfile()
-                })
-
-                await setAuth(user, tokens)
-                console.log('success', user)
+            const tokens = loginRes?.tokens
+            if (!tokens) {
+                throw new Error('Google login response is invalid')
             }
 
+            await setTokens(tokens)
+            const user = await queryClient.fetchQuery({
+                queryKey: ['user', 'profile'],
+                queryFn: () => userService.getProfile()
+            })
+
+            await setAuth(user, tokens)
+            console.log('success', user)
+
+            return true
+
         } catch (error) {
-            console.log("Somethings went wrong!")
-            console.error('Google login failed', error)
+            console.log("Something went wrong during Google login")
+            console.log(`Google login failed: ${toErrorMessage(error, 'Unknown error')}`)
             throw error
         } finally {
             setLoading(false)

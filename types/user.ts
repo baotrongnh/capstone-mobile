@@ -10,14 +10,14 @@ export type UpdateUserResponse = NonNullable<
     paths["/api/v1/users/{id}"]["patch"]["responses"]["200"]["content"]["application/json"]["data"]
 >
 
-export interface UserProfileEditableValues {
+export type UserProfileEditableValues = {
     fullName: string
     phone: string
     emergencyContactName: string
     emergencyContactPhone: string
 }
 
-export interface ProfileHeaderProps {
+export type ProfileHeaderProps = {
     name: string;
     email: string;
     avatar: string | null;
@@ -26,28 +26,35 @@ export interface ProfileHeaderProps {
     onAvatarChange?: (uri: string) => Promise<void> | void;
 }
 
-export interface ProfileDetailsProps {
+export type ProfileDetailsProps = {
     onBack: () => void;
     user: UserDetail | null;
     onSave: (values: UserProfileEditableValues) => Promise<void>;
     saving: boolean;
 }
 
-export interface UserIdentityField {
+export type UserIdentityField = {
     key: string;
     label: string;
     value: unknown;
 }
 
-export interface ProfileInfoRowProps {
+export type ProfileInfoRowProps = {
     label: string;
     value: string;
 }
 
-export interface ProfileEditableInputProps {
+export type ProfileEditableInputProps = {
     label: string;
     value: string;
     onChangeText: (text: string) => void;
     placeholder?: string;
     keyboardType?: "default" | "phone-pad";
+}
+
+export type MenuItemData = {
+  id: string;
+  label: string;
+  icon: string;
+  screen: string;
 }
