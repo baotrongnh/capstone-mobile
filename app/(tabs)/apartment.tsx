@@ -1,9 +1,9 @@
-import ApartmentSelector, { ApartmentSelectorOption } from '@/components/apartment/ApartmentSelector'
-import DeviceGrid, { DeviceGridItem } from '@/components/apartment/DeviceGrid'
+import ApartmentSelector from '@/components/apartment/ApartmentSelector'
+import DeviceGrid, { type DoorDeviceOption } from '@/components/apartment/DeviceGrid'
 import { StyledContainer } from '@/components/styles'
-import { useIotBoards, useDeviceIot } from '@/hooks/query/useDevices'
+import { useIotBoards, useDeviceIot, useUpdateIotBoardDevice } from '@/hooks/query/useDevices'
+import { useUpdateMyHousePassword, useUserApartment, useUserApartmentDetail } from '@/hooks/query/useUserApartment'
 import { IoTControlVariables } from '@/lib/services/iot.service'
-import { useUserApartment } from '@/hooks/query/useUserApartment'
 import { storage } from '@/stores/storage'
 import { UserApartmentItem } from '@/types/userApartment'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
@@ -13,17 +13,13 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 
 const APARTMENT_STORAGE_KEY = 'selectedApartmentId'
 
-const mapTopicIcon = (topic: IoTControlVariables['topic']): DeviceGridItem['icon'] => {
-     if (topic === 'curtain') return 'curtains-closed'
-     if (topic === 'alarm') return 'alarm-light-outline'
-     if (topic === 'door') return 'door'
-
-     return 'lightbulb-outline'
-}
-
 export default function ApartmentControlScreen() {
      const router = useRouter()
      const { mutate } = useDeviceIot()
+     const { mutateAsync: openDoorMutation, isPending: isOpeningDoor } = useDeviceIot()
+     const { mutateAsync: renameDeviceMutation, isPending: isRenamingDevice } = useUpdateIotBoardDevice()
+     const { mutateAsync: updateHousePasswordMutation, isPending: isChangingHousePassword } = useUpdateMyHousePassword()
+
      const [selectedApartmentId, setSelectedApartmentId] = useState('')
      const [isHydratedStorage, setIsHydratedStorage] = useState(false)
 
@@ -33,12 +29,18 @@ export default function ApartmentControlScreen() {
           return (apartmentData?.data as UserApartmentItem[] | undefined) ?? []
      }, [apartmentData?.data])
 
-     const apartmentOptions = useMemo<ApartmentSelectorOption[]>(() => {
-          return myApartments.map((item) => ({
-               id: String(item.apartmentId),
-               label: item.apartment?.apartmentNumber || String(item.apartmentId),
-          }))
-     }, [myApartments])
+     const selectedUserApartmentId = useMemo(() => {
+          const selected = myApartments.find((item) => String(item.apartmentId) === selectedApartmentId)
+          return selected ? String(selected.id) : ''
+     }, [myApartments, selectedApartmentId])
+
+     const {
+          data: userApartmentDetailData,
+          isLoading: isApartmentDetailLoading,
+          refetch: refetchUserApartmentDetail,
+     } = useUserApartmentDetail(selectedUserApartmentId)
+
+     const apartmentDoorPassword = userApartmentDetailData?.data?.apartmentDoorPassword ?? null
 
      const syncSelectedApartmentFromStorage = useCallback(async () => {
           const savedApartmentId = await storage.getItem(APARTMENT_STORAGE_KEY)
@@ -63,7 +65,7 @@ export default function ApartmentControlScreen() {
                return
           }
 
-          if (apartmentOptions.length === 0) {
+          if (myApartments.length === 0) {
                if (!selectedApartmentId) {
                     return
                }
@@ -73,8 +75,10 @@ export default function ApartmentControlScreen() {
                return
           }
 
-          const isValidSelection = apartmentOptions.some((item) => item.id === selectedApartmentId)
-          const nextSelectedApartmentId = isValidSelection ? selectedApartmentId : apartmentOptions[0].id
+          const isValidSelection = myApartments.some((item) => String(item.apartmentId) === selectedApartmentId)
+          const nextSelectedApartmentId = isValidSelection
+               ? selectedApartmentId
+               : String(myApartments[0].apartmentId)
 
           if (nextSelectedApartmentId === selectedApartmentId) {
                return
@@ -82,52 +86,24 @@ export default function ApartmentControlScreen() {
 
           setSelectedApartmentId(nextSelectedApartmentId)
           void storage.setItem(APARTMENT_STORAGE_KEY, nextSelectedApartmentId)
-     }, [apartmentOptions, isApartmentLoading, isHydratedStorage, selectedApartmentId])
+     }, [isApartmentLoading, isHydratedStorage, myApartments, selectedApartmentId])
 
-     const { data: boardsData, isLoading: isBoardsLoading } = useIotBoards(selectedApartmentId || undefined)
+     const {
+          data: boardsData,
+          isLoading: isBoardsLoading,
+          refetch: refetchBoards,
+     } = useIotBoards(selectedApartmentId || undefined)
 
      const boards = useMemo(() => boardsData?.data ?? [], [boardsData?.data])
-
-     const devices = useMemo<DeviceGridItem[]>(() => {
-          return boards.flatMap((board) => {
-               return board.devices
-                    .filter((device) => device.isControllableByTenant && device.mqttDeviceId !== null && device.mqttTopic !== null)
-                    .map((device) => ({
-                         id: device.id,
-                         espId: board.id,
-                         deviceId: device.mqttDeviceId as number,
-                         title: device.deviceName,
-                         subtitle: device.room?.roomNumber ? `Phòng ${device.room.roomNumber}` : board.name,
-                         icon: mapTopicIcon(device.mqttTopic as IoTControlVariables['topic']),
-                         topic: device.mqttTopic as IoTControlVariables['topic'],
-                         initial: device.mqttState === 'ON',
-                    }))
-          })
-     }, [boards])
 
      useEffect(() => {
           if (!selectedApartmentId) {
                return
           }
 
-          const apartmentDevices = boards.flatMap((board) =>
-               board.devices.map((device) => ({
-                    ...device,
-                    boardId: board.id,
-                    boardName: board.name,
-               })),
-          )
-
           console.log('[APARTMENT] selectedApartmentId:', selectedApartmentId)
           console.log('[APARTMENT] boards:', boards)
-          console.log('[APARTMENT] devices:', apartmentDevices)
      }, [boards, selectedApartmentId])
-
-     const selectedApartmentLabel = useMemo(() => {
-          const selectedApartment = apartmentOptions.find((item) => item.id === selectedApartmentId)
-
-          return selectedApartment?.label || ''
-     }, [apartmentOptions, selectedApartmentId])
 
      const onSelectApartment = (apartmentId: string) => {
           setSelectedApartmentId(apartmentId)
@@ -145,14 +121,42 @@ export default function ApartmentControlScreen() {
                espId: data.espId,
                deviceId: data.deviceId,
                topic: data.topic,
-               action: data.action
+               action: data.action,
           })
-          console.log(data.deviceId, data.topic, data.action)
+          console.log(data.espId, data.deviceId, data.topic, data.action)
      }
 
-     const onOpenDoor = () => {
-          console.log('Door opened at apartment:', selectedApartmentId)
-     }
+     const handleOpenDoor = useCallback(async (doorDevice: DoorDeviceOption) => {
+          await openDoorMutation({
+               espId: doorDevice.espId,
+               deviceId: doorDevice.deviceId,
+               topic: 'door',
+               action: 'ON',
+          })
+     }, [openDoorMutation])
+
+     const handleChangeHousePassword = useCallback(async (nextPassword: string) => {
+          if (!selectedUserApartmentId) {
+               throw new Error('Không xác định được căn hộ để đổi mật khẩu')
+          }
+
+          await updateHousePasswordMutation({
+               id: selectedUserApartmentId,
+               payload: { housePassword: nextPassword },
+          })
+
+          await refetchUserApartmentDetail()
+     }, [refetchUserApartmentDetail, selectedUserApartmentId, updateHousePasswordMutation])
+
+     const handleRenameDevice = useCallback(async ({ boardId, deviceId, deviceName }: { boardId: string; deviceId: string; deviceName: string }) => {
+          await renameDeviceMutation({
+               boardId,
+               deviceId,
+               payload: { deviceName },
+          })
+
+          await refetchBoards()
+     }, [refetchBoards, renameDeviceMutation])
 
      const onOpenWifiSetup = () => {
           router.navigate('/wifi-setup')
@@ -177,9 +181,8 @@ export default function ApartmentControlScreen() {
                >
                     <View style={styles.sectionBlock}>
                          <ApartmentSelector
-                              options={apartmentOptions}
+                              apartments={myApartments}
                               selectedApartmentId={selectedApartmentId}
-                              selectedApartmentLabel={selectedApartmentLabel}
                               onSelectApartment={onSelectApartment}
                               onViewApartments={() => router.push('/my-apartments')}
                          />
@@ -216,16 +219,18 @@ export default function ApartmentControlScreen() {
                                    <ActivityIndicator size="small" color="#2563eb" />
                                    <Text style={styles.loadingInlineText}>Đang tải mạch và thiết bị...</Text>
                               </View>
-                         ) : devices.length === 0 ? (
-                              <View style={styles.emptyCard}>
-                                   <Text style={styles.emptyText}>Căn hộ này chưa có thiết bị điều khiển.</Text>
-                              </View>
                          ) : (
                               <DeviceGrid
-                                   devices={devices}
+                                   boards={boards}
                                    onDeviceToggle={onDeviceToggle}
-                                   espId={devices[0]?.espId ?? ''}
-                                   onOpenDoor={onOpenDoor}
+                                   isRenamingDevice={isRenamingDevice}
+                                   doorPassword={apartmentDoorPassword}
+                                   isDoorPasswordLoading={isApartmentDetailLoading}
+                                   isOpeningDoor={isOpeningDoor}
+                                   isChangingHousePassword={isChangingHousePassword}
+                                   onOpenDoor={handleOpenDoor}
+                                   onRenameDevice={handleRenameDevice}
+                                   onChangeHousePassword={handleChangeHousePassword}
                               />
                          )}
                     </View>

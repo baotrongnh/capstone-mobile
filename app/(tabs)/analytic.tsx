@@ -19,6 +19,9 @@ import { StyledContainer } from "@/components/styles"
 
 const APARTMENT_STORAGE_KEY = 'selectedApartmentId'
 
+const getApartmentId = (item: UserApartmentItem) => String(item.apartmentId)
+const getApartmentLabel = (item: UserApartmentItem) => item.apartment?.apartmentNumber || String(item.apartmentId)
+
 const COLORS = {
   primary: "#3b82f6",
   textBase: "#0f172a",
@@ -65,13 +68,6 @@ export default function AnalyticScreen() {
     return (apartmentData?.data as UserApartmentItem[] | undefined) ?? []
   }, [apartmentData?.data])
 
-  const apartmentOptions = useMemo(() => {
-    return myApartments.map((item) => ({
-      id: String(item.apartmentId),
-      label: item.apartment?.apartmentNumber || String(item.apartmentId),
-    }))
-  }, [myApartments])
-
   const syncSelectedApartmentFromStorage = useCallback(async () => {
     const savedApartmentId = await storage.getItem(APARTMENT_STORAGE_KEY)
     const nextSelectedApartmentId = savedApartmentId ?? ''
@@ -95,7 +91,7 @@ export default function AnalyticScreen() {
       return
     }
 
-    if (apartmentOptions.length === 0) {
+    if (myApartments.length === 0) {
       if (!selectedApartmentId) {
         return
       }
@@ -105,8 +101,10 @@ export default function AnalyticScreen() {
       return
     }
 
-    const isValidSelection = apartmentOptions.some((item) => item.id === selectedApartmentId)
-    const nextSelectedApartmentId = isValidSelection ? selectedApartmentId : apartmentOptions[0].id
+    const isValidSelection = myApartments.some((item) => getApartmentId(item) === selectedApartmentId)
+    const nextSelectedApartmentId = isValidSelection
+      ? selectedApartmentId
+      : getApartmentId(myApartments[0])
 
     if (nextSelectedApartmentId === selectedApartmentId) {
       return
@@ -114,13 +112,13 @@ export default function AnalyticScreen() {
 
     setSelectedApartmentId(nextSelectedApartmentId)
     void storage.setItem(APARTMENT_STORAGE_KEY, nextSelectedApartmentId)
-  }, [apartmentOptions, isApartmentLoading, isHydratedStorage, selectedApartmentId])
+  }, [isApartmentLoading, isHydratedStorage, myApartments, selectedApartmentId])
 
   const selectedApartmentLabel = useMemo(() => {
-    const selectedApartment = apartmentOptions.find((item) => item.id === selectedApartmentId)
+    const selectedApartment = myApartments.find((item) => getApartmentId(item) === selectedApartmentId)
 
-    return selectedApartment?.label || ''
-  }, [apartmentOptions, selectedApartmentId])
+    return selectedApartment ? getApartmentLabel(selectedApartment) : ''
+  }, [myApartments, selectedApartmentId])
 
   const onSelectApartment = (apartmentId: string) => {
     setSelectedApartmentId(apartmentId)
@@ -242,7 +240,7 @@ export default function AnalyticScreen() {
                 <Pressable
                   onPress={() => setIsApartmentModalVisible(true)}
                   style={styles.apartmentMiniTrigger}
-                  disabled={apartmentOptions.length === 0}
+                  disabled={myApartments.length === 0}
                 >
                   <MaterialCommunityIcons name="home-city-outline" size={13} color="rgba(255, 255, 255, 0.9)" />
                   <Text style={styles.apartmentMiniText} numberOfLines={1}>
@@ -335,17 +333,18 @@ export default function AnalyticScreen() {
             <Text style={styles.modalTitle}>Chọn căn hộ</Text>
 
             <ScrollView style={styles.modalList} contentContainerStyle={styles.modalListContent}>
-              {apartmentOptions.map((item) => {
-                const isActive = item.id === selectedApartmentId
+              {myApartments.map((item) => {
+                const apartmentId = getApartmentId(item)
+                const isActive = apartmentId === selectedApartmentId
 
                 return (
                   <Pressable
-                    key={item.id}
-                    onPress={() => onSelectApartment(item.id)}
+                    key={apartmentId}
+                    onPress={() => onSelectApartment(apartmentId)}
                     style={[styles.modalItem, isActive && styles.modalItemActive]}
                   >
                     <Text numberOfLines={1} style={[styles.modalItemText, isActive && styles.modalItemTextActive]}>
-                      {item.label}
+                      {getApartmentLabel(item)}
                     </Text>
 
                     {isActive ? (
