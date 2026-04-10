@@ -7,7 +7,7 @@ import {
 } from "@/hooks/query/useNotifications"
 import { NotificationItem } from "@/types/notification"
 import { useRouter } from "expo-router"
-import React from "react"
+import React, { useCallback, useMemo } from "react"
 import {
      ActivityIndicator,
      FlatList,
@@ -59,24 +59,32 @@ export default function NotificationsScreen() {
      const markAsReadMutation = useMarkNotificationAsRead()
      const markAllMutation = useMarkAllNotificationsAsRead()
 
-     const notifications = data?.data ?? []
-     const unreadCount = notifications.filter((item) => !item.isRead).length
+     const notifications = useMemo(() => data?.data ?? [], [data?.data])
+     const unreadCount = useMemo(
+          () => notifications.filter((item) => !item.isRead).length,
+          [notifications],
+     )
+     const isMarkAllDisabled = unreadCount === 0 || markAllMutation.isPending
 
-     const onPressItem = (item: NotificationItem) => {
+     const handleRefresh = useCallback(() => {
+          void refetch()
+     }, [refetch])
+
+     const onPressItem = useCallback((item: NotificationItem) => {
           if (!item.isRead) {
                markAsReadMutation.mutate(item.id)
           }
-     }
+     }, [markAsReadMutation])
 
-     const onMarkAll = () => {
-          if (!unreadCount || markAllMutation.isPending) {
+     const onMarkAll = useCallback(() => {
+          if (isMarkAllDisabled) {
                return
           }
 
           markAllMutation.mutate()
-     }
+     }, [isMarkAllDisabled, markAllMutation])
 
-     const renderItem = ({ item }: { item: NotificationItem }) => {
+     const renderItem = useCallback(({ item }: { item: NotificationItem }) => {
           const iconColor = getTypeColor(item.notificationType)
 
           return (
@@ -108,7 +116,7 @@ export default function NotificationsScreen() {
                     </View>
                </Pressable>
           )
-     }
+     }, [onPressItem])
 
      return (
           <StyledContainer style={styles.container}>
@@ -120,14 +128,14 @@ export default function NotificationsScreen() {
                     <Text style={styles.headerTitle}>Thông báo</Text>
 
                     <Pressable
-                         disabled={!unreadCount || markAllMutation.isPending}
+                         disabled={isMarkAllDisabled}
                          onPress={onMarkAll}
                          style={styles.markAllButton}
                     >
                          <Text
                               style={[
                                    styles.markAllText,
-                                   (!unreadCount || markAllMutation.isPending) && styles.markAllTextDisabled,
+                                   isMarkAllDisabled && styles.markAllTextDisabled,
                               ]}
                          >
                               Đánh dấu tất cả
@@ -143,7 +151,7 @@ export default function NotificationsScreen() {
                ) : isError ? (
                     <View style={styles.centerState}>
                          <Text style={styles.stateTitle}>Không thể tải thông báo</Text>
-                         <Pressable onPress={() => refetch()} style={styles.retryButton}>
+                         <Pressable onPress={handleRefresh} style={styles.retryButton}>
                               <Text style={styles.retryText}>Thử lại</Text>
                          </Pressable>
                     </View>
@@ -158,7 +166,7 @@ export default function NotificationsScreen() {
                               !notifications.length && styles.listEmptyContent,
                          ]}
                          refreshControl={
-                              <RefreshControl refreshing={isRefetching} onRefresh={() => refetch()} />
+                              <RefreshControl refreshing={isRefetching} onRefresh={handleRefresh} />
                          }
                          ListEmptyComponent={
                               <View style={styles.centerState}>
