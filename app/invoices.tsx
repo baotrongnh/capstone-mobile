@@ -6,6 +6,8 @@ import {
     type InvoiceItem
 } from '@/types/invoice'
 import { formatCurrency, formatDate } from '@/utils/invoices'
+import { Ionicons } from '@expo/vector-icons'
+import { useRouter } from 'expo-router'
 import React, { useMemo, useState } from 'react'
 import {
     ActivityIndicator,
@@ -56,34 +58,43 @@ const getStatusStyle = (status?: string) => {
     }
 }
 
-const renderInvoiceItem = ({ item }: { item: InvoiceItem }) => {
+const renderInvoiceItem = ({
+    item,
+    onPress,
+}: {
+    item: InvoiceItem
+    onPress: (invoiceId: string) => void
+}) => {
     return (
-        <View style={styles.card}>
-            <View style={styles.cardHeader}>
-                <Text style={styles.invoiceNumber}>{item.invoiceNumber}</Text>
-                <Text style={[styles.status, getStatusStyle(item.status)]}>
-                    {VIETNAMESE_STATUS_VALUES[item.status] || item.status}
-                </Text>
-            </View>
-
-            <Text style={styles.label}>Tổng tiền</Text>
-            <Text style={styles.amount}>{formatCurrency(item.totalAmount)}</Text>
-
-            <View style={styles.row}>
-                <View>
-                    <Text style={styles.label}>Hạn thanh toán</Text>
-                    <Text style={styles.value}>{formatDate(item.dueDate)}</Text>
+        <Pressable onPress={() => onPress(item.id)}>
+            <View style={styles.card}>
+                <View style={styles.cardHeader}>
+                    <Text style={styles.invoiceNumber}>{item.invoiceNumber}</Text>
+                    <Text style={[styles.status, getStatusStyle(item.status)]}>
+                        {VIETNAMESE_STATUS_VALUES[item.status] || item.status}
+                    </Text>
                 </View>
-                <View>
-                    <Text style={styles.label}>Loại hóa đơn</Text>
-                    <Text style={styles.value}>{item.invoiceType || '--'}</Text>
+
+                <Text style={styles.label}>Tổng tiền</Text>
+                <Text style={styles.amount}>{formatCurrency(item.totalAmount)}</Text>
+
+                <View style={styles.row}>
+                    <View>
+                        <Text style={styles.label}>Hạn thanh toán</Text>
+                        <Text style={styles.value}>{formatDate(item.dueDate)}</Text>
+                    </View>
+                    <View>
+                        <Text style={styles.label}>Loại hóa đơn</Text>
+                        <Text style={styles.value}>{item.invoiceType || '--'}</Text>
+                    </View>
                 </View>
             </View>
-        </View>
+        </Pressable>
     )
 }
 
 export default function Invoices() {
+    const router = useRouter()
     const [activeTab, setActiveTab] = useState<InvoiceTab>('all')
     const [tabsViewportWidth, setTabsViewportWidth] = useState(0)
     const [tabsContentWidth, setTabsContentWidth] = useState(0)
@@ -92,7 +103,7 @@ export default function Invoices() {
     const params = activeTab === 'all' ? undefined : { status: activeTab }
 
     const { data: allData } = useInvoices()
-    const { data, isLoading, isRefetching, refetch, error } = useInvoices(params)
+    const { data, isFetching, isRefetching, refetch, error } = useInvoices(params)
     const invoices = data?.data ?? []
     const allInvoices = useMemo(() => allData?.data ?? [], [allData])
 
@@ -125,20 +136,25 @@ export default function Invoices() {
         updateRightFade(offsetX, tabsViewportWidth, tabsContentWidth)
     }
 
-    if (isLoading) {
-        return (
-            <StyledContainer>
-                <View style={styles.centered}>
-                    <ActivityIndicator size='large' />
-                    <Text style={styles.loadingText}>Đang tải hóa đơn...</Text>
-                </View>
-            </StyledContainer>
-        )
+    const handleBack = () => {
+        if (router.canGoBack()) {
+            router.back()
+            return
+        }
+
+        router.replace('/(tabs)/home')
     }
 
     if (error) {
         return (
             <StyledContainer>
+                <View style={styles.pageHeader}>
+                    <Pressable onPress={handleBack} style={styles.backButton} hitSlop={10}>
+                        <Ionicons name='chevron-back' size={24} color='#6b7280' />
+                        <Text style={styles.backButtonText}>Quay lại</Text>
+                    </Pressable>
+                </View>
+
                 <View style={styles.centered}>
                     <Text style={styles.errorTitle}>Không thể tải danh sách hóa đơn</Text>
                     <Text style={styles.errorMessage}>Hãy kéo để làm mới và thử lại.</Text>
@@ -149,6 +165,13 @@ export default function Invoices() {
 
     return (
         <StyledContainer>
+            <View style={styles.pageHeader}>
+                <Pressable onPress={handleBack} style={styles.backButton} hitSlop={10}>
+                    <Ionicons name='chevron-back' size={24} color='#6b7280' />
+                    <Text style={styles.backButtonText}>Quay lại</Text>
+                </Pressable>
+            </View>
+
             <Text style={styles.title}>Danh sách hóa đơn</Text>
 
             <View style={styles.tabsWrapper}>
@@ -206,18 +229,36 @@ export default function Invoices() {
                 </View>
             </View>
 
+            {isFetching && !isRefetching && (
+                <View style={styles.inlineLoadingWrap}>
+                    <ActivityIndicator size='small' />
+                    <Text style={styles.inlineLoadingText}>Đang tải hóa đơn..</Text>
+                </View>
+            )}
+
             <FlatList
                 data={invoices}
                 keyExtractor={(item) => item.id}
-                renderItem={renderInvoiceItem}
+                renderItem={({ item }) =>
+                    renderInvoiceItem({
+                        item,
+                        onPress: (invoiceId) =>
+                            router.push({
+                                pathname: '/invoices/[id]',
+                                params: { id: invoiceId },
+                            })
+                    })
+                }
                 contentContainerStyle={invoices.length === 0 ? styles.emptyList : styles.list}
                 refreshControl={
                     <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
                 }
                 ListEmptyComponent={
-                    <View style={styles.centered}>
-                        <Text style={styles.emptyText}>Không có hóa đơn nào</Text>
-                    </View>
+                    isFetching ? null : (
+                        <View style={styles.centered}>
+                            <Text style={styles.emptyText}>Không có hóa đơn nào</Text>
+                        </View>
+                    )
                 }
             />
         </StyledContainer>
@@ -225,6 +266,22 @@ export default function Invoices() {
 }
 
 const styles = StyleSheet.create({
+    pageHeader: {
+        marginBottom: 6,
+    },
+    backButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        gap: 4,
+        paddingVertical: 4,
+        paddingRight: 4,
+    },
+    backButtonText: {
+        fontSize: 18,
+        fontWeight: 600,
+        color: '#6d6d6d',
+    },
     title: {
         fontSize: 24,
         fontWeight: 700,
@@ -395,6 +452,16 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    inlineLoadingWrap: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 10,
+    },
+    inlineLoadingText: {
+        color: '#6b7280',
+        fontSize: 13,
     },
     loadingText: {
         marginTop: 10,

@@ -13,6 +13,10 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="notifications" options={{ headerShown: false }} />
           <Stack.Screen name="more-services" options={{ headerShown: false }} />
+          <Stack.Screen name='invoices' options={{ headerShown: false }} />
+          <Stack.Screen name="invoices/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="my-apartments" options={{ headerShown: false }} />
+          <Stack.Screen name="my-apartment-detail" options={{ headerShown: false }} />
         </Stack>
       </AuthProvider>
     </ReactQueryProvider>

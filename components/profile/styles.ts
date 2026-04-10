@@ -50,7 +50,7 @@ export const UserEmail = styled.Text`
 `;
 
 export const MenuContainer = styled.View`
-  padding: 0px 20px;
+  padding: 20px 20px;
   background-color: #ffffff;
 `;
 

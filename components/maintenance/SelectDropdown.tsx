@@ -7,6 +7,8 @@ import {
   FlatList,
   TextInput,
   StyleSheet,
+  StyleProp,
+  ViewStyle,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
@@ -29,6 +31,7 @@ interface SelectDropdownProps {
   options: { value: string; label: string }[];
   renderOption?: (option: any) => string;
   searchable?: boolean;
+  dropdownStyle?: StyleProp<ViewStyle>;
 }
 
 export default function SelectDropdown({
@@ -40,6 +43,7 @@ export default function SelectDropdown({
   options,
   renderOption,
   searchable = true,
+  dropdownStyle,
 }: SelectDropdownProps) {
   const [modalVisible, setModalVisible] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -120,6 +124,7 @@ export default function SelectDropdown({
             style={[
               styles.modalContainer,
               !searchable && styles.modalContainerNoSearch,
+              dropdownStyle,
             ]}
           >
             {/* Search Input - chỉ hiển thị khi searchable = true */}
@@ -195,7 +200,7 @@ export default function SelectDropdown({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    marginBottom: 50,
   },
   label: {
     fontSize: 14,
@@ -242,7 +247,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: "70%",
+    maxHeight: "90%",
+    minHeight: 100,
     paddingTop: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -2 },
@@ -252,7 +258,8 @@ const styles = StyleSheet.create({
   },
   modalContainerNoSearch: {
     paddingTop: 8,
-    maxHeight: "60%",
+    maxHeight: "85%",
+    minHeight: 280,
   },
   searchContainer: {
     flexDirection: "row",

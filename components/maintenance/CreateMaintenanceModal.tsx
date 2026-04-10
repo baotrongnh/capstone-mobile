@@ -8,7 +8,6 @@ import {
   Modal,
   Platform,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,6 +16,7 @@ import {
 } from "react-native";
 import SelectDropdown from "./SelectDropdown";
 import { useCreateMaintenanceRequest } from "@/hooks/query/useMaintenance";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Bảng màu hiện đại (Modern Indigo Theme)
 const Colors = {
@@ -176,6 +176,23 @@ export default function ModalCreateMaintenance({
     }
   };
 
+  const handleTakePhoto = async () => {
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.8,
+        aspect: [4, 3],
+      });
+
+      if (!result.canceled) {
+        const cameraImages = result.assets.map((asset) => asset.uri);
+        handleFormChange("images", [...formData.images, ...cameraImages]);
+      }
+    } catch {
+      alert("Lỗi khi chụp ảnh");
+    }
+  };
+
   const removeImage = (index: number) => {
     handleFormChange(
       "images",
@@ -234,6 +251,8 @@ export default function ModalCreateMaintenance({
       <SafeAreaView style={styles.container}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+          enabled={true}
           style={styles.container}
         >
           {/* Header */}
@@ -278,19 +297,9 @@ export default function ModalCreateMaintenance({
                   }
                   options={apartmentOptions}
                   searchable={false}
+                  dropdownStyle={{ marginTop: -30 }}
                 />
               </View>
-              {/* <View style={{ flex: 1, marginLeft: 8 }}>
-                <FormInput
-                  label="Mã Phòng (Tùy chọn)"
-                  icon="door-open"
-                  placeholder="Để trống nếu không có"
-                  value={formData.roomId}
-                  onChangeText={(text: string) =>
-                    handleFormChange("roomId", text)
-                  }
-                />
-              </View> */}
             </View>
 
             <View style={styles.row}>
@@ -345,16 +354,33 @@ export default function ModalCreateMaintenance({
                     styles.uploadButton,
                     pressed && { backgroundColor: Colors.border },
                   ]}
-                  onPress={handlePickImage}
+                  onPress={handleTakePhoto}
                 >
                   <View style={styles.uploadIconCircle}>
                     <MaterialCommunityIcons
-                      name="camera-plus"
+                      name="camera"
                       size={24}
                       color={Colors.primary}
                     />
                   </View>
-                  <Text style={styles.uploadText}>Thêm ảnh</Text>
+                  <Text style={styles.uploadText}>Chụp ảnh</Text>
+                </Pressable>
+
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.uploadButton,
+                    pressed && { backgroundColor: Colors.border },
+                  ]}
+                  onPress={handlePickImage}
+                >
+                  <View style={styles.uploadIconCircle}>
+                    <MaterialCommunityIcons
+                      name="image-plus"
+                      size={24}
+                      color={Colors.primary}
+                    />
+                  </View>
+                  <Text style={styles.uploadText}>Chọn ảnh</Text>
                 </Pressable>
 
                 {formData.images.map((uri, index) => (

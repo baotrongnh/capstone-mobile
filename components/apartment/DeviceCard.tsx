@@ -8,6 +8,7 @@ interface DeviceCardProps {
      subtitle?: string
      onToggle?: (value: boolean) => void
      initial?: boolean
+     onLongPress?: () => void
 }
 
 export default function DeviceCard({
@@ -16,6 +17,7 @@ export default function DeviceCard({
      subtitle,
      onToggle,
      initial = false,
+     onLongPress,
 }: DeviceCardProps) {
      const [isOn, setIsOn] = useState(initial)
      const switchAnim = useRef(new Animated.Value(initial ? 20 : 0)).current
@@ -36,29 +38,33 @@ export default function DeviceCard({
      }
 
      return (
-          <View style={[styles.card, isOn && styles.cardOn]}>
-               <View style={styles.row}>
-                    <View style={[styles.iconWrap, isOn && styles.iconWrapOn]}>
-                         <MaterialCommunityIcons
-                              name={iconName}
-                              size={22}
-                              color={isOn ? "#1d4ed8" : "#334155"}
-                         />
-                    </View>
+          <Pressable onLongPress={onLongPress} delayLongPress={350}>
+               {({ pressed }) => (
+                    <View style={[styles.card, isOn && styles.cardOn, pressed && styles.cardPressed]}>
+                         <View style={styles.row}>
+                              <View style={[styles.iconWrap, isOn && styles.iconWrapOn]}>
+                                   <MaterialCommunityIcons
+                                        name={iconName}
+                                        size={22}
+                                        color={isOn ? "#1d4ed8" : "#334155"}
+                                   />
+                              </View>
 
-                    <Pressable onPress={toggleSwitch} style={styles.switchWrap} hitSlop={8}>
-                         <View style={[styles.track, isOn && styles.trackOn]}>
-                              <Animated.View style={[styles.thumb, { transform: [{ translateX: switchAnim }] }]} />
+                              <Pressable onPress={toggleSwitch} style={styles.switchWrap} hitSlop={8}>
+                                   <View style={[styles.track, isOn && styles.trackOn]}>
+                                        <Animated.View style={[styles.thumb, { transform: [{ translateX: switchAnim }] }]} />
+                                   </View>
+                              </Pressable>
                          </View>
-                    </Pressable>
-               </View>
 
-               <Text numberOfLines={1} style={styles.title}>{title}</Text>
-               {subtitle ? <Text numberOfLines={1} style={styles.subtitle}>{subtitle}</Text> : null}
-               <Text style={[styles.statusText, isOn && styles.statusTextOn]}>
-                    {isOn ? "Đang bật" : "Đang tắt"}
-               </Text>
-          </View>
+                         <Text numberOfLines={1} style={styles.title}>{title}</Text>
+                         {subtitle ? <Text numberOfLines={1} style={styles.subtitle}>{subtitle}</Text> : null}
+                         <Text style={[styles.statusText, isOn && styles.statusTextOn]}>
+                              {isOn ? "Đang bật" : "Đang tắt"}
+                         </Text>
+                    </View>
+               )}
+          </Pressable>
      )
 }
 
@@ -75,6 +81,9 @@ const styles = StyleSheet.create({
      cardOn: {
           borderColor: "#bfdbfe",
           backgroundColor: "#eff6ff",
+     },
+     cardPressed: {
+          opacity: 0.78,
      },
      row: {
           flexDirection: "row",
