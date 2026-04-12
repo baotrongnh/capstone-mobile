@@ -15,7 +15,7 @@ const APARTMENT_STORAGE_KEY = 'selectedApartmentId'
 
 export default function ApartmentControlScreen() {
      const router = useRouter()
-     const { mutate } = useDeviceIot()
+     const { mutate: sendIotCommand } = useDeviceIot()
      const { mutateAsync: openDoorMutation, isPending: isOpeningDoor } = useDeviceIot()
      const { mutateAsync: renameDeviceMutation, isPending: isRenamingDevice } = useUpdateIotBoardDevice()
      const { mutateAsync: updateHousePasswordMutation, isPending: isChangingHousePassword } = useUpdateMyHousePassword()
@@ -50,6 +50,17 @@ export default function ApartmentControlScreen() {
           setIsHydratedStorage(true)
      }, [])
 
+     const persistSelectedApartment = useCallback((apartmentId: string) => {
+          setSelectedApartmentId((prev) => (prev === apartmentId ? prev : apartmentId))
+
+          if (!apartmentId) {
+               void storage.removeItem(APARTMENT_STORAGE_KEY)
+               return
+          }
+
+          void storage.setItem(APARTMENT_STORAGE_KEY, apartmentId)
+     }, [])
+
      useEffect(() => {
           void syncSelectedApartmentFromStorage()
      }, [syncSelectedApartmentFromStorage])
@@ -70,8 +81,7 @@ export default function ApartmentControlScreen() {
                     return
                }
 
-               setSelectedApartmentId('')
-               void storage.removeItem(APARTMENT_STORAGE_KEY)
+               persistSelectedApartment('')
                return
           }
 
@@ -84,9 +94,8 @@ export default function ApartmentControlScreen() {
                return
           }
 
-          setSelectedApartmentId(nextSelectedApartmentId)
-          void storage.setItem(APARTMENT_STORAGE_KEY, nextSelectedApartmentId)
-     }, [isApartmentLoading, isHydratedStorage, myApartments, selectedApartmentId])
+          persistSelectedApartment(nextSelectedApartmentId)
+     }, [isApartmentLoading, isHydratedStorage, myApartments, persistSelectedApartment, selectedApartmentId])
 
      const {
           data: boardsData,
@@ -96,35 +105,18 @@ export default function ApartmentControlScreen() {
 
      const boards = useMemo(() => boardsData?.data ?? [], [boardsData?.data])
 
-     useEffect(() => {
-          if (!selectedApartmentId) {
-               return
-          }
+     const onSelectApartment = useCallback((apartmentId: string) => {
+          persistSelectedApartment(apartmentId)
+     }, [persistSelectedApartment])
 
-          console.log('[APARTMENT] selectedApartmentId:', selectedApartmentId)
-          console.log('[APARTMENT] boards:', boards)
-     }, [boards, selectedApartmentId])
-
-     const onSelectApartment = (apartmentId: string) => {
-          setSelectedApartmentId(apartmentId)
-
-          if (!apartmentId) {
-               void storage.removeItem(APARTMENT_STORAGE_KEY)
-               return
-          }
-
-          void storage.setItem(APARTMENT_STORAGE_KEY, apartmentId)
-     }
-
-     const onDeviceToggle = (data: IoTControlVariables) => {
-          mutate({
+     const onDeviceToggle = useCallback((data: IoTControlVariables) => {
+          sendIotCommand({
                espId: data.espId,
                deviceId: data.deviceId,
                topic: data.topic,
                action: data.action,
           })
-          console.log(data.espId, data.deviceId, data.topic, data.action)
-     }
+     }, [sendIotCommand])
 
      const handleOpenDoor = useCallback(async (doorDevice: DoorDeviceOption) => {
           await openDoorMutation({
@@ -158,9 +150,9 @@ export default function ApartmentControlScreen() {
           await refetchBoards()
      }, [refetchBoards, renameDeviceMutation])
 
-     const onOpenWifiSetup = () => {
+     const onOpenWifiSetup = useCallback(() => {
           router.navigate('/wifi-setup')
-     }
+     }, [router])
 
      if (!isHydratedStorage || isApartmentLoading) {
           return (

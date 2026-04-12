@@ -19,7 +19,7 @@ type QuickAction = {
 
 const quickActions: QuickAction[] = [
      { id: "smart-home", label: "Điều khiển", icon: "home-automation" },
-     { id: "service", label: "Dịch vụ", icon: "tools" },
+     { id: "service", label: "Bảo trì", icon: "tools" },
      { id: "invoice", label: "Hóa đơn", icon: "file-document-outline" },
      { id: "more", label: "Xem thêm", icon: "dots-grid" },
 ]
@@ -64,6 +64,11 @@ export default function HomeScreen() {
 
           if (id === "invoice") {
                router.push("/invoices")
+               return
+          }
+
+          if (id === "service") {
+               router.push("/maintenance")
                return
           }
 
