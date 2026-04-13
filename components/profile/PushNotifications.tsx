@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
   Container,
@@ -21,10 +21,11 @@ export default function PushNotifications({ onBack }: PushNotificationsProps) {
 
   return (
     <Container>
-      <HeaderBar>
-        <BackButton onPress={onBack}>
-          <Ionicons name="chevron-back" size={24} color="#6b7280" />
+      <HeaderBar style={styles.header}>
+        <BackButton style={styles.backButton} onPress={onBack}>
+          <Ionicons name="chevron-back" size={24} color="#334155" />
         </BackButton>
+        <Text style={styles.headerTitle}>Thông báo đẩy</Text>
       </HeaderBar>
       <ScrollContainer style={{ padding: 20 }}>
         <MenuItem
@@ -67,3 +68,28 @@ export default function PushNotifications({ onBack }: PushNotificationsProps) {
     </Container>
   );
 }
+
+const styles = StyleSheet.create({
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#ffffff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerTitle: {
+    flex: 1,
+    marginLeft: 10,
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+});

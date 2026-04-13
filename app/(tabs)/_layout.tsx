@@ -5,6 +5,10 @@ import React, { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "@/stores/auth.store";
 import { ActivityIndicator, Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  FLOATING_TAB_BAR_HEIGHT,
+  FLOATING_TAB_BAR_MIN_BOTTOM_PADDING,
+} from "@/utils/bottomTab";
 
 type TabVisual = {
   label: string
@@ -80,7 +84,7 @@ function FloatingAnimatedTabBar({
     <View
       style={[
         styles.tabBarShell,
-        { paddingBottom: Math.max(insets.bottom, 10) },
+        { paddingBottom: Math.max(insets.bottom, FLOATING_TAB_BAR_MIN_BOTTOM_PADDING) },
       ]}
     >
       <View style={styles.tabBar}>
@@ -258,7 +262,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   tabBar: {
-    height: 82,
+    height: FLOATING_TAB_BAR_HEIGHT,
     borderRadius: 26,
     backgroundColor: "#ffffff",
     flexDirection: "row",
