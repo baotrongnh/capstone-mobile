@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Container,
   ScrollContainer,
@@ -31,6 +32,7 @@ import {
   hasUserValue,
   toUserText,
 } from "@/utils/user";
+import { getBottomTabContentPadding } from "@/utils/bottomTab";
 
 export default function ProfileDetails({
   onBack,
@@ -38,6 +40,8 @@ export default function ProfileDetails({
   onSave,
   saving,
 }: ProfileDetailsProps) {
+  const insets = useSafeAreaInsets();
+  const contentBottomPadding = getBottomTabContentPadding(insets.bottom);
   const identity = user?.identity;
   const isVerified = Boolean(identity?.isVerified ?? user?.isVerified);
   const [isEditing, setIsEditing] = useState(false);
@@ -116,7 +120,10 @@ export default function ProfileDetails({
         style={styles.keyboardContainer}
       >
         <ScrollContainer
-          contentContainerStyle={styles.content}
+          contentContainerStyle={[
+            styles.content,
+            { paddingBottom: contentBottomPadding },
+          ]}
           keyboardShouldPersistTaps="handled"
         >
           <View>
@@ -259,7 +266,6 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 20,
-    paddingBottom: 24,
     gap: 16,
   },
   pageTitle: {
@@ -287,7 +293,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     padding: 14,
     gap: 10,
-    marginBottom: 100,
   },
   cardTitle: {
     fontSize: 16,
