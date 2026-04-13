@@ -145,9 +145,9 @@ export default function Invoices() {
             <StyledContainer>
                 <View style={styles.pageHeader}>
                     <Pressable onPress={handleBack} style={styles.backButton} hitSlop={10}>
-                        <Ionicons name='chevron-back' size={24} color='#6b7280' />
-                        <Text style={styles.backButtonText}>Quay lại</Text>
+                        <Ionicons name='chevron-back' size={24} color='#334155' />
                     </Pressable>
+                    <Text style={styles.headerTitle}>Danh sách hóa đơn</Text>
                 </View>
 
                 <View style={styles.centered}>
@@ -162,12 +162,10 @@ export default function Invoices() {
         <StyledContainer>
             <View style={styles.pageHeader}>
                 <Pressable onPress={handleBack} style={styles.backButton} hitSlop={10}>
-                    <Ionicons name='chevron-back' size={24} color='#6b7280' />
-                    <Text style={styles.backButtonText}>Quay lại</Text>
+                    <Ionicons name='chevron-back' size={24} color='#334155' />
                 </Pressable>
+                <Text style={styles.headerTitle}>Danh sách hóa đơn</Text>
             </View>
-
-            <Text style={styles.title}>Danh sách hóa đơn</Text>
 
             <View style={styles.tabsWrapper}>
                 <ScrollView
@@ -262,25 +260,27 @@ export default function Invoices() {
 
 const styles = StyleSheet.create({
     pageHeader: {
-        marginBottom: 6,
-    },
-    backButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        alignSelf: 'flex-start',
-        gap: 4,
-        paddingVertical: 4,
-        paddingRight: 4,
+        justifyContent: 'flex-start',
+        marginBottom: 16,
     },
-    backButtonText: {
-        fontSize: 18,
-        fontWeight: 600,
-        color: '#6d6d6d',
+    backButton: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: '#ffffff',
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
-    title: {
-        fontSize: 24,
-        fontWeight: 700,
-        marginBottom: 10,
+    headerTitle: {
+        flex: 1,
+        marginLeft: 10,
+        fontSize: 22,
+        fontWeight: '700',
+        color: '#0f172a',
     },
     tabsWrapper: {
         position: 'relative',

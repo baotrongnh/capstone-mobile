@@ -153,8 +153,6 @@ export default function InvoiceDetailScreen() {
         await Linking.openURL(url)
     }
 
-    const breadcrumbTitle = normalizeInvoiceText(invoice?.invoiceNumber || invoiceId || 'Chi tiết')
-
     const handleBack = () => {
         if (router.canGoBack()) {
             router.back()
@@ -296,12 +294,11 @@ export default function InvoiceDetailScreen() {
 
     return (
         <StyledContainer>
-            <View style={styles.breadcrumbRow}>
-                <Pressable style={styles.breadcrumbBack} onPress={handleBack} hitSlop={10}>
-                    <Ionicons name='chevron-back' size={24} color='#6b7280' />
-                    <Text style={styles.breadcrumbBackText}>Hóa đơn</Text>
+            <View style={styles.header}>
+                <Pressable style={styles.backButton} onPress={handleBack} hitSlop={10}>
+                    <Ionicons name='chevron-back' size={24} color='#334155' />
                 </Pressable>
-                <Text numberOfLines={1} style={styles.breadcrumbCurrent}>/ {breadcrumbTitle}</Text>
+                <Text style={styles.headerTitle}>Chi tiết hóa đơn</Text>
             </View>
 
             {isLoading && (
@@ -337,11 +334,6 @@ export default function InvoiceDetailScreen() {
                             canPayNow && styles.scrollContentWithBottomAction,
                         ]}
                     >
-                        <View>
-                            <Text style={styles.title}>Chi tiết hóa đơn</Text>
-                            <Text style={styles.subtitle}>#{normalizeInvoiceText(invoice.id)}</Text>
-                        </View>
-
                         <View style={styles.summaryRow}>
                             <View style={styles.summaryCard}>
                                 <Text style={styles.summaryLabel}>Tổng tiền</Text>
@@ -471,29 +463,28 @@ export default function InvoiceDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-    breadcrumbRow: {
+    header: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 8,
-        marginBottom: 14,
+        justifyContent: 'flex-start',
+        marginBottom: 18,
     },
-    breadcrumbBack: {
-        flexDirection: 'row',
+    backButton: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: '#ffffff',
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
         alignItems: 'center',
-        gap: 4,
-        paddingVertical: 4,
-        paddingRight: 4,
+        justifyContent: 'center',
     },
-    breadcrumbBackText: {
-        color: '#6d6d6d',
-        fontSize: 18,
-        fontWeight: 600,
-    },
-    breadcrumbCurrent: {
+    headerTitle: {
         flex: 1,
-        color: '#64748b',
-        fontSize: 14,
-        fontWeight: 500,
+        marginLeft: 10,
+        fontSize: 22,
+        fontWeight: 700,
+        color: '#0f172a',
     },
     scroll: {
         flex: 1,
@@ -507,16 +498,6 @@ const styles = StyleSheet.create({
     },
     scrollContentWithBottomAction: {
         paddingBottom: 126,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: 700,
-        color: '#111827',
-    },
-    subtitle: {
-        fontSize: 12,
-        color: '#6b7280',
-        marginTop: 2,
     },
     summaryRow: {
         gap: 10,
