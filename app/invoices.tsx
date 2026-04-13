@@ -5,7 +5,7 @@ import {
     type InvoiceStatus,
     type InvoiceItem
 } from '@/types/invoice'
-import { formatCurrency, formatDate } from '@/utils/invoices'
+import { extractInvoiceItems, formatCurrency, formatDate } from '@/utils/invoices'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import React, { useMemo, useState } from 'react'
@@ -104,8 +104,8 @@ export default function Invoices() {
 
     const { data: allData } = useInvoices()
     const { data, isFetching, isRefetching, refetch, error } = useInvoices(params)
-    const invoices = data?.data ?? []
-    const allInvoices = useMemo(() => allData?.data ?? [], [allData])
+    const invoices = useMemo(() => extractInvoiceItems(data?.data), [data])
+    const allInvoices = useMemo(() => extractInvoiceItems(allData?.data), [allData])
 
     const tabCounts = useMemo<Partial<Record<InvoiceTab, number>>>(() => {
         const counts: Partial<Record<InvoiceTab, number>> = {
@@ -137,11 +137,6 @@ export default function Invoices() {
     }
 
     const handleBack = () => {
-        if (router.canGoBack()) {
-            router.back()
-            return
-        }
-
         router.replace('/(tabs)/home')
     }
 

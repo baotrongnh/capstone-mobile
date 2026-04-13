@@ -1,4 +1,5 @@
 export type InvoiceStatusVariant = 'default' | 'issued' | 'partial' | 'paid' | 'overdue' | 'cancelled'
+import type { InvoiceItem, InvoiceListResponse } from '@/types/invoice'
 
 const STATUS_LABELS: Record<string, string> = {
     draft: 'Nháp',
@@ -119,6 +120,12 @@ export const getInvoiceStatusVariant = (status?: string): InvoiceStatusVariant =
         default:
             return 'default'
     }
+}
+
+export const extractInvoiceItems = (payload?: InvoiceListResponse['data']): InvoiceItem[] => {
+    if (!payload) return []
+    if (Array.isArray(payload)) return payload
+    return payload.items ?? []
 }
 
 
