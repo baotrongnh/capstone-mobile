@@ -135,7 +135,6 @@ export default function ModalCreateMaintenance({
       return;
     }
 
-    // Build submission data - only include non-empty fields
     const submitData = {
       title: formData.title.trim(),
       description: formData.description.trim(),
