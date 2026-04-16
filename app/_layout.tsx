@@ -15,6 +15,8 @@ export default function RootLayout() {
           <Stack.Screen name="more-services" options={{ headerShown: false }} />
           <Stack.Screen name='invoices' options={{ headerShown: false }} />
           <Stack.Screen name="invoices/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="payment/success" options={{ headerShown: false }} />
+          <Stack.Screen name="payment/fail" options={{ headerShown: false }} />
           <Stack.Screen name="my-apartments" options={{ headerShown: false }} />
           <Stack.Screen name="my-apartment-detail" options={{ headerShown: false }} />
         </Stack>

@@ -10,11 +10,10 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Container,
   ScrollContainer,
-  HeaderBar,
-  BackButton,
 } from "./styles";
 import {
   ProfileEditableInputProps,
@@ -31,6 +30,7 @@ import {
   hasUserValue,
   toUserText,
 } from "@/utils/user";
+import { getBottomTabContentPadding } from "@/utils/bottomTab";
 
 export default function ProfileDetails({
   onBack,
@@ -38,6 +38,8 @@ export default function ProfileDetails({
   onSave,
   saving,
 }: ProfileDetailsProps) {
+  const insets = useSafeAreaInsets();
+  const contentBottomPadding = getBottomTabContentPadding(insets.bottom);
   const identity = user?.identity;
   const isVerified = Boolean(identity?.isVerified ?? user?.isVerified);
   const [isEditing, setIsEditing] = useState(false);
@@ -100,31 +102,26 @@ export default function ProfileDetails({
 
   return (
     <Container>
-      <HeaderBar>
-        <BackButton
-          style={{ flexDirection: "row", alignItems: "center" }}
-          onPress={onBack}
-        >
-          <Ionicons name="chevron-back" size={24} color="#6b7280" />
-          <Text style={{ fontSize: 18, fontWeight: "600", color: "#6d6d6d" }}>
-            Tài khoản
-          </Text>
-        </BackButton>
-      </HeaderBar>
+      <View style={styles.header}>
+        <Pressable style={styles.backButton} onPress={onBack}>
+          <Ionicons name="chevron-back" size={24} color="#334155" />
+        </Pressable>
+        <Text style={styles.headerTitle}>Thông tin tài khoản</Text>
+      </View>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardContainer}
       >
         <ScrollContainer
-          contentContainerStyle={styles.content}
+          contentContainerStyle={[
+            styles.content,
+            { paddingBottom: contentBottomPadding },
+          ]}
           keyboardShouldPersistTaps="handled"
         >
-          <View>
-            <Text style={styles.pageTitle}>Thông tin tài khoản</Text>
-            <Text style={styles.pageSubtitle}>
-              Quản lý thông tin cá nhân và xác minh danh tính
-            </Text>
-          </View>
+          <Text style={styles.pageSubtitle}>
+            Quản lý thông tin cá nhân và xác minh danh tính
+          </Text>
 
           <View style={styles.card}>
             <View style={styles.cardHeaderRow}>
@@ -254,21 +251,39 @@ export default function ProfileDetails({
 }
 
 const styles = StyleSheet.create({
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    marginBottom: 12,
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerTitle: {
+    flex: 1,
+    marginLeft: 10,
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#0f172a",
+  },
   keyboardContainer: {
     flex: 1,
   },
   content: {
     paddingHorizontal: 20,
-    paddingBottom: 24,
     gap: 16,
   },
-  pageTitle: {
-    fontSize: 28,
-    color: "#313131",
-    fontWeight: "700",
-  },
   pageSubtitle: {
-    marginTop: 6,
     fontSize: 14,
     color: "#6b7280",
   },
@@ -287,7 +302,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     padding: 14,
     gap: 10,
-    marginBottom: 100,
   },
   cardTitle: {
     fontSize: 16,
