@@ -1,4 +1,12 @@
-import { IoTControlVariables, IotBoardDeviceUpdateVariables, iotServices } from "@/lib/services/iot.service"
+import {
+     IoTControlVariables,
+     IotBoardDeviceUpdateVariables,
+     IotDoorPinUpdateVariables,
+     IotDoorUnlockVariables,
+     IotHealthCheckParams,
+     IotUtilityMetersQueryParams,
+     iotServices,
+} from "@/lib/services/iot.service"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 export const useIotBoards = (apartmentId?: string) => {
@@ -9,17 +17,38 @@ export const useIotBoards = (apartmentId?: string) => {
      })
 }
 
-export const useDeviceIot = () => {
+export const useIotMeters = (params?: IotUtilityMetersQueryParams) => {
+     return useQuery({
+          queryKey: ["iot-meter", params?.apartmentId, params?.boardId, params?.status],
+          queryFn: () => iotServices.getUtilityMeters(params),
+          enabled: Boolean(params?.apartmentId || params?.boardId),
+     })
+}
 
+export const useDeviceIot = () => {
      return useMutation({
           mutationFn: ({ espId, deviceId, action, topic }: IoTControlVariables) =>
                iotServices.deviceControl({ espId, deviceId, topic, action }),
-          onSuccess: () => {
-               console.log('ok')
-          },
-          onError: (error) => {
-               console.log(error)
-          }
+     })
+}
+
+export const useDoorUnlock = () => {
+     return useMutation({
+          mutationFn: ({ boardId, deviceId, pin }: IotDoorUnlockVariables) =>
+               iotServices.unlockDoor({ boardId, deviceId, pin }),
+     })
+}
+
+export const useUpdateDoorPin = () => {
+     return useMutation({
+          mutationFn: ({ boardId, deviceId, payload }: IotDoorPinUpdateVariables) =>
+               iotServices.updateDoorPin({ boardId, deviceId, payload }),
+     })
+}
+
+export const useCheckDeviceHealth = () => {
+     return useMutation({
+          mutationFn: ({ espId }: IotHealthCheckParams) => iotServices.checkDeviceHealth({ espId }),
      })
 }
 
@@ -31,9 +60,6 @@ export const useUpdateIotBoardDevice = () => {
                iotServices.updateBoardDevice({ boardId, deviceId, payload }),
           onSuccess: () => {
                queryClient.invalidateQueries({ queryKey: ["iot-boards"] })
-          },
-          onError: (error) => {
-               console.log(error)
           },
      })
 }

@@ -1,9 +1,9 @@
-import ApartmentModal from "@/components/apartment/ApartmentModal"
+import ApartmentModal from "@/components/apartment/apartment-modal"
 import {
      DOOR_PASSWORD_LENGTH,
      isValidDoorPassword,
      sanitizeDoorPassword,
-} from "@/components/apartment/door-password"
+} from "@/components/door/door-password.share"
 import { MaterialCommunityIcons } from "@expo/vector-icons"
 import React, { useEffect, useState } from "react"
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native"
@@ -12,7 +12,7 @@ type DoorChangePasswordModalProps = {
      visible: boolean
      isUpdating?: boolean
      onClose: () => void
-     onSubmit: (password: string) => void | Promise<void>
+     onSubmit: (payload: { oldPin: string; newPin: string }) => void | Promise<void>
      title?: string
 }
 
@@ -23,23 +23,24 @@ export default function DoorChangePasswordModal({
      onSubmit,
      title = "Đổi mật khẩu cửa",
 }: DoorChangePasswordModalProps) {
-     const [value, setValue] = useState("")
-     const [confirmValue, setConfirmValue] = useState("")
+     const [oldPin, setOldPin] = useState("")
+     const [newPin, setNewPin] = useState("")
+     const [errorText, setErrorText] = useState("")
+     const [showOld, setShowOld] = useState(false)
      const [showNew, setShowNew] = useState(false)
-     const [showConfirm, setShowConfirm] = useState(false)
 
      const isSubmitDisabled =
           isUpdating ||
-          !isValidDoorPassword(value) ||
-          !isValidDoorPassword(confirmValue) ||
-          value !== confirmValue
+          !isValidDoorPassword(oldPin) ||
+          !isValidDoorPassword(newPin)
 
      useEffect(() => {
           if (!visible) {
-               setValue("")
-               setConfirmValue("")
+               setOldPin("")
+               setNewPin("")
+               setErrorText("")
+               setShowOld(false)
                setShowNew(false)
-               setShowConfirm(false)
           }
      }, [visible])
 
@@ -51,7 +52,13 @@ export default function DoorChangePasswordModal({
 
      const handleSubmit = () => {
           if (!isSubmitDisabled) {
-               void onSubmit(value)
+               if (oldPin === newPin) {
+                    setErrorText("Mật khẩu mới phải khác mật khẩu cũ")
+                    return
+               }
+
+               setErrorText("")
+               void onSubmit({ oldPin, newPin })
           }
      }
 
@@ -87,7 +94,7 @@ export default function DoorChangePasswordModal({
           <ApartmentModal
                visible={visible}
                title={title}
-               description={`Nhập mật khẩu mới gồm đúng ${DOOR_PASSWORD_LENGTH} chữ số`}
+               description={`Nhập mật khẩu cũ và mật khẩu mới gồm đúng ${DOOR_PASSWORD_LENGTH} chữ số`}
                onClose={handleClose}
                disableBackdropClose={isUpdating}
                footer={
@@ -113,16 +120,33 @@ export default function DoorChangePasswordModal({
                     </>
                }
           >
-               {renderInput(value, setValue, "Mật khẩu mới", !showNew, () => setShowNew((prev) => !prev))}
                {renderInput(
-                    confirmValue,
-                    setConfirmValue,
-                    "Xác nhận mật khẩu mới",
-                    !showConfirm,
-                    () => setShowConfirm((prev) => !prev),
+                    oldPin,
+                    (value) => {
+                         if (errorText) {
+                              setErrorText("")
+                         }
+                         setOldPin(value)
+                    },
+                    "Mật khẩu cũ",
+                    !showOld,
+                    () => setShowOld((prev) => !prev),
+               )}
+               {renderInput(
+                    newPin,
+                    (value) => {
+                         if (errorText) {
+                              setErrorText("")
+                         }
+                         setNewPin(value)
+                    },
+                    "Mật khẩu mới",
+                    !showNew,
+                    () => setShowNew((prev) => !prev),
                )}
 
                <Text style={styles.hintText}>Mật khẩu cửa phải gồm đúng {DOOR_PASSWORD_LENGTH} chữ số.</Text>
+               {errorText ? <Text style={styles.errorText}>{errorText}</Text> : null}
           </ApartmentModal>
      )
 }
@@ -181,5 +205,9 @@ const styles = StyleSheet.create({
      hintText: {
           fontSize: 12,
           color: "#64748b",
+     },
+     errorText: {
+          fontSize: 12,
+          color: "#dc2626",
      },
 })

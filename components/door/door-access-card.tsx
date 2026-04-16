@@ -1,16 +1,13 @@
-import DoorAuthModal, { type DoorActionMode } from "@/components/apartment/DoorAuthModal"
-import DoorChangePasswordModal from "@/components/apartment/DoorChangePasswordModal"
-import type { DoorDeviceOption } from "@/components/apartment/DeviceGrid"
+
+import DoorChangePasswordModal from "@/components/door/door-change-password-modal"
 import {
      DOOR_PASSWORD_LENGTH,
-     DOOR_PASSWORD_LOCK_SECONDS,
-     MAX_DOOR_PASSWORD_FAILED_ATTEMPTS,
      isValidDoorPassword,
      sanitizeDoorPassword,
-} from "@/components/apartment/door-password"
+} from "@/components/door/door-password.share"
 import { getApiErrorMessage } from "@/utils/userApartment"
 import { MaterialCommunityIcons } from "@expo/vector-icons"
-import React, { useEffect, useState } from "react"
+import React, { useState } from "react"
 import {
      Alert,
      Pressable,
@@ -18,59 +15,78 @@ import {
      Text,
      View,
 } from "react-native"
+import { DoorDeviceOption } from "../device/device-grid"
+import DoorAuthModal from "./door-auth-modal"
+
 
 interface DoorAccessCardProps {
      title?: string
      doorDevices: DoorDeviceOption[]
-     expectedPassword?: string | null
-     isDoorPasswordLoading?: boolean
-     isOpeningDoor?: boolean
-     isChangingHousePassword?: boolean
-     onOpenDoor: (device: DoorDeviceOption) => Promise<void>
-     onRequestRenameDoor: (device: DoorDeviceOption) => void
-     onChangeHousePassword: (nextPassword: string) => Promise<void>
+     doorOnlineMap?: Record<string, boolean>
+     pending?: {
+          openingDoor?: boolean
+          changingDoorPin?: boolean
+     }
+     actions: {
+          openDoor: (device: DoorDeviceOption, pin: string) => Promise<boolean>
+          requestRenameDoor: (device: DoorDeviceOption) => void
+          changeDoorPassword: (payload: { doorDevice: DoorDeviceOption; oldPin: string; newPin: string }) => Promise<boolean>
+     }
 }
 
 export default function DoorAccessCard({
      title = "Mở cửa chính",
      doorDevices,
-     expectedPassword,
-     isDoorPasswordLoading = false,
-     isOpeningDoor = false,
-     isChangingHousePassword = false,
-     onOpenDoor,
-     onRequestRenameDoor,
-     onChangeHousePassword,
+     doorOnlineMap = {},
+     pending = {},
+     actions,
 }: DoorAccessCardProps) {
      const [modalVisible, setModalVisible] = useState(false)
      const [pin, setPin] = useState("")
      const [error, setError] = useState("")
-     const [failedAttempts, setFailedAttempts] = useState(0)
-     const [lockedSeconds, setLockedSeconds] = useState(0)
      const [selectedDoorId, setSelectedDoorId] = useState("")
      const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
-     const [shouldOpenChangePasswordModal, setShouldOpenChangePasswordModal] = useState(false)
-     const [mode, setMode] = useState<DoorActionMode>("open-door")
      const [isAuthenticating, setIsAuthenticating] = useState(false)
 
      const selectedDoor = doorDevices.find((item) => item.id === selectedDoorId) ?? doorDevices[0]
      const hasDoorDevice = doorDevices.length > 0
+     const isSelectedDoorOnline = selectedDoor ? doorOnlineMap[selectedDoor.espId] === true : false
+     const isDoorControlDisabled = doorDevices.length > 0 && doorDevices.every((device) => doorOnlineMap[device.espId] === false)
 
      const resetAuthState = () => {
           setPin("")
           setError("")
      }
 
-     const openModal = (nextMode: DoorActionMode) => {
+     const openDoorAuthModal = () => {
           if (!hasDoorDevice) {
                Alert.alert("Thông báo", "Căn hộ này chưa có thiết bị cửa để điều khiển")
                return
           }
 
-          setMode(nextMode)
+          if (isDoorControlDisabled) {
+               Alert.alert("Thông báo", "Thiết bị cửa đang offline, không thể điều khiển")
+               return
+          }
+
           resetAuthState()
           setSelectedDoorId((prev) => prev || doorDevices[0]?.id || "")
           setModalVisible(true)
+     }
+
+     const openChangePasswordModal = () => {
+          if (!hasDoorDevice) {
+               Alert.alert("Thông báo", "Căn hộ này chưa có thiết bị cửa để điều khiển")
+               return
+          }
+
+          if (isDoorControlDisabled) {
+               Alert.alert("Thông báo", "Thiết bị cửa đang offline, không thể đổi mật khẩu")
+               return
+          }
+
+          setSelectedDoorId((prev) => prev || doorDevices[0]?.id || "")
+          setShowChangePasswordModal(true)
      }
 
      const closeModal = () => {
@@ -80,12 +96,6 @@ export default function DoorAccessCard({
      const handleAuthModalClosed = () => {
           resetAuthState()
           setSelectedDoorId(doorDevices[0]?.id || "")
-          setMode("open-door")
-
-          if (shouldOpenChangePasswordModal) {
-               setShouldOpenChangePasswordModal(false)
-               setShowChangePasswordModal(true)
-          }
      }
 
      const onLongPressDoor = () => {
@@ -99,36 +109,25 @@ export default function DoorAccessCard({
                return
           }
 
-          onRequestRenameDoor(targetDoor)
+          actions.requestRenameDoor(targetDoor)
      }
 
      const onPressOpenDoor = () => {
-          openModal("open-door")
-     }
-
-     const handleWrongPassword = () => {
-          const nextAttempt = failedAttempts + 1
-
-          if (nextAttempt >= MAX_DOOR_PASSWORD_FAILED_ATTEMPTS) {
-               setFailedAttempts(0)
-               setLockedSeconds(DOOR_PASSWORD_LOCK_SECONDS)
-               setError(`Sai ${MAX_DOOR_PASSWORD_FAILED_ATTEMPTS} lần. Vui lòng thử lại sau ${DOOR_PASSWORD_LOCK_SECONDS} giây.`)
-               setPin("")
-               return
-          }
-
-          setFailedAttempts(nextAttempt)
-          setError(`Mật khẩu không đúng (${nextAttempt}/${MAX_DOOR_PASSWORD_FAILED_ATTEMPTS})`)
-          setPin("")
+          openDoorAuthModal()
      }
 
      const handleVerifyPin = async (enteredPin: string) => {
-          if (isAuthenticating || isDoorPasswordLoading || lockedSeconds > 0) {
+          if (isAuthenticating) {
                return
           }
 
-          if (mode === "open-door" && !selectedDoor) {
+          if (!selectedDoor) {
                setError("Vui lòng chọn cửa để mở")
+               return
+          }
+
+          if (!isSelectedDoorOnline) {
+               setError("Thiết bị cửa đang offline")
                return
           }
 
@@ -137,27 +136,16 @@ export default function DoorAccessCard({
                return
           }
 
-          if (!expectedPassword || !isValidDoorPassword(expectedPassword)) {
-               setError("Không lấy được mật khẩu cửa hợp lệ từ hệ thống")
-               return
-          }
-
-          if (enteredPin !== expectedPassword) {
-               handleWrongPassword()
-               return
-          }
-
-          if (mode === "change-password") {
-               setFailedAttempts(0)
-               setShouldOpenChangePasswordModal(true)
-               closeModal()
-               return
-          }
-
           try {
                setIsAuthenticating(true)
-               await onOpenDoor(selectedDoor)
-               setFailedAttempts(0)
+               const isUnlockSuccess = await actions.openDoor(selectedDoor, enteredPin)
+
+               if (!isUnlockSuccess) {
+                    setError("Mật khẩu không đúng hoặc thiết bị không phản hồi")
+                    setPin("")
+                    return
+               }
+
                closeModal()
                Alert.alert("Thành công", "Cửa đã được mở")
           } catch (openDoorError) {
@@ -168,10 +156,6 @@ export default function DoorAccessCard({
      }
 
      const onPinChange = (text: string) => {
-          if (lockedSeconds > 0) {
-               return
-          }
-
           const nextPin = sanitizeDoorPassword(text)
           setPin(nextPin)
           if (error) {
@@ -183,38 +167,35 @@ export default function DoorAccessCard({
           }
      }
 
-     const submitChangePassword = async (nextPassword: string) => {
-          if (!isValidDoorPassword(nextPassword)) {
-               Alert.alert("Thông báo", `Mật khẩu nhà phải gồm đúng ${DOOR_PASSWORD_LENGTH} chữ số`)
+     const submitChangePassword = async ({ oldPin, newPin }: { oldPin: string; newPin: string }) => {
+          if (!isValidDoorPassword(oldPin) || !isValidDoorPassword(newPin)) {
+               Alert.alert("Thông báo", `Mật khẩu cửa phải gồm đúng ${DOOR_PASSWORD_LENGTH} chữ số`)
+               return
+          }
+
+          if (!selectedDoor) {
+               Alert.alert("Thông báo", "Không xác định được cửa để đổi mật khẩu")
                return
           }
 
           try {
-               await onChangeHousePassword(nextPassword)
+               const isUpdated = await actions.changeDoorPassword({
+                    doorDevice: selectedDoor,
+                    oldPin,
+                    newPin,
+               })
+
+               if (!isUpdated) {
+                    Alert.alert("Thông báo", "Mật khẩu hiện tại không đúng hoặc thiết bị không phản hồi")
+                    return
+               }
+
                setShowChangePasswordModal(false)
                Alert.alert("Thành công", "Đã đổi mật khẩu cửa nhà")
           } catch (changePasswordError) {
                Alert.alert("Lỗi", getApiErrorMessage(changePasswordError, "Không thể đổi mật khẩu lúc này"))
           }
      }
-
-     useEffect(() => {
-          if (lockedSeconds <= 0) {
-               return
-          }
-
-          const timer = setInterval(() => {
-               setLockedSeconds((prev) => {
-                    if (prev <= 1) {
-                         clearInterval(timer)
-                         return 0
-                    }
-                    return prev - 1
-               })
-          }, 1000)
-
-          return () => clearInterval(timer)
-     }, [lockedSeconds])
 
      return (
           <>
@@ -227,9 +208,9 @@ export default function DoorAccessCard({
                               <View style={styles.sectionHeaderRow}>
                                    <Text style={styles.sectionLabel}>Cửa ra vào</Text>
                                    <Pressable
-                                        onPress={() => openModal("change-password")}
-                                        disabled={!hasDoorDevice}
-                                        style={[styles.changePasswordBtn, !hasDoorDevice && styles.changePasswordBtnDisabled]}
+                                        onPress={openChangePasswordModal}
+                                        disabled={!hasDoorDevice || isDoorControlDisabled}
+                                        style={[styles.changePasswordBtn, (!hasDoorDevice || isDoorControlDisabled) && styles.changePasswordBtnDisabled]}
                                    >
                                         <MaterialCommunityIcons name="lock-reset" size={14} color="#1d4ed8" />
                                         <Text style={styles.changePasswordText}>Đổi mật khẩu</Text>
@@ -242,18 +223,29 @@ export default function DoorAccessCard({
                                    </View>
                                    <Pressable
                                         onPress={onPressOpenDoor}
-                                        disabled={!hasDoorDevice}
-                                        style={[styles.switchButton, !hasDoorDevice && styles.switchButtonDisabled]}
+                                        disabled={!hasDoorDevice || isDoorControlDisabled}
+                                        style={[styles.unlockButton, (!hasDoorDevice || isDoorControlDisabled) && styles.unlockButtonDisabled]}
                                         hitSlop={10}
                                    >
-                                        <MaterialCommunityIcons name="power" size={24} color="#fff" />
+                                        <View style={[styles.unlockIconWrap, (!hasDoorDevice || isDoorControlDisabled) && styles.unlockIconWrapDisabled]}>
+                                             <MaterialCommunityIcons
+                                                  name={(!hasDoorDevice || isDoorControlDisabled) ? "lock-outline" : "lock-open-variant-outline"}
+                                                  size={18}
+                                                  color="#ffffff"
+                                             />
+                                        </View>
+                                        <Text style={[styles.unlockText, (!hasDoorDevice || isDoorControlDisabled) && styles.unlockTextDisabled]}>
+                                             Mở khóa
+                                        </Text>
                                    </Pressable>
                               </View>
 
                               <Text style={styles.title}>{title}</Text>
                               <Text style={styles.caption}>
                                    {hasDoorDevice
-                                        ? "Nhấn để mở khóa, nhấn giữ để đổi tên"
+                                        ? isDoorControlDisabled
+                                             ? "Thiết bị cửa đang offline"
+                                             : "Nhấn để mở khóa, nhấn giữ để đổi tên"
                                         : "Chưa có thiết bị cửa trong căn hộ"}
                               </Text>
                          </View>
@@ -262,19 +254,17 @@ export default function DoorAccessCard({
 
                <DoorAuthModal
                     visible={modalVisible}
-                    mode={mode}
                     doorDevices={doorDevices}
+                    doorOnlineMap={doorOnlineMap}
                     selectedDoorId={selectedDoor?.id || ""}
                     pin={pin}
                     error={error}
-                    lockedSeconds={lockedSeconds}
-                    isDoorPasswordLoading={isDoorPasswordLoading}
-                    isConfirmLoading={mode === "open-door" && (isOpeningDoor || isAuthenticating)}
+                    isConfirmLoading={pending.openingDoor || isAuthenticating}
                     disableConfirm={
-                         lockedSeconds > 0 ||
-                         isDoorPasswordLoading ||
+                         isDoorControlDisabled ||
+                         !isSelectedDoorOnline ||
                          isAuthenticating ||
-                         (mode === "open-door" && isOpeningDoor) ||
+                         pending.openingDoor ||
                          pin.length !== DOOR_PASSWORD_LENGTH
                     }
                     onSelectDoor={setSelectedDoorId}
@@ -288,14 +278,14 @@ export default function DoorAccessCard({
 
                <DoorChangePasswordModal
                     visible={showChangePasswordModal}
-                    isUpdating={isChangingHousePassword}
+                    isUpdating={pending.changingDoorPin}
                     onClose={() => {
-                         if (!isChangingHousePassword) {
+                         if (!pending.changingDoorPin) {
                               setShowChangePasswordModal(false)
                          }
                     }}
-                    onSubmit={(password) => {
-                         void submitChangePassword(password)
+                    onSubmit={(payload) => {
+                         void submitChangePassword(payload)
                     }}
                />
           </>
@@ -333,20 +323,41 @@ const styles = StyleSheet.create({
           alignItems: "center",
           justifyContent: "center",
      },
-     switchButton: {
-          width: 58,
-          height: 58,
-          borderRadius: 29,
+     unlockButton: {
+          minWidth: 118,
+          height: 46,
+          borderRadius: 23,
+          backgroundColor: "#eef4ff",
+          borderWidth: 1,
+          borderColor: "#bfdbfe",
+          paddingHorizontal: 10,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 8,
+     },
+     unlockButtonDisabled: {
+          backgroundColor: "#f1f5f9",
+          borderColor: "#cbd5e1",
+     },
+     unlockIconWrap: {
+          width: 30,
+          height: 30,
+          borderRadius: 15,
           backgroundColor: "#2563eb",
           alignItems: "center",
           justifyContent: "center",
-          elevation: 3,
-          shadowColor: "#1d4ed8",
-          shadowOpacity: 0.25,
-          shadowRadius: 8,
      },
-     switchButtonDisabled: {
+     unlockIconWrapDisabled: {
           backgroundColor: "#94a3b8",
+     },
+     unlockText: {
+          color: "#1d4ed8",
+          fontSize: 13,
+          fontWeight: "700",
+     },
+     unlockTextDisabled: {
+          color: "#64748b",
      },
      title: {
           fontSize: 16,

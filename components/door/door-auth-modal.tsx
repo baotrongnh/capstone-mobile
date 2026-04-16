@@ -1,20 +1,16 @@
-import ApartmentModal from "@/components/apartment/ApartmentModal"
-import type { DoorDeviceOption } from "@/components/apartment/DeviceGrid"
-import { DOOR_PASSWORD_LENGTH } from "@/components/apartment/door-password"
+import ApartmentModal from "@/components/apartment/apartment-modal"
+import { DOOR_PASSWORD_LENGTH } from "@/components/door/door-password.share"
 import React, { useEffect, useRef } from "react"
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native"
-
-export type DoorActionMode = "open-door" | "change-password"
+import { DoorDeviceOption } from "../device/device-grid"
 
 type DoorAuthModalProps = {
      visible: boolean
-     mode: DoorActionMode
      doorDevices: DoorDeviceOption[]
+     doorOnlineMap?: Record<string, boolean>
      selectedDoorId: string
      pin: string
      error?: string
-     lockedSeconds: number
-     isDoorPasswordLoading?: boolean
      isConfirmLoading?: boolean
      disableConfirm?: boolean
      onSelectDoor: (doorId: string) => void
@@ -24,23 +20,13 @@ type DoorAuthModalProps = {
      onConfirm: () => void
 }
 
-const getAuthTitle = (mode: DoorActionMode) =>
-     mode === "open-door" ? "Xác thực mở cửa" : "Xác thực đổi mật khẩu"
-
-const getAuthDescription = (mode: DoorActionMode) =>
-     mode === "open-door"
-          ? `Nhập đủ ${DOOR_PASSWORD_LENGTH} số để mở cửa`
-          : "Nhập mật khẩu hiện tại để tiếp tục đổi mật khẩu"
-
 export default function DoorAuthModal({
      visible,
-     mode,
      doorDevices,
+     doorOnlineMap = {},
      selectedDoorId,
      pin,
      error,
-     lockedSeconds,
-     isDoorPasswordLoading = false,
      isConfirmLoading = false,
      disableConfirm = false,
      onSelectDoor,
@@ -63,8 +49,8 @@ export default function DoorAuthModal({
      return (
           <ApartmentModal
                visible={visible}
-               title={getAuthTitle(mode)}
-               description={getAuthDescription(mode)}
+               title="Xác thực mở cửa"
+               description={`Nhập đủ ${DOOR_PASSWORD_LENGTH} số để mở cửa`}
                onClose={onClose}
                onAfterClose={onAfterClose}
                liftOnKeyboard
@@ -82,27 +68,37 @@ export default function DoorAuthModal({
                               {isConfirmLoading ? (
                                    <ActivityIndicator size="small" color="#fff" />
                               ) : (
-                                   <Text style={styles.confirmText}>{mode === "open-door" ? "Mở cửa" : "Xác nhận"}</Text>
+                                   <Text style={styles.confirmText}>Mở cửa</Text>
                               )}
                          </Pressable>
                     </>
                }
           >
-               {mode === "open-door" && doorDevices.length > 1 ? (
+               {doorDevices.length > 1 ? (
                     <View style={styles.doorOptionsWrap}>
                          {doorDevices.map((item) => {
                               const isSelected = item.id === selectedDoorId
+                              const isDoorOnline = doorOnlineMap[item.espId] === true
                               return (
                                    <Pressable
                                         key={item.id}
                                         onPress={() => onSelectDoor(item.id)}
-                                        style={[styles.doorOption, isSelected && styles.doorOptionActive]}
+                                        disabled={!isDoorOnline}
+                                        style={[
+                                             styles.doorOption,
+                                             isSelected && styles.doorOptionActive,
+                                             !isDoorOnline && styles.doorOptionDisabled,
+                                        ]}
                                    >
                                         <Text
                                              numberOfLines={1}
-                                             style={[styles.doorOptionText, isSelected && styles.doorOptionTextActive]}
+                                             style={[
+                                                  styles.doorOptionText,
+                                                  isSelected && styles.doorOptionTextActive,
+                                                  !isDoorOnline && styles.doorOptionTextDisabled,
+                                             ]}
                                         >
-                                             {item.label}
+                                             {isDoorOnline ? item.label : `${item.label} (Offline)`}
                                         </Text>
                                    </Pressable>
                               )
@@ -118,7 +114,6 @@ export default function DoorAuthModal({
                                    styles.pinBox,
                                    pin[index] ? styles.pinBoxFilled : undefined,
                                    error ? styles.pinBoxError : undefined,
-                                   lockedSeconds > 0 ? styles.pinBoxLocked : undefined,
                               ]}
                          >
                               <Text style={styles.pinText}>{pin[index] ? "*" : ""}</Text>
@@ -132,19 +127,10 @@ export default function DoorAuthModal({
                     onChangeText={onChangePin}
                     keyboardType="number-pad"
                     maxLength={DOOR_PASSWORD_LENGTH}
-                    editable={lockedSeconds <= 0}
                     style={styles.hiddenInput}
                />
 
-               {isDoorPasswordLoading ? (
-                    <View style={styles.inlineLoading}>
-                         <ActivityIndicator size="small" color="#2563eb" />
-                         <Text style={styles.inlineLoadingText}>Đang lấy mật khẩu cửa...</Text>
-                    </View>
-               ) : null}
-
                {error ? <Text style={styles.errorText}>{error}</Text> : null}
-               {lockedSeconds > 0 ? <Text style={styles.lockText}>Bạn có thể thử lại sau {lockedSeconds}s</Text> : null}
           </ApartmentModal>
      )
 }
@@ -169,6 +155,10 @@ const styles = StyleSheet.create({
           borderColor: "#2563eb",
           backgroundColor: "#eff6ff",
      },
+     doorOptionDisabled: {
+          opacity: 0.5,
+          backgroundColor: "#e2e8f0",
+     },
      doorOptionText: {
           color: "#0f172a",
           fontSize: 12,
@@ -176,6 +166,9 @@ const styles = StyleSheet.create({
      },
      doorOptionTextActive: {
           color: "#1d4ed8",
+     },
+     doorOptionTextDisabled: {
+          color: "#64748b",
      },
      pinRow: {
           flexDirection: "row",
@@ -200,9 +193,6 @@ const styles = StyleSheet.create({
      pinBoxError: {
           borderColor: "#ef4444",
      },
-     pinBoxLocked: {
-          backgroundColor: "#e2e8f0",
-     },
      pinText: {
           color: "#0f172a",
           fontSize: 20,
@@ -214,25 +204,10 @@ const styles = StyleSheet.create({
           height: 1,
           opacity: 0,
      },
-     inlineLoading: {
-          marginTop: 10,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 8,
-     },
-     inlineLoadingText: {
-          fontSize: 12,
-          color: "#64748b",
-     },
      errorText: {
           marginTop: 8,
           color: "#dc2626",
           fontSize: 13,
-     },
-     lockText: {
-          marginTop: 6,
-          color: "#b45309",
-          fontSize: 12,
      },
      actionBtn: {
           borderRadius: 12,
