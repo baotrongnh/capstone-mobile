@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Alert, BackHandler, Text } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Container,
   ScrollContainer,
@@ -12,6 +13,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { useUpdateUser, useUpdateUserAvatar } from "@/hooks/query/useUser";
 import { uploadImageFromUri } from "@/utils/uploadFile";
 import { MenuItemData, UserProfileEditableValues } from "@/types/user";
+import { getBottomTabContentPadding } from "@/utils/bottomTab";
 import { toUserText } from "@/utils/user";
 
 const menuItems: MenuItemData[] = [
@@ -48,6 +50,8 @@ const menuItems: MenuItemData[] = [
 ];
 
 export default function ProfileScreenPage() {
+  const insets = useSafeAreaInsets();
+  const contentBottomPadding = getBottomTabContentPadding(insets.bottom);
   const user = useAuthStore((state) => state.user);
   const isHydrated = useAuthStore((state) => state.isHydrated);
   const logout = useAuthStore((state) => state.logout);
@@ -184,7 +188,10 @@ export default function ProfileScreenPage() {
       >
         Cá nhân
       </Text>
-      <ScrollContainer showsVerticalScrollIndicator={false}>
+      <ScrollContainer
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: contentBottomPadding }}
+      >
         <ProfileHeader
           name={toUserText(user?.fullName)}
           email={toUserText(user?.email)}

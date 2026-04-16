@@ -420,92 +420,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/users/partner-requests/all": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List all partner requests */
-        get: operations["UsersController_findAllPartnerRequests"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/users/partner-requests/my": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List own partner requests */
-        get: operations["UsersController_findMyPartnerRequests"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/users/partner-requests/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get partner request details */
-        get: operations["UsersController_findOnePartnerRequest"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Update partner request */
-        patch: operations["UsersController_updatePartnerRequest"];
-        trace?: never;
-    };
-    "/api/v1/users/partner-requests": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Submit partner request */
-        post: operations["UsersController_createPartnerRequest"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/users/partner-requests/{id}/review": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Review partner request (approve/reject) */
-        patch: operations["UsersController_reviewPartnerRequest"];
-        trace?: never;
-    };
     "/api/v1/apartments/search": {
         parameters: {
             query?: never;
@@ -543,23 +457,6 @@ export interface paths {
         head?: never;
         /** Update apartment */
         patch: operations["ApartmentsController_update"];
-        trace?: never;
-    };
-    "/api/v1/apartments/cooperation-contracts/pdf/view": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** View partner cooperation contract PDF (public token) */
-        get: operations["ApartmentsController_viewCooperationPdfPublic"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
         trace?: never;
     };
     "/api/v1/apartments/cooperation-contracts/{contractId}/pdf": {
@@ -691,23 +588,6 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
-        trace?: never;
-    };
-    "/api/v1/apartments/{id}/approve": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Approve apartment */
-        patch: operations["ApartmentsController_approve"];
         trace?: never;
     };
     "/api/v1/apartments/{id}/approve-cooperation": {
@@ -871,26 +751,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/contracts/pdf/view": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * View contract PDF (public with token)
-         * @description View contract PDF using a signed token. Token is valid for 5 minutes.
-         */
-        get: operations["ContractsController_viewPdfPublic"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/contracts/{id}": {
         parameters: {
             query?: never;
@@ -907,6 +767,26 @@ export interface paths {
         head?: never;
         /** Update contract */
         patch: operations["ContractsController_update"];
+        trace?: never;
+    };
+    "/api/v1/contracts/pdf/view": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * View contract PDF by signed token
+         * @description Public endpoint to view contract PDF using a short-lived signed token.
+         */
+        get: operations["ContractsController_viewPdfByToken"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/contracts/{id}/pdf": {
@@ -1046,23 +926,6 @@ export interface paths {
         patch: operations["ContractsController_updatePdfContent"];
         trace?: never;
     };
-    "/api/v1/contracts/{id}/activate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Activate contract */
-        patch: operations["ContractsController_activate"];
-        trace?: never;
-    };
     "/api/v1/contracts/{id}/activate-paid": {
         parameters: {
             query?: never;
@@ -1081,23 +944,6 @@ export interface paths {
          * @description Activate pending/signed contract when deposit invoice is paid and contract is not expired.
          */
         patch: operations["ContractsController_activatePaid"];
-        trace?: never;
-    };
-    "/api/v1/contracts/{id}/terminate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Terminate contract */
-        patch: operations["ContractsController_terminate"];
         trace?: never;
     };
     "/api/v1/contracts/{id}/cancel": {
@@ -1147,8 +993,7 @@ export interface paths {
         /** List invoices */
         get: operations["InvoicesController_findAll"];
         put?: never;
-        /** Create invoice */
-        post: operations["InvoicesController_create"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1169,8 +1014,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Update invoice */
-        patch: operations["InvoicesController_update"];
+        patch?: never;
         trace?: never;
     };
     "/api/v1/payments": {
@@ -1183,8 +1027,7 @@ export interface paths {
         /** List payments */
         get: operations["PaymentsController_findAll"];
         put?: never;
-        /** Create payment */
-        post: operations["PaymentsController_create"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1262,40 +1105,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/payments/{id}/confirm": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Confirm payment */
-        post: operations["PaymentsController_confirm"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/payments/webhook/payos": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** PayOS webhook */
-        post: operations["PaymentsController_handlePayOSWebhook"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/payments/partner-monthly-payouts/due": {
         parameters: {
             query?: never;
@@ -1327,6 +1136,43 @@ export interface paths {
         put?: never;
         /** Confirm monthly partner payout with transfer proof */
         post: operations["PaymentsController_confirmPartnerMonthlyPayout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/payments/contract-deposit-payouts/due": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List due contract deposit payouts for users
+         * @description Return expired contracts in a billing month that still need security deposit payout to users.
+         */
+        get: operations["PaymentsController_listDueContractDepositPayouts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/payments/contract-deposit-payouts/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm contract deposit payout with transfer proof */
+        post: operations["PaymentsController_confirmContractDepositPayout"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1454,93 +1300,6 @@ export interface paths {
         patch: operations["MaintenanceController_rate"];
         trace?: never;
     };
-    "/api/v1/tickets": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List tickets */
-        get: operations["TicketsController_findAll"];
-        put?: never;
-        /** Create ticket */
-        post: operations["TicketsController_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/tickets/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get ticket details */
-        get: operations["TicketsController_findOne"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Update ticket */
-        patch: operations["TicketsController_update"];
-        trace?: never;
-    };
-    "/api/v1/tickets/{id}/assign": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Assign ticket to staff */
-        patch: operations["TicketsController_assign"];
-        trace?: never;
-    };
-    "/api/v1/tickets/{id}/resolve": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Resolve ticket */
-        patch: operations["TicketsController_resolve"];
-        trace?: never;
-    };
-    "/api/v1/tickets/{id}/close": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Close ticket */
-        patch: operations["TicketsController_close"];
-        trace?: never;
-    };
     "/api/v1/viewing-requests/user/book": {
         parameters: {
             query?: never;
@@ -1552,7 +1311,7 @@ export interface paths {
         put?: never;
         /**
          * User books apartment viewing
-         * @description Authenticated user books a viewing by sending apartmentId and appointmentAt. Note is optional.
+         * @description Authenticated user books a viewing by sending apartmentId, appointmentAt and optional durationMinutes. Note is optional.
          */
         post: operations["ViewingRequestsController_createUserViewingBooking"];
         delete?: never;
@@ -1570,7 +1329,7 @@ export interface paths {
         };
         /**
          * Get my viewing requests
-         * @description Authenticated user gets their own viewing requests/appointments with optional status filter and pagination.
+         * @description Authenticated user or staff gets their own viewing requests/appointments with optional status filter and pagination.
          */
         get: operations["ViewingRequestsController_getMyViewingRequests"];
         put?: never;
@@ -1834,6 +1593,40 @@ export interface paths {
         patch: operations["IoTController_updateBoard"];
         trace?: never;
     };
+    "/api/v1/iot/boards/{boardId}/unlink-apartment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Remove apartment link from a board and its child devices */
+        patch: operations["IoTController_unlinkBoardApartment"];
+        trace?: never;
+    };
+    "/api/v1/iot/boards/unlink-apartment-by-apartment/{apartmentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Remove apartment link from all boards currently assigned to an apartment */
+        patch: operations["IoTController_unlinkBoardsByApartment"];
+        trace?: never;
+    };
     "/api/v1/iot/boards/{boardId}/devices": {
         parameters: {
             query?: never;
@@ -1956,296 +1749,6 @@ export interface paths {
         patch: operations["IoTController_verifyReading"];
         trace?: never;
     };
-    "/api/v1/tasks": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List tasks */
-        get: operations["TasksController_findAll"];
-        put?: never;
-        /** Create task */
-        post: operations["TasksController_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/tasks/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get task details */
-        get: operations["TasksController_findOne"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Update task */
-        patch: operations["TasksController_update"];
-        trace?: never;
-    };
-    "/api/v1/tasks/{id}/assign": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Assign task to staff */
-        patch: operations["TasksController_assign"];
-        trace?: never;
-    };
-    "/api/v1/tasks/{id}/start": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Start task */
-        patch: operations["TasksController_start"];
-        trace?: never;
-    };
-    "/api/v1/tasks/{id}/complete": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Complete task */
-        patch: operations["TasksController_complete"];
-        trace?: never;
-    };
-    "/api/v1/tasks/{id}/cancel": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Cancel task */
-        patch: operations["TasksController_cancel"];
-        trace?: never;
-    };
-    "/api/v1/policies": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Danh sách chính sách căn hộ
-         * @description Lấy tất cả chính sách (nội quy, quy định). Có thể lọc theo loại và trạng thái.
-         */
-        get: operations["PoliciesController_findAllPolicies"];
-        put?: never;
-        /**
-         * Tạo chính sách mới
-         * @description Admin tạo chính sách mới (nội quy, quy định đỗ xe, thú cưng...)
-         */
-        post: operations["PoliciesController_createPolicy"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/policies/active": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Chính sách đang hiệu lực
-         * @description Danh sách chính sách căn hộ đang có hiệu lực. Dành cho khách/cư dân xem quy định chung.
-         */
-        get: operations["PoliciesController_findActivePolicies"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/policies/apartment/{apartmentId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Chính sách theo căn hộ
-         * @description Lấy tất cả chính sách áp dụng cho 1 căn hộ cụ thể. Dùng khi cư dân/khách xem quy định của căn hộ mình.
-         */
-        get: operations["PoliciesController_findPoliciesByApartment"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/policies/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Chi tiết chính sách
-         * @description Xem chi tiết chính sách, bao gồm danh sách căn hộ đang áp dụng.
-         */
-        get: operations["PoliciesController_findOnePolicy"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Cập nhật chính sách
-         * @description Cập nhật nội dung, trạng thái, thời hạn chính sách.
-         */
-        patch: operations["PoliciesController_updatePolicy"];
-        trace?: never;
-    };
-    "/api/v1/policies/{id}/approve": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Duyệt chính sách
-         * @description Admin duyệt chính sách → tự động kích hoạt. Không thể duyệt lại chính sách đã duyệt.
-         */
-        patch: operations["PoliciesController_approvePolicy"];
-        trace?: never;
-    };
-    "/api/v1/policies/legal-documents/all": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Danh sách tài liệu pháp lý
-         * @description Lấy tài liệu pháp lý (hợp đồng mẫu, biên bản bàn giao...)
-         */
-        get: operations["PoliciesController_findAllDocuments"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/policies/legal-documents/public": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Tài liệu pháp lý công khai
-         * @description Tài liệu pháp lý mà khách/cư dân có thể xem (hợp đồng mẫu...)
-         */
-        get: operations["PoliciesController_findPublicDocuments"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/policies/legal-documents/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Chi tiết tài liệu pháp lý */
-        get: operations["PoliciesController_findOneDocument"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Cập nhật tài liệu pháp lý */
-        patch: operations["PoliciesController_updateDocument"];
-        trace?: never;
-    };
-    "/api/v1/policies/legal-documents": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Upload tài liệu pháp lý
-         * @description Admin upload hợp đồng mẫu, biên bản, tài liệu pháp lý.
-         */
-        post: operations["PoliciesController_createDocument"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/activity-logs": {
         parameters: {
             query?: never;
@@ -2261,174 +1764,6 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
-        trace?: never;
-    };
-    "/api/v1/staff-notes": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Create staff note
-         * @description Create a note about a customer interaction. Visible to other staff.
-         */
-        post: operations["StaffNotesController_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/staff-notes/user/{userId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get notes for a user
-         * @description Get all staff notes about a specific user. Visible to all staff.
-         */
-        get: operations["StaffNotesController_findByUserId"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/staff-notes/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get staff note by ID */
-        get: operations["StaffNotesController_findOne"];
-        put?: never;
-        post?: never;
-        /**
-         * Delete staff note
-         * @description Only the creator or admin can delete a note.
-         */
-        delete: operations["StaffNotesController_remove"];
-        options?: never;
-        head?: never;
-        /**
-         * Update staff note
-         * @description Only the staff who created the note can update it.
-         */
-        patch: operations["StaffNotesController_update"];
-        trace?: never;
-    };
-    "/api/v1/user-rooms": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List user-room assignments
-         * @description Get all user-room assignments with optional filters
-         */
-        get: operations["UserRoomsController_findAll"];
-        put?: never;
-        /**
-         * Assign user to room
-         * @description Create a new user-room assignment. Validates user, room, and contract consistency.
-         */
-        post: operations["UserRoomsController_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/user-rooms/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get user-room assignment details */
-        get: operations["UserRoomsController_findOne"];
-        put?: never;
-        post?: never;
-        /** Delete user-room assignment */
-        delete: operations["UserRoomsController_remove"];
-        options?: never;
-        head?: never;
-        /** Update user-room assignment */
-        patch: operations["UserRoomsController_update"];
-        trace?: never;
-    };
-    "/api/v1/user-rooms/user/{userId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get rooms assigned to a user
-         * @description Get all room assignments for a specific user
-         */
-        get: operations["UserRoomsController_findByUser"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/user-rooms/room/{roomId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get users assigned to a room
-         * @description Get all user assignments for a specific room
-         */
-        get: operations["UserRoomsController_findByRoom"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/user-rooms/{id}/move-out": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Move user out of room
-         * @description Mark user as moved out from the room
-         */
-        patch: operations["UserRoomsController_moveOut"];
         trace?: never;
     };
     "/api/v1/user-apartments/my": {
@@ -3628,196 +2963,6 @@ export interface components {
             /** @example false */
             isActive: boolean;
         };
-        PartnerRequestUserSummaryDto: {
-            /** @example a1b2c3d4-e5f6-7890-abcd-ef1234567890 */
-            id: string;
-            /** @example Nguyen Van A */
-            fullName: string;
-            /** @example ABC Investment Co., Ltd */
-            companyName?: string | null;
-        };
-        PartnerRequestListItemDto: {
-            /** @example d88c6858-ec67-4a37-9541-8e9bcf0f9328 */
-            id: string;
-            /**
-             * @example apartment
-             * @enum {string}
-             */
-            propertyType: "apartment" | "house" | "condo" | "studio";
-            /** @example 123 Nguyen Trai */
-            address: string;
-            /** @example Ho Chi Minh */
-            city: string;
-            /** @example District 1 */
-            district: string;
-            /**
-             * @example submitted
-             * @enum {string}
-             */
-            status: "submitted" | "under_review" | "approved" | "rejected" | "on_hold";
-            /** Format: date-time */
-            createdAt: string;
-            user?: components["schemas"]["PartnerRequestUserSummaryDto"] | null;
-            /** @example Need additional legal papers */
-            reviewNotes?: string | null;
-            /** @example Invalid contact info */
-            rejectionReason?: string | null;
-        };
-        PartnerRequestReviewerSummaryDto: {
-            /** @example a1b2c3d4-e5f6-7890-abcd-ef1234567891 */
-            id: string;
-            /** @example Operator One */
-            fullName: string;
-        };
-        PartnerRequestDetailDto: {
-            /** @example d88c6858-ec67-4a37-9541-8e9bcf0f9328 */
-            id: string;
-            /**
-             * @example apartment
-             * @enum {string}
-             */
-            propertyType: "apartment" | "house" | "condo" | "studio";
-            /** @example 123 Nguyen Trai */
-            address: string;
-            /** @example Ho Chi Minh */
-            city: string;
-            /** @example District 1 */
-            district: string;
-            /** @example 75.50 */
-            totalArea?: string | null;
-            /** @example 1 */
-            numberOfUnits: number;
-            /** @example 15000000.00 */
-            expectedRentPrice?: string | null;
-            /** @example Near metro */
-            description?: string | null;
-            /**
-             * @example [
-             *       "parking",
-             *       "elevator"
-             *     ]
-             */
-            amenities?: string[] | null;
-            /**
-             * @example submitted
-             * @enum {string}
-             */
-            status: "submitted" | "under_review" | "approved" | "rejected" | "on_hold";
-            reviewNotes?: string | null;
-            rejectionReason?: string | null;
-            /** Format: date-time */
-            approvedAt?: string | null;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-            user: components["schemas"]["PartnerRequestUserSummaryDto"];
-            reviewedByOperator?: components["schemas"]["PartnerRequestReviewerSummaryDto"] | null;
-        };
-        PartnerRequestMutationResultDto: {
-            /** @example d88c6858-ec67-4a37-9541-8e9bcf0f9328 */
-            id: string;
-            /**
-             * @example apartment
-             * @enum {string}
-             */
-            propertyType: "apartment" | "house" | "condo" | "studio";
-            /** @example 123 Nguyen Trai */
-            address: string;
-            /**
-             * @example submitted
-             * @enum {string}
-             */
-            status: "submitted" | "under_review" | "approved" | "rejected" | "on_hold";
-            reviewNotes?: string | null;
-            /** Format: date-time */
-            createdAt?: string | null;
-            /** Format: date-time */
-            updatedAt?: string | null;
-        };
-        CreatePartnerRequestDto: {
-            /**
-             * @description Property type
-             * @example apartment
-             * @enum {string}
-             */
-            propertyType?: "apartment" | "house" | "condo" | "studio";
-            /** @example 123 Nguyen Trai */
-            address: string;
-            /** @example Ho Chi Minh */
-            city: string;
-            /** @example District 1 */
-            district: string;
-            /**
-             * @description Total area in m2
-             * @example 75.5
-             */
-            totalArea?: number;
-            /** @example 1 */
-            numberOfUnits?: number;
-            /**
-             * @description Expected rent in VND
-             * @example 15000000
-             */
-            expectedRentPrice?: number;
-            /** @example Near metro, has balcony */
-            description?: string;
-            /**
-             * @example [
-             *       "parking",
-             *       "elevator",
-             *       "security"
-             *     ]
-             */
-            amenities?: string[];
-        };
-        UpdatePartnerRequestDto: {
-            /**
-             * @description Property type
-             * @example apartment
-             * @enum {string}
-             */
-            propertyType?: "apartment" | "house" | "condo" | "studio";
-            /** @example 123 Nguyen Trai */
-            address?: string;
-            /** @example Ho Chi Minh */
-            city?: string;
-            /** @example District 1 */
-            district?: string;
-            /**
-             * @description Total area in m2
-             * @example 75.5
-             */
-            totalArea?: number;
-            /** @example 1 */
-            numberOfUnits?: number;
-            /**
-             * @description Expected rent in VND
-             * @example 15000000
-             */
-            expectedRentPrice?: number;
-            /** @example Near metro, has balcony */
-            description?: string;
-            /**
-             * @example [
-             *       "parking",
-             *       "elevator",
-             *       "security"
-             *     ]
-             */
-            amenities?: string[];
-        };
-        ReviewPartnerRequestDto: {
-            /**
-             * @example approved
-             * @enum {string}
-             */
-            status: "approved" | "rejected" | "on_hold" | "under_review";
-            /** @example Documents checked and valid */
-            reviewNotes?: string;
-            /** @example Missing ownership proof */
-            rejectionReason?: string;
-        };
         ApartmentAmenityDto: {
             /** @example 11111111-2222-3333-4444-555555555555 */
             id: string;
@@ -3980,9 +3125,15 @@ export interface components {
             /** @example e33f798c-7978-4a86-b243-b3ac43e020ba */
             id: string;
             /** @example Công ty Đầu tư Hoàng Gia */
-            companyName: string;
+            companyName: string | null;
             /** @example Trương Thị Đầu Tư */
             fullName: string;
+            /** @example owner@example.com */
+            email: string;
+            /** @example 0901234567 */
+            phone?: string | null;
+            /** @example https://cdn.example.com/users/owner-avatar.jpg */
+            profileImageUrl?: string | null;
         };
         RentalContractLinkedUserDto: {
             /** @example e33f798c-7978-4a86-b243-b3ac43e020ba */
@@ -4813,6 +3964,21 @@ export interface components {
             /** Format: uuid */
             relatedEntityId?: string;
         };
+        RenewalContractSummaryDto: {
+            id: string;
+            /** @example CTR-202702-00012 */
+            contractNumber: string;
+            /** @example draft */
+            status: string;
+            /** @example renewal */
+            category: string;
+            /** Format: date-time */
+            startDate: string;
+            /** Format: date-time */
+            endDate: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
         ContractApartmentDto: {
             id: string;
             /** @example A101 */
@@ -4881,6 +4047,8 @@ export interface components {
             /** @example false */
             isRenewed: boolean;
             latestRenewalContractId?: string | null;
+            /** @description All renewal contracts generated from this contract, sorted by newest first */
+            renewalContracts: components["schemas"]["RenewalContractSummaryDto"][];
             /** @example /contracts/pdf/view?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9 */
             pdfUrl?: string | null;
             apartment: components["schemas"]["ContractApartmentDto"];
@@ -5007,6 +4175,8 @@ export interface components {
             /** @example false */
             isRenewed: boolean;
             latestRenewalContractId?: string | null;
+            /** @description All renewal contracts generated from this contract, sorted by newest first */
+            renewalContracts: components["schemas"]["RenewalContractSummaryDto"][];
             /**
              * @description Maximum number of additional members that can still be added to this contract based on apartment max occupants
              * @example 1
@@ -5437,11 +4607,15 @@ export interface components {
              */
             nationalId: string;
             /**
+             * @description Added member is always secondary (co_tenant)
              * @default co_tenant
              * @enum {string}
              */
-            memberType: "primary" | "co_tenant" | "guarantor";
-            /** @example false */
+            memberType: "co_tenant";
+            /**
+             * @description Added member cannot be primary contact
+             * @example false
+             */
             isPrimaryContact?: boolean;
             /**
              * @description Share percentage
@@ -5620,72 +4794,6 @@ export interface components {
             contract: components["schemas"]["InvoiceContractSummaryDto"];
             payments: components["schemas"]["InvoicePaymentSummaryDto"][];
         };
-        InvoiceCreatedDto: {
-            id: string;
-            /** @example INV-202601-00001 */
-            invoiceNumber: string;
-            /** @example 15000000.00 */
-            totalAmount: string;
-            /** @example draft */
-            status: string;
-            /** Format: date-time */
-            dueDate: string;
-        };
-        InvoiceItemDto: {
-            /** @example Monthly Rent */
-            description: string;
-            /** @example 15000000 */
-            amount: number;
-            /** @example 1 */
-            quantity?: number;
-            /** @example rent */
-            itemType?: string;
-        };
-        CreateInvoiceDto: {
-            /**
-             * Format: uuid
-             * @description Contract ID for this invoice
-             */
-            rentalContractId: string;
-            /**
-             * @description Due date
-             * @example 2026-02-15
-             */
-            dueDate: string;
-            /**
-             * @description Billing period start
-             * @example 2026-02-01
-             */
-            billingPeriodStart: string;
-            /**
-             * @description Billing period end
-             * @example 2026-02-28
-             */
-            billingPeriodEnd: string;
-            items: components["schemas"]["InvoiceItemDto"][];
-            /**
-             * @description Invoice type for payment routing and display
-             * @default rent
-             * @enum {string}
-             */
-            invoiceType: "rent" | "deposit" | "contractDeposit" | "utility" | "service" | "penalty" | "other";
-            /** @description Additional notes */
-            notes?: string;
-        };
-        InvoiceUpdatedDto: {
-            id: string;
-            /** @example INV-202601-00001 */
-            invoiceNumber: string;
-            /** @example issued */
-            status: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        UpdateInvoiceDto: {
-            /** @enum {string} */
-            status?: "draft" | "issued" | "sent" | "partially_paid" | "paid" | "overdue" | "cancelled";
-            notes?: string;
-        };
         PaymentInvoiceSummaryDto: {
             id: string;
             /** @example INV-202601-00001 */
@@ -5784,33 +4892,6 @@ export interface components {
             updatedAt: string;
             invoice: components["schemas"]["PaymentInvoiceContentDto"];
             user: Record<string, never>;
-        };
-        PaymentCreatedDto: {
-            id: string;
-            /** @example PAY-1234567890-ABCDE */
-            paymentReference: string;
-            /** @example 15000000.00 */
-            amount: string;
-            /** @example pending */
-            status: string;
-        };
-        CreatePaymentDto: {
-            /**
-             * Format: uuid
-             * @description Invoice ID to pay
-             */
-            invoiceId: string;
-            /** @example 15000000 */
-            amount: number;
-            /**
-             * @default bank_transfer
-             * @enum {string}
-             */
-            paymentMethod: "bank_transfer" | "cash" | "e_wallet" | "auto_debit" | "credit_card" | "debit_card";
-            /** @description Transaction reference */
-            transactionReference?: string;
-            /** @description Payment notes */
-            notes?: string;
         };
         PayOSPaymentLinkCreatedDto: {
             /** @example 9fbc9e7e-5a4d-4f38-9ba8-cc96af4f0eaf */
@@ -5991,6 +5072,124 @@ export interface components {
              */
             transferProof: string;
         };
+        ContractDepositPayoutItemDto: {
+            /**
+             * @description Refund payment record ID if payout was already processed
+             * @example 6c6b2b36-4468-440b-8ba8-53dcd8d2be84
+             */
+            payoutPaymentId?: string | null;
+            /** @example 7f1154da-a4dd-4c0f-b67f-6b01f75fd611 */
+            contractId: string;
+            /** @example CTR-2026-00123 */
+            contractNumber: string;
+            /** @example d32f07dd-6697-4a93-8ee8-ea1190ddfca0 */
+            apartmentId: string;
+            /** @example A1-1203 */
+            apartmentNumber: string;
+            /** @example c8f1ff12-d4bd-4ec8-aec8-d5d1945a860f */
+            recipientUserId: string;
+            /** @example Nguyen Van A */
+            recipientFullName: string;
+            /** @example 0901234567 */
+            recipientPhone?: string | null;
+            /** @example Vietcombank */
+            recipientBankName?: string | null;
+            /** @example 001100223344 */
+            recipientBankAccountNumber?: string | null;
+            /** @example 2026-03 */
+            payoutMonth: string;
+            /**
+             * Format: date-time
+             * @example 2026-03-31T00:00:00.000Z
+             */
+            contractEndDate: string;
+            /**
+             * Format: date-time
+             * @example 2026-03-31T00:00:00.000Z
+             */
+            dueDate: string;
+            /** @example 20000000.00 */
+            depositAmount: string;
+            /** @example 20000000.00 */
+            payoutAmount: string;
+            /** @example VND */
+            currency: string;
+            /** @example pending */
+            status: string;
+            /** @example true */
+            isDue: boolean;
+            /**
+             * @description Transfer proof image URL if payout was confirmed
+             * @example https://cdn.example.com/apartment-cooperation/contract-deposit-payouts/2026-03/contract-id/staff-id-1710000000000.jpg
+             */
+            transferProofUrl?: string | null;
+            /** @example MB-TRX-000999 */
+            transferReference?: string | null;
+            /** @example Hoan coc khi ket thuc hop dong */
+            transferNote?: string | null;
+            /**
+             * Format: date-time
+             * @example 2026-04-01T09:30:00.000Z
+             */
+            confirmedAt?: string | null;
+            /** @example staff-uuid */
+            confirmedByStaffId?: string | null;
+        };
+        ConfirmContractDepositPayoutResultDto: {
+            /** @example Contract deposit payout confirmed successfully */
+            message: string;
+            /** @example 6c6b2b36-4468-440b-8ba8-53dcd8d2be84 */
+            payoutPaymentId: string;
+            /** @example 7f1154da-a4dd-4c0f-b67f-6b01f75fd611 */
+            contractId: string;
+            /** @example CTR-2026-00123 */
+            contractNumber: string;
+            /** @example c8f1ff12-d4bd-4ec8-aec8-d5d1945a860f */
+            recipientUserId: string;
+            /** @example 20000000.00 */
+            payoutAmount: string;
+            /** @example VND */
+            currency: string;
+            /** @example refunded */
+            status: string;
+            /** @example https://cdn.example.com/apartment-cooperation/contract-deposit-payouts/2026-03/contract-id/staff-id-1710000000000.jpg */
+            transferProofUrl: string;
+            /**
+             * Format: date-time
+             * @example 2026-04-01T09:30:00.000Z
+             */
+            confirmedAt: string;
+            /** @example staff-uuid */
+            confirmedByStaffId: string;
+        };
+        ConfirmContractDepositPayoutDto: {
+            /**
+             * Format: uuid
+             * @description Rental contract ID to payout deposit for
+             * @example 7f1154da-a4dd-4c0f-b67f-6b01f75fd611
+             */
+            contractId: string;
+            /**
+             * @description Bank transfer reference or transaction code
+             * @example MB-TRX-000999
+             */
+            transferReference?: string;
+            /**
+             * @description Internal note for payout confirmation
+             * @example Hoan coc khi ket thuc hop dong
+             */
+            transferNote?: string;
+            /**
+             * @description Reason of deposit refund
+             * @example Hop dong het han, hoan tra tien coc
+             */
+            refundReason?: string;
+            /**
+             * Format: binary
+             * @description Transfer proof image (JPG/PNG/WebP)
+             */
+            transferProof: string;
+        };
         MaintenanceApartmentDto: {
             /** @example A101 */
             apartmentNumber: string;
@@ -6147,6 +5346,20 @@ export interface components {
             /** @example in_progress */
             status: string;
         };
+        UpdateMaintenanceDto: {
+            /** @enum {string} */
+            status?: "submitted" | "acknowledged" | "scheduled" | "in_progress" | "completed" | "cancelled";
+            /** @enum {string} */
+            priority?: "low" | "medium" | "high" | "emergency";
+            /** @description Scheduled date for maintenance */
+            scheduledDate?: string;
+            /** @description Completion date */
+            completedAt?: string;
+            /** @description Resolution notes */
+            resolutionNotes?: string;
+            /** @description Maintenance cost */
+            cost?: number;
+        };
         AcceptMaintenanceDto: {
             /**
              * @description Staff acceptance note
@@ -6162,20 +5375,6 @@ export interface components {
             reason: string;
             /** @description Optional rejection evidence images (JPEG, PNG, WebP) */
             images?: string[];
-        };
-        UpdateMaintenanceDto: {
-            /** @enum {string} */
-            status?: "submitted" | "acknowledged" | "scheduled" | "in_progress" | "completed" | "cancelled";
-            /** @enum {string} */
-            priority?: "low" | "medium" | "high" | "emergency";
-            /** @description Scheduled date for maintenance */
-            scheduledDate?: string;
-            /** @description Completion date */
-            completedAt?: string;
-            /** @description Resolution notes */
-            resolutionNotes?: string;
-            /** @description Maintenance cost */
-            cost?: number;
         };
         CompleteMaintenanceRequestDto: {
             /**
@@ -6202,89 +5401,6 @@ export interface components {
              * @example Staff solved quickly and politely.
              */
             feedback?: string;
-        };
-        TicketListItemDto: {
-            id: string;
-            /** @example TKT-00001 */
-            ticketNumber: string;
-            userId: string;
-            rentalContractId: string;
-            /** @example billing */
-            category: string;
-            /** @example Overcharged electricity bill */
-            subject: string;
-            /** @example medium */
-            priority: string;
-            /** @example open */
-            status: string;
-            assignedToStaffId?: string | null;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        TicketDetailDto: {
-            id: string;
-            /** @example TKT-00001 */
-            ticketNumber: string;
-            userId: string;
-            rentalContractId: string;
-            /** @example billing */
-            category: string;
-            /** @example Overcharged electricity bill */
-            subject: string;
-            /** @example I noticed the electricity charge is higher than expected... */
-            description: string;
-            /** @example medium */
-            priority: string;
-            /** @example open */
-            status: string;
-            assignedToStaffId?: string | null;
-            attachments?: Record<string, never> | null;
-            resolutionNotes?: string | null;
-            satisfactionRating?: number | null;
-            satisfactionFeedback?: string | null;
-            /** Format: date-time */
-            firstResponseAt?: string | null;
-            /** Format: date-time */
-            resolvedAt?: string | null;
-            /** Format: date-time */
-            closedAt?: string | null;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        CreateTicketDto: {
-            /** @example Question about lease renewal */
-            subject: string;
-            /** @example I would like to know if I can renew my lease... */
-            description: string;
-            /** @enum {string} */
-            category: "billing" | "contract" | "account" | "complaint" | "inquiry" | "documentation" | "other";
-            /**
-             * @default medium
-             * @enum {string}
-             */
-            priority: "low" | "medium" | "high" | "urgent";
-            /**
-             * Format: uuid
-             * @description Related contract ID
-             */
-            rentalContractId?: string;
-        };
-        UpdateTicketDto: {
-            /** @enum {string} */
-            status?: "open" | "in_progress" | "waiting_for_user" | "resolved" | "closed" | "escalated";
-            /** @enum {string} */
-            priority?: "low" | "medium" | "high" | "urgent";
-            /**
-             * Format: uuid
-             * @description Staff ID to assign
-             */
-            assignedToStaffId?: string;
-            /** @description Resolution notes */
-            resolutionNotes?: string;
         };
         UserViewingAssignedStaffDto: {
             /** @example e9df7f8e-6cd8-45f9-8e9a-4c0c1e1d9f3f */
@@ -6327,6 +5443,11 @@ export interface components {
              */
             appointmentAt: string;
             /**
+             * @description Thoi luong slot xem (phut), mac dinh 30
+             * @example 45
+             */
+            durationMinutes?: number;
+            /**
              * @description Ghi chu cua user cho lich hen (khong bat buoc)
              * @example Toi muon xem can ho vao buoi sang, vui long lien he truoc 30 phut.
              */
@@ -6362,6 +5483,8 @@ export interface components {
             note?: string | null;
             /** Format: date-time */
             cancelledAt?: string | null;
+            /** @example Nguoi dung ban viec dot xuat, xin doi lich tuan sau. */
+            cancellationReason?: string | null;
             apartment: components["schemas"]["UserMyViewingApartmentDto"];
             assignedStaff: components["schemas"]["UserViewingAssignedStaffDto"];
             /** Format: date-time */
@@ -6690,6 +5813,24 @@ export interface components {
              */
             status: "active" | "inactive" | "maintenance" | "error";
         };
+        IoTBoardUnlinkResultDto: {
+            /** @example ESP_A101 */
+            boardId: string;
+            /** @example A101 Main Board */
+            boardName: string;
+            /** @example 3fa85f64-5717-4562-b3fc-2c963f66afa6 */
+            previousApartmentId?: string | null;
+            /** @example 3 */
+            affectedDevices: number;
+        };
+        IoTApartmentBoardsUnlinkResultDto: {
+            /** @example 3fa85f64-5717-4562-b3fc-2c963f66afa6 */
+            apartmentId: string;
+            /** @example 2 */
+            affectedBoards: number;
+            /** @example 5 */
+            affectedDevices: number;
+        };
         UpdateIoTBoardDeviceDto: {
             /**
              * @description Editable display name for this board device
@@ -6882,442 +6023,6 @@ export interface components {
             images?: string[];
             notes?: string;
         };
-        TaskListItemDto: {
-            id: string;
-            /** @example Check HVAC unit in A101 */
-            title: string;
-            description?: string | null;
-            /** @example maintenance */
-            taskType: string;
-            /** @example medium */
-            priority: string;
-            /** @example pending */
-            status: string;
-            assignedToStaffId?: string | null;
-            assignedByOperatorId?: string | null;
-            apartmentId?: string | null;
-            /** Format: date-time */
-            scheduledDate?: string | null;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        TaskDetailDto: {
-            id: string;
-            /** @example Check HVAC unit in A101 */
-            title: string;
-            description?: string | null;
-            /** @example maintenance */
-            taskType: string;
-            /** @example medium */
-            priority: string;
-            /** @example pending */
-            status: string;
-            assignedToStaffId?: string | null;
-            assignedByOperatorId?: string | null;
-            apartmentId?: string | null;
-            relatedEntityType?: string | null;
-            relatedEntityId?: string | null;
-            /** Format: date-time */
-            scheduledDate?: string | null;
-            /** Format: date-time */
-            scheduledTime?: string | null;
-            estimatedDurationMins?: number | null;
-            /** Format: date-time */
-            actualStartTime?: string | null;
-            /** Format: date-time */
-            actualEndTime?: string | null;
-            completionNotes?: string | null;
-            attachments?: Record<string, never> | null;
-            requiresFollowup: boolean;
-            /** Format: date-time */
-            followupDate?: string | null;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        CreateTaskDto: {
-            /** @example Inspect apartment A-1501 AC */
-            title: string;
-            /** @example Check AC unit reported by tenant */
-            description?: string;
-            /** @enum {string} */
-            taskType: "followup" | "maintenance" | "inspection" | "delivery" | "cleaning" | "general";
-            /**
-             * @default medium
-             * @enum {string}
-             */
-            priority: "low" | "medium" | "high" | "urgent";
-            /**
-             * Format: uuid
-             * @description Staff ID to assign
-             */
-            assignedToStaffId?: string;
-            /**
-             * Format: uuid
-             * @description Apartment ID
-             */
-            apartmentId?: string;
-            /** @enum {string} */
-            relatedEntityType?: "contact_request" | "maintenance_request" | "appointment" | "inspection";
-            /**
-             * Format: uuid
-             * @description Related entity UUID
-             */
-            relatedEntityId?: string;
-            /** @example 2026-02-15 */
-            scheduledDate?: string;
-            /**
-             * @description Scheduled time (HH:mm)
-             * @example 14:00
-             */
-            scheduledTime?: string;
-            /**
-             * @description Estimated duration in minutes
-             * @example 60
-             */
-            estimatedDurationMins?: number;
-        };
-        UpdateTaskDto: {
-            /** @example Inspect apartment A-1501 AC */
-            title?: string;
-            /** @example Check AC unit reported by tenant */
-            description?: string;
-            /** @enum {string} */
-            taskType?: "followup" | "maintenance" | "inspection" | "delivery" | "cleaning" | "general";
-            /**
-             * @default medium
-             * @enum {string}
-             */
-            priority: "low" | "medium" | "high" | "urgent";
-            /**
-             * Format: uuid
-             * @description Staff ID to assign
-             */
-            assignedToStaffId?: string;
-            /**
-             * Format: uuid
-             * @description Apartment ID
-             */
-            apartmentId?: string;
-            /** @example 2026-02-15 */
-            scheduledDate?: string;
-            /**
-             * @description Scheduled time (HH:mm)
-             * @example 14:00
-             */
-            scheduledTime?: string;
-            /**
-             * @description Estimated duration in minutes
-             * @example 60
-             */
-            estimatedDurationMins?: number;
-            /** @enum {string} */
-            status?: "pending" | "assigned" | "in_progress" | "completed" | "cancelled";
-            /** @description Completion notes */
-            completionNotes?: string;
-        };
-        PolicyListItemDto: {
-            id: string;
-            /** @example building_regulations */
-            policyType: string;
-            /** @example Nội quy tòa nhà Saigon Pearl */
-            title: string;
-            /** @example 1.0 */
-            version: string;
-            /** @example vi */
-            language: string;
-            /** Format: date-time */
-            effectiveDate: string;
-            /** Format: date-time */
-            expiryDate?: string | null;
-            isActive: boolean;
-            requiresAcceptance: boolean;
-            /** @example 0 */
-            displayOrder: number;
-            _count: {
-                apartmentPolicies: number;
-            };
-            /** Format: date-time */
-            createdAt: string;
-        };
-        AdminSummaryDto: {
-            id: string;
-            /** @example Nguyễn Văn An */
-            fullName: string;
-        };
-        ApartmentPolicySummaryDto: {
-            id: string;
-            apartmentId: string;
-            /** @example true */
-            isRequired: boolean;
-            /** Format: date-time */
-            effectiveDate?: string | null;
-            /** Format: date-time */
-            expiryDate?: string | null;
-            /** @description Thông tin căn hộ */
-            apartment?: Record<string, never> | null;
-        };
-        PolicyDetailDto: {
-            id: string;
-            /** @example building_regulations */
-            policyType: string;
-            /** @example Nội quy tòa nhà Saigon Pearl */
-            title: string;
-            /** @example Cư dân phải tuân thủ giờ giấc sinh hoạt... */
-            content: string;
-            /** @example 1.0 */
-            version: string;
-            /** @example vi */
-            language: string;
-            /** Format: date-time */
-            effectiveDate: string;
-            /** Format: date-time */
-            expiryDate?: string | null;
-            isActive: boolean;
-            requiresAcceptance: boolean;
-            /** @example 0 */
-            displayOrder: number;
-            createdByAdmin?: components["schemas"]["AdminSummaryDto"] | null;
-            approvedByAdmin?: components["schemas"]["AdminSummaryDto"] | null;
-            /** Format: date-time */
-            approvedAt?: string | null;
-            /** @description Danh sách căn hộ áp dụng chính sách này */
-            apartmentPolicies: components["schemas"]["ApartmentPolicySummaryDto"][];
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        PolicyMutationResultDto: {
-            id: string;
-            /** @example building_regulations */
-            policyType: string;
-            /** @example Nội quy tòa nhà */
-            title: string;
-            /** @example 1.0 */
-            version: string;
-            isActive: boolean;
-            /** Format: date-time */
-            approvedAt?: string | null;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        CreatePolicyDto: {
-            /**
-             * @description Loại chính sách căn hộ
-             * @example building_regulations
-             * @enum {string}
-             */
-            policyType: "rental_rules" | "building_regulations" | "pet_policy" | "parking_rules" | "noise_policy" | "maintenance_policy" | "security_policy" | "common_area_usage" | "cancellation_policy" | "move_in_out_rules";
-            /**
-             * @description Tiêu đề chính sách
-             * @example Nội quy tòa nhà Saigon Pearl
-             */
-            title: string;
-            /**
-             * @description Nội dung chi tiết chính sách
-             * @example Cư dân phải tuân thủ giờ giấc sinh hoạt, không gây tiếng ồn sau 22h...
-             */
-            content: string;
-            /**
-             * @description Phiên bản chính sách
-             * @example 1.0
-             */
-            version: string;
-            /**
-             * @description Ngôn ngữ
-             * @default vi
-             * @example vi
-             */
-            language: string;
-            /**
-             * @description Ngày hiệu lực
-             * @example 2026-03-01
-             */
-            effectiveDate: string;
-            /**
-             * @description Ngày hết hạn
-             * @example 2027-03-01
-             */
-            expiryDate?: string;
-            /**
-             * @description Cư dân có cần xác nhận đã đọc và đồng ý chính sách này không
-             * @default false
-             */
-            requiresAcceptance: boolean;
-            /**
-             * @description Thứ tự hiển thị
-             * @example 0
-             */
-            displayOrder?: number;
-        };
-        UpdatePolicyDto: {
-            /**
-             * @description Loại chính sách căn hộ
-             * @example building_regulations
-             * @enum {string}
-             */
-            policyType?: "rental_rules" | "building_regulations" | "pet_policy" | "parking_rules" | "noise_policy" | "maintenance_policy" | "security_policy" | "common_area_usage" | "cancellation_policy" | "move_in_out_rules";
-            /**
-             * @description Tiêu đề chính sách
-             * @example Nội quy tòa nhà Saigon Pearl
-             */
-            title?: string;
-            /**
-             * @description Nội dung chi tiết chính sách
-             * @example Cư dân phải tuân thủ giờ giấc sinh hoạt, không gây tiếng ồn sau 22h...
-             */
-            content?: string;
-            /**
-             * @description Phiên bản chính sách
-             * @example 1.0
-             */
-            version?: string;
-            /**
-             * @description Ngôn ngữ
-             * @default vi
-             * @example vi
-             */
-            language: string;
-            /**
-             * @description Ngày hiệu lực
-             * @example 2026-03-01
-             */
-            effectiveDate?: string;
-            /**
-             * @description Ngày hết hạn
-             * @example 2027-03-01
-             */
-            expiryDate?: string;
-            /**
-             * @description Cư dân có cần xác nhận đã đọc và đồng ý chính sách này không
-             * @default false
-             */
-            requiresAcceptance: boolean;
-            /**
-             * @description Thứ tự hiển thị
-             * @example 0
-             */
-            displayOrder?: number;
-            /** @description Kích hoạt hoặc vô hiệu hóa chính sách */
-            isActive?: boolean;
-        };
-        LegalDocumentResponseDto: {
-            id: string;
-            /** @example contract_template */
-            documentType: string;
-            /** @example Mẫu hợp đồng thuê nhà */
-            title: string;
-            description?: string | null;
-            /** @example https://storage.example.com/docs/template.pdf */
-            fileUrl: string;
-            fileType?: string | null;
-            fileSizeBytes?: string | null;
-            category?: string | null;
-            /** @example vi */
-            language: string;
-            version?: string | null;
-            isTemplate: boolean;
-            requiresSignature: boolean;
-            isPublic: boolean;
-            tags?: Record<string, never> | null;
-            /** Format: date-time */
-            effectiveDate?: string | null;
-            createdByAdminId?: string | null;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        CreateLegalDocumentDto: {
-            /** @enum {string} */
-            documentType: "contract_template" | "addendum" | "disclosure" | "consent_form" | "inspection_report" | "other";
-            /** @example Mẫu hợp đồng thuê nhà */
-            title: string;
-            /** @example Hợp đồng mẫu cho căn hộ chung cư */
-            description?: string;
-            /** @example https://storage.example.com/docs/contract-template.pdf */
-            fileUrl: string;
-            /** @example application/pdf */
-            fileType?: string;
-            /**
-             * Format: int64
-             * @description File size in bytes
-             * @example 1048576
-             */
-            fileSizeBytes?: number;
-            /** @example contracts */
-            category?: string;
-            /**
-             * @default vi
-             * @example vi
-             */
-            language: string;
-            /** @example 1.0 */
-            version?: string;
-            /** @default false */
-            isTemplate: boolean;
-            /** @default false */
-            requiresSignature: boolean;
-            /** @default false */
-            isPublic: boolean;
-            /**
-             * @example [
-             *       "contract",
-             *       "template"
-             *     ]
-             */
-            tags?: string[];
-            /** @example 2026-03-01 */
-            effectiveDate?: string;
-        };
-        UpdateLegalDocumentDto: {
-            /** @enum {string} */
-            documentType?: "contract_template" | "addendum" | "disclosure" | "consent_form" | "inspection_report" | "other";
-            /** @example Mẫu hợp đồng thuê nhà */
-            title?: string;
-            /** @example Hợp đồng mẫu cho căn hộ chung cư */
-            description?: string;
-            /** @example https://storage.example.com/docs/contract-template.pdf */
-            fileUrl?: string;
-            /** @example application/pdf */
-            fileType?: string;
-            /**
-             * Format: int64
-             * @description File size in bytes
-             * @example 1048576
-             */
-            fileSizeBytes?: number;
-            /** @example contracts */
-            category?: string;
-            /**
-             * @default vi
-             * @example vi
-             */
-            language: string;
-            /** @example 1.0 */
-            version?: string;
-            /** @default false */
-            isTemplate: boolean;
-            /** @default false */
-            requiresSignature: boolean;
-            /** @default false */
-            isPublic: boolean;
-            /**
-             * @example [
-             *       "contract",
-             *       "template"
-             *     ]
-             */
-            tags?: string[];
-            /** @example 2026-03-01 */
-            effectiveDate?: string;
-        };
         ActivityLogResponseDto: {
             id: string;
             /** @example user */
@@ -7338,196 +6043,6 @@ export interface components {
             metadata?: Record<string, never> | null;
             /** Format: date-time */
             createdAt: string;
-        };
-        StaffNoteDetailDto: {
-            /** @example a1b2c3d4-e5f6-7890-abcd-ef1234567890 */
-            id: string;
-            /** @example a1b2c3d4-e5f6-7890-abcd-ef1234567890 */
-            staffId: string;
-            /** @example a1b2c3d4-e5f6-7890-abcd-ef1234567890 */
-            userId: string;
-            /** @example Customer inquired about apartment upgrade options. */
-            content: string;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-            staff: {
-                id: string;
-                fullName: string;
-                email: string;
-            };
-            user: {
-                id: string;
-                fullName: string;
-                email: string;
-            };
-        };
-        CreateStaffNoteDto: {
-            /**
-             * Format: uuid
-             * @description ID of the user this note is about
-             * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
-             */
-            userId: string;
-            /**
-             * @description Content of the staff note
-             * @example Customer inquired about apartment upgrade options. Seems interested in 2BR units.
-             */
-            content: string;
-        };
-        UpdateStaffNoteDto: {
-            /**
-             * @description Updated content of the staff note
-             * @example Updated note content about the customer.
-             */
-            content?: string;
-        };
-        StaffNoteResponseDto: {
-            /** @example a1b2c3d4-e5f6-7890-abcd-ef1234567890 */
-            id: string;
-            /** @example a1b2c3d4-e5f6-7890-abcd-ef1234567890 */
-            staffId: string;
-            /** @example a1b2c3d4-e5f6-7890-abcd-ef1234567890 */
-            userId: string;
-            /** @example Customer inquired about apartment upgrade options. */
-            content: string;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        UserRoomListItemDto: {
-            id: string;
-            userId: string;
-            roomId: string;
-            rentalContractId: string;
-            /** Format: date-time */
-            moveInDate?: string | null;
-            /** Format: date-time */
-            moveOutDate?: string | null;
-            isPrimary: boolean;
-            /** @example active */
-            status: string;
-            /** Format: date-time */
-            createdAt: string;
-        };
-        UserSummaryDto: {
-            id: string;
-            /** @example Nguyễn Văn A */
-            fullName: string;
-            email?: string | null;
-            phone?: string | null;
-        };
-        RoomSummaryDto: {
-            id: string;
-            /** @example R01 */
-            roomNumber: string;
-            /** @example bedroom */
-            roomType: string;
-            /** @example 20.00 */
-            area?: string | null;
-            /** @example available */
-            status: string;
-        };
-        UserRoomDetailDto: {
-            id: string;
-            userId: string;
-            roomId: string;
-            rentalContractId: string;
-            /** Format: date-time */
-            moveInDate?: string | null;
-            /** Format: date-time */
-            moveOutDate?: string | null;
-            isPrimary: boolean;
-            /** @example active */
-            status: string;
-            notes?: string | null;
-            user: components["schemas"]["UserSummaryDto"];
-            room: components["schemas"]["RoomSummaryDto"];
-            rentalContract: components["schemas"]["ContractSummaryDto"];
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        UserRoomMutationResultDto: {
-            id: string;
-            userId: string;
-            roomId: string;
-            rentalContractId: string;
-            isPrimary: boolean;
-            /** @example active */
-            status: string;
-            /** Format: date-time */
-            createdAt: string;
-        };
-        CreateUserRoomDto: {
-            /**
-             * Format: uuid
-             * @description User ID
-             * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
-             */
-            userId: string;
-            /**
-             * Format: uuid
-             * @description Room ID
-             * @example b2c3d4e5-f6a7-8901-bcde-f12345678901
-             */
-            roomId: string;
-            /**
-             * Format: uuid
-             * @description Rental Contract ID
-             * @example c3d4e5f6-a7b8-9012-cdef-123456789012
-             */
-            rentalContractId: string;
-            /**
-             * @description Move-in date
-             * @example 2026-03-01
-             */
-            moveInDate?: string;
-            /**
-             * @description Move-out date
-             * @example 2027-03-01
-             */
-            moveOutDate?: string;
-            /**
-             * @description Is this the primary room for the user
-             * @default true
-             */
-            isPrimary: boolean;
-            /**
-             * @description Additional notes
-             * @example Tenant preferred this room for its window view
-             */
-            notes?: string;
-        };
-        UpdateUserRoomDto: {
-            /**
-             * @description Move-in date
-             * @example 2026-03-01
-             */
-            moveInDate?: string;
-            /**
-             * @description Move-out date
-             * @example 2027-03-01
-             */
-            moveOutDate?: string;
-            /**
-             * @description Is this the primary room for the user
-             * @default true
-             */
-            isPrimary: boolean;
-            /**
-             * @description Room assignment status
-             * @enum {string}
-             */
-            status?: "active" | "moved_out" | "inactive";
-            /**
-             * @description Additional notes
-             * @example Updated notes
-             */
-            notes?: string;
         };
         UserApartmentListApartmentDto: {
             /** @example d6e0a098-c1e9-4b5d-9207-e507e9a5974d */
@@ -9473,225 +7988,6 @@ export interface operations {
             };
         };
     };
-    UsersController_findAllPartnerRequests: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description All partner requests */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["PartnerRequestListItemDto"][];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    UsersController_findMyPartnerRequests: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Current user partner requests */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["PartnerRequestListItemDto"][];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    UsersController_findOnePartnerRequest: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Partner request details */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["PartnerRequestDetailDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            /** @description Request not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    UsersController_updatePartnerRequest: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdatePartnerRequestDto"];
-            };
-        };
-        responses: {
-            /** @description Partner request updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["PartnerRequestMutationResultDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            /** @description Request not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    UsersController_createPartnerRequest: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreatePartnerRequestDto"];
-            };
-        };
-        responses: {
-            /** @description Partner request submitted */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 201 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["PartnerRequestMutationResultDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    UsersController_reviewPartnerRequest: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ReviewPartnerRequestDto"];
-            };
-        };
-        responses: {
-            /** @description Partner request reviewed */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["PartnerRequestMutationResultDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            /** @description Request not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     ApartmentsController_search: {
         parameters: {
             query?: {
@@ -9869,27 +8165,6 @@ export interface operations {
             };
             /** @description Apartment not found */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    ApartmentsController_viewCooperationPdfPublic: {
-        parameters: {
-            query: {
-                /** @description Signed PDF token */
-                token: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Cooperation contract PDF file */
-            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -10160,45 +8435,6 @@ export interface operations {
                         };
                     };
                 };
-            };
-        };
-    };
-    ApartmentsController_approve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Apartment approved */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["ApartmentStatusResultDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            /** @description Apartment not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -10536,41 +8772,6 @@ export interface operations {
             };
         };
     };
-    ContractsController_viewPdfPublic: {
-        parameters: {
-            query: {
-                /** @description Signed PDF token */
-                token: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Contract PDF file */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Invalid or expired token */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Contract or PDF not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     ContractsController_findOne: {
         parameters: {
             query?: never;
@@ -10645,6 +8846,41 @@ export interface operations {
                 };
             };
             /** @description Contract not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ContractsController_viewPdfByToken: {
+        parameters: {
+            query: {
+                /** @description Signed token returned in contract publicPdfUrl */
+                token: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Contract PDF file */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid or expired PDF token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Contract or PDF not found */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -11021,45 +9257,6 @@ export interface operations {
             };
         };
     };
-    ContractsController_activate: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Contract activated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["ContractDetailDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            /** @description Contract not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     ContractsController_activatePaid: {
         parameters: {
             query?: never;
@@ -11099,45 +9296,6 @@ export interface operations {
             };
             /** @description Contract cannot be activated because it is expired, invalid status, or deposit not paid */
             409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    ContractsController_terminate: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Contract terminated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["ContractDetailDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            /** @description Contract not found */
-            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -11292,40 +9450,6 @@ export interface operations {
             };
         };
     };
-    InvoicesController_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateInvoiceDto"];
-            };
-        };
-        responses: {
-            /** @description Invoice created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 201 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["InvoiceCreatedDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
     InvoicesController_findOne: {
         parameters: {
             query?: never;
@@ -11349,49 +9473,6 @@ export interface operations {
                         /** @example Success */
                         message?: string;
                         data?: components["schemas"]["InvoiceDetailDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            /** @description Invoice not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    InvoicesController_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateInvoiceDto"];
-            };
-        };
-        responses: {
-            /** @description Invoice updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["InvoiceUpdatedDto"];
                         meta?: {
                             /** @example 2026-02-26T10:21:00.000Z */
                             timestamp?: string;
@@ -11448,47 +9529,6 @@ export interface operations {
                         };
                     };
                 };
-            };
-        };
-    };
-    PaymentsController_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreatePaymentDto"];
-            };
-        };
-        responses: {
-            /** @description Payment created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 201 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["PaymentCreatedDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            /** @description Invoice not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -11652,67 +9692,6 @@ export interface operations {
             };
         };
     };
-    PaymentsController_confirm: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Payment confirmed */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": Record<string, never>[];
-                };
-            };
-            /** @description Payment not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    PaymentsController_handlePayOSWebhook: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Webhook processed */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": Record<string, never>;
-                };
-            };
-        };
-    };
     PaymentsController_listDuePartnerMonthlyPayouts: {
         parameters: {
             query?: {
@@ -11772,6 +9751,74 @@ export interface operations {
                         /** @example Success */
                         message?: string;
                         data?: components["schemas"]["ConfirmPartnerMonthlyPayoutResultDto"];
+                        meta?: {
+                            /** @example 2026-02-26T10:21:00.000Z */
+                            timestamp?: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    PaymentsController_listDueContractDepositPayouts: {
+        parameters: {
+            query?: {
+                /** @description Contract end month in YYYY-MM format. Defaults to previous month if omitted. */
+                month?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Due contract deposit payouts */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example 200 */
+                        statusCode?: number;
+                        /** @example Success */
+                        message?: string;
+                        data?: components["schemas"]["ContractDepositPayoutItemDto"][];
+                        meta?: {
+                            /** @example 2026-02-26T10:21:00.000Z */
+                            timestamp?: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    PaymentsController_confirmContractDepositPayout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Confirm contract deposit payout and upload transfer proof image (required). */
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["ConfirmContractDepositPayoutDto"];
+            };
+        };
+        responses: {
+            /** @description Contract deposit payout confirmed */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example 201 */
+                        statusCode?: number;
+                        /** @example Success */
+                        message?: string;
+                        data?: components["schemas"]["ConfirmContractDepositPayoutResultDto"];
                         meta?: {
                             /** @example 2026-02-26T10:21:00.000Z */
                             timestamp?: string;
@@ -12132,243 +10179,6 @@ export interface operations {
             };
         };
     };
-    TicketsController_findAll: {
-        parameters: {
-            query?: {
-                status?: "open" | "in_progress" | "waiting_for_user" | "resolved" | "closed" | "escalated";
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description List of tickets */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["TicketListItemDto"][];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    TicketsController_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateTicketDto"];
-            };
-        };
-        responses: {
-            /** @description Ticket created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 201 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["TicketDetailDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    TicketsController_findOne: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Ticket details */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["TicketDetailDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            /** @description Ticket not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    TicketsController_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateTicketDto"];
-            };
-        };
-        responses: {
-            /** @description Ticket updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["TicketDetailDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    TicketsController_assign: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Ticket assigned */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["TicketDetailDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    TicketsController_resolve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Ticket resolved */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["TicketDetailDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    TicketsController_close: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Ticket closed */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["TicketDetailDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
     ViewingRequestsController_createUserViewingBooking: {
         parameters: {
             query?: never;
@@ -12415,7 +10225,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Requested slot is full or user already has an active appointment for this apartment */
+            /** @description Requested time range overlaps existing appointment of user, assigned staff, or apartment */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -12440,7 +10250,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Paginated list of current user viewing requests */
+            /** @description Paginated list of current actor viewing requests */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -13128,6 +10938,70 @@ export interface operations {
             };
         };
     };
+    IoTController_unlinkBoardApartment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                boardId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Board-to-apartment link removed successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example 200 */
+                        statusCode?: number;
+                        /** @example Success */
+                        message?: string;
+                        data?: components["schemas"]["IoTBoardUnlinkResultDto"];
+                        meta?: {
+                            /** @example 2026-02-26T10:21:00.000Z */
+                            timestamp?: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    IoTController_unlinkBoardsByApartment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                apartmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Apartment-to-boards links removed successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example 200 */
+                        statusCode?: number;
+                        /** @example Success */
+                        message?: string;
+                        data?: components["schemas"]["IoTApartmentBoardsUnlinkResultDto"];
+                        meta?: {
+                            /** @example 2026-02-26T10:21:00.000Z */
+                            timestamp?: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
     IoTController_createBoardDevice: {
         parameters: {
             query?: never;
@@ -13469,714 +11343,6 @@ export interface operations {
             };
         };
     };
-    TasksController_findAll: {
-        parameters: {
-            query?: {
-                status?: "pending" | "assigned" | "in_progress" | "completed" | "cancelled";
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description List of tasks */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["TaskListItemDto"][];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    TasksController_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateTaskDto"];
-            };
-        };
-        responses: {
-            /** @description Task created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 201 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["TaskDetailDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    TasksController_findOne: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Task details */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["TaskDetailDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            /** @description Task not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    TasksController_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateTaskDto"];
-            };
-        };
-        responses: {
-            /** @description Task updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["TaskDetailDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            /** @description Task not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    TasksController_assign: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Task assigned */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["TaskDetailDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    TasksController_start: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Task started */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["TaskDetailDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    TasksController_complete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Task completed */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["TaskDetailDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    TasksController_cancel: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Task cancelled */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["TaskDetailDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    PoliciesController_findAllPolicies: {
-        parameters: {
-            query?: {
-                /** @description Loại chính sách */
-                type?: "rental_rules" | "building_regulations" | "pet_policy" | "parking_rules" | "noise_policy" | "maintenance_policy" | "security_policy" | "common_area_usage" | "cancellation_policy" | "move_in_out_rules";
-                /** @description Trạng thái kích hoạt */
-                isActive?: boolean;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Danh sách chính sách */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["PolicyListItemDto"][];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    PoliciesController_createPolicy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreatePolicyDto"];
-            };
-        };
-        responses: {
-            /** @description Tạo thành công */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 201 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["PolicyMutationResultDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    PoliciesController_findActivePolicies: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Chính sách đang hiệu lực */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["PolicyListItemDto"][];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    PoliciesController_findPoliciesByApartment: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                apartmentId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Căn hộ không tồn tại */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    PoliciesController_findOnePolicy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Chi tiết chính sách */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["PolicyDetailDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            /** @description Chính sách không tồn tại */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    PoliciesController_updatePolicy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdatePolicyDto"];
-            };
-        };
-        responses: {
-            /** @description Cập nhật thành công */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["PolicyMutationResultDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            /** @description Chính sách không tồn tại */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    PoliciesController_approvePolicy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Duyệt thành công */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["PolicyMutationResultDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            /** @description Chính sách đã được duyệt trước đó */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Chính sách không tồn tại */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    PoliciesController_findAllDocuments: {
-        parameters: {
-            query?: {
-                documentType?: "contract_template" | "addendum" | "disclosure" | "consent_form" | "inspection_report" | "other";
-                isPublic?: boolean;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Danh sách tài liệu pháp lý */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["LegalDocumentResponseDto"][];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    PoliciesController_findPublicDocuments: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Tài liệu pháp lý công khai */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["LegalDocumentResponseDto"][];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    PoliciesController_findOneDocument: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Chi tiết tài liệu pháp lý */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["LegalDocumentResponseDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            /** @description Tài liệu không tồn tại */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    PoliciesController_updateDocument: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateLegalDocumentDto"];
-            };
-        };
-        responses: {
-            /** @description Cập nhật thành công */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["LegalDocumentResponseDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            /** @description Tài liệu không tồn tại */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    PoliciesController_createDocument: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateLegalDocumentDto"];
-            };
-        };
-        responses: {
-            /** @description Tạo thành công */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 201 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["LegalDocumentResponseDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
     ActivityLogsController_findAll: {
         parameters: {
             query?: {
@@ -14214,517 +11380,6 @@ export interface operations {
                         };
                     };
                 };
-            };
-        };
-    };
-    StaffNotesController_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateStaffNoteDto"];
-            };
-        };
-        responses: {
-            /** @description Note created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 201 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["StaffNoteDetailDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            /** @description User not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    StaffNotesController_findByUserId: {
-        parameters: {
-            query?: {
-                page?: number;
-                limit?: number;
-            };
-            header?: never;
-            path: {
-                userId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Paginated staff notes */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["StaffNoteDetailDto"][];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                            /** @example 25 */
-                            total?: number;
-                            /** @example 1 */
-                            page?: number;
-                            /** @example 10 */
-                            limit?: number;
-                            /** @example 3 */
-                            totalPages?: number;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    StaffNotesController_findOne: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Staff note details */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["StaffNoteDetailDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            /** @description Note not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    StaffNotesController_remove: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Note deleted */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["StaffNoteResponseDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            /** @description Not authorized */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    StaffNotesController_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateStaffNoteDto"];
-            };
-        };
-        responses: {
-            /** @description Note updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["StaffNoteDetailDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            /** @description Not the note creator */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    UserRoomsController_findAll: {
-        parameters: {
-            query?: {
-                userId?: string;
-                roomId?: string;
-                rentalContractId?: string;
-                status?: "active" | "moved_out" | "inactive";
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description List of user-room assignments */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["UserRoomListItemDto"][];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    UserRoomsController_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateUserRoomDto"];
-            };
-        };
-        responses: {
-            /** @description User assigned to room */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 201 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["UserRoomMutationResultDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            /** @description Validation error (wrong apartment, room full, etc.) */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description User, room, or contract not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Assignment already exists */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    UserRoomsController_findOne: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description User-room assignment details */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["UserRoomDetailDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            /** @description User-room assignment not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    UserRoomsController_remove: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Assignment deleted */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description User-room assignment not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    UserRoomsController_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateUserRoomDto"];
-            };
-        };
-        responses: {
-            /** @description User-room assignment updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["UserRoomMutationResultDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            /** @description User-room assignment not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    UserRoomsController_findByUser: {
-        parameters: {
-            query?: {
-                status?: "active" | "moved_out" | "inactive";
-            };
-            header?: never;
-            path: {
-                userId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description User room assignments */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["UserRoomDetailDto"][];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    UserRoomsController_findByRoom: {
-        parameters: {
-            query?: {
-                status?: "active" | "moved_out" | "inactive";
-            };
-            header?: never;
-            path: {
-                roomId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Room user assignments */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["UserRoomDetailDto"][];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    UserRoomsController_moveOut: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description User moved out */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["UserRoomMutationResultDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            /** @description User-room assignment not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };

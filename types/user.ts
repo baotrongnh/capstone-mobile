@@ -53,8 +53,8 @@ export type ProfileEditableInputProps = {
 }
 
 export type MenuItemData = {
-  id: string;
-  label: string;
-  icon: string;
-  screen: string;
+    id: string;
+    label: string;
+    icon: string;
+    screen: string;
 }

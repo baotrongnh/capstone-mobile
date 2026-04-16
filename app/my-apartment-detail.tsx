@@ -214,11 +214,11 @@ export default function MyApartmentDetail() {
     if (isLoading) {
         return (
             <StyledContainer style={styles.container}>
-                <View style={styles.breadcrumbRow}>
-                    <Pressable style={styles.breadcrumbBack} onPress={handleBack} hitSlop={10}>
-                        <Ionicons name="chevron-back" size={24} color="#6b7280" />
-                        <Text style={styles.breadcrumbBackText}>Căn hộ</Text>
+                <View style={styles.header}>
+                    <Pressable style={styles.backButton} onPress={handleBack} hitSlop={10}>
+                        <Ionicons name="chevron-back" size={24} color="#334155" />
                     </Pressable>
+                    <Text style={styles.headerTitle}>Chi tiết căn hộ</Text>
                 </View>
 
                 <View style={styles.centerContent}>
@@ -231,11 +231,11 @@ export default function MyApartmentDetail() {
 
     return (
         <StyledContainer style={styles.container}>
-            <View style={styles.breadcrumbRow}>
-                <Pressable style={styles.breadcrumbBack} onPress={handleBack} hitSlop={10}>
-                    <Ionicons name="chevron-back" size={24} color="#6b7280" />
-                    <Text style={styles.breadcrumbBackText}>Căn hộ</Text>
+            <View style={styles.header}>
+                <Pressable style={styles.backButton} onPress={handleBack} hitSlop={10}>
+                    <Ionicons name="chevron-back" size={24} color="#334155" />
                 </Pressable>
+                <Text style={styles.headerTitle}>Chi tiết căn hộ</Text>
             </View>
 
             <ScrollView
@@ -387,21 +387,26 @@ const styles = StyleSheet.create({
         gap: 14,
         paddingBottom: 130,
     },
-    breadcrumbRow: {
-        marginBottom: 4,
-    },
-    breadcrumbBack: {
+    header: {
         flexDirection: "row",
         alignItems: "center",
-        alignSelf: "flex-start",
-        gap: 4,
-        paddingVertical: 4,
-        paddingRight: 4,
+        justifyContent: "space-between",
+        marginBottom: 8,
     },
-    breadcrumbBackText: {
-        fontSize: 18,
-        fontWeight: "600",
-        color: "#6d6d6d",
+    backButton: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: "#ffffff",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    headerTitle: {
+        flex: 1,
+        marginLeft: 10,
+        fontSize: 22,
+        fontWeight: "700",
+        color: "#0f172a",
     },
     centerContent: {
         flex: 1,

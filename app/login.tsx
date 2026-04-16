@@ -27,6 +27,62 @@ const isRecord = (value: unknown): value is Record<string, unknown> => {
      return typeof value === 'object' && value !== null
 }
 
+const isCredentialErrorMessage = (message: string): boolean => {
+     const normalizedMessage = message.toLowerCase()
+     return (
+          normalizedMessage.includes('invalid credential') ||
+          normalizedMessage.includes('incorrect credential') ||
+          normalizedMessage.includes('unauthorized')
+     )
+}
+
+const isPasswordLengthErrorMessage = (message: string): boolean => {
+     const normalizedMessage = message.toLowerCase()
+     return (
+          normalizedMessage.includes('password must be longer than or equal to 8 characters') ||
+          normalizedMessage.includes('mật khẩu') && normalizedMessage.includes('8')
+     )
+}
+
+const resolveLoginFieldError = (
+     error: unknown,
+): {
+     field: 'identifier' | 'password' | null
+     message: string
+} => {
+     const fallbackMessage = getFriendlyAuthErrorMessage(error)
+
+     if (!isRecord(error)) {
+          return { field: null, message: fallbackMessage }
+     }
+
+     const response = isRecord(error.response) ? error.response : null
+     const status = typeof response?.status === 'number' ? response.status : undefined
+     const responseData = isRecord(response?.data) ? response.data : null
+     const rawMessage = responseData?.message
+     const message = typeof rawMessage === 'string'
+          ? rawMessage
+          : Array.isArray(rawMessage)
+               ? String(rawMessage[0] ?? '')
+               : ''
+
+     if (status === 400 && isPasswordLengthErrorMessage(message)) {
+          return {
+               field: 'password',
+               message: 'Mật khẩu phải có ít nhất 8 ký tự.',
+          }
+     }
+
+     if (status === 401 || isCredentialErrorMessage(message)) {
+          return {
+               field: 'password',
+               message: 'Email/số điện thoại hoặc mật khẩu chưa đúng.',
+          }
+     }
+
+     return { field: null, message: fallbackMessage }
+}
+
 const getFriendlyAuthErrorMessage = (error: unknown, isGoogleLogin = false): string => {
      const defaultMessage = isGoogleLogin
           ? 'Đăng nhập Google không thành công. Vui lòng thử lại.'
@@ -49,12 +105,23 @@ const getFriendlyAuthErrorMessage = (error: unknown, isGoogleLogin = false): str
                : 'Email/số điện thoại hoặc mật khẩu chưa đúng.'
      }
 
+     const responseData = isRecord(response.data) ? response.data : null
+     const rawMessage = responseData?.message
+
+     if (typeof rawMessage === 'string' && isPasswordLengthErrorMessage(rawMessage)) {
+          return 'Mật khẩu phải có ít nhất 8 ký tự.'
+     }
+
+     if (Array.isArray(rawMessage)) {
+          const firstMessage = rawMessage.find((item) => typeof item === 'string' && item.trim().length > 0)
+          if (typeof firstMessage === 'string' && isPasswordLengthErrorMessage(firstMessage)) {
+               return 'Mật khẩu phải có ít nhất 8 ký tự.'
+          }
+     }
+
      if (status && status >= 500) {
           return 'Hệ thống đang bận. Vui lòng thử lại sau ít phút.'
      }
-
-     const responseData = isRecord(response.data) ? response.data : null
-     const rawMessage = responseData?.message
 
      if (typeof rawMessage === 'string' && rawMessage.trim().length > 0) {
           return rawMessage
@@ -83,21 +150,39 @@ const getFriendlyAuthErrorMessage = (error: unknown, isGoogleLogin = false): str
      return defaultMessage
 }
 
-const validateLoginInput = (identifier: string, password: string): string | null => {
+const validateLoginInput = (
+     identifier: string,
+     password: string,
+): {
+     field: 'identifier' | 'password'
+     message: string
+} | null => {
      if (!identifier) {
-          return 'Vui lòng nhập email hoặc số điện thoại.'
+          return {
+               field: 'identifier',
+               message: 'Vui lòng nhập email hoặc số điện thoại.',
+          }
      }
 
      if (!EMAIL_REGEX.test(identifier) && !PHONE_REGEX.test(identifier)) {
-          return 'Email hoặc số điện thoại chưa đúng định dạng.'
+          return {
+               field: 'identifier',
+               message: 'Email hoặc số điện thoại chưa đúng định dạng.',
+          }
      }
 
      if (!password) {
-          return 'Vui lòng nhập mật khẩu.'
+          return {
+               field: 'password',
+               message: 'Vui lòng nhập mật khẩu.',
+          }
      }
 
-     if (password.length < 6) {
-          return 'Mật khẩu cần có ít nhất 6 ký tự.'
+     if (password.length < 8) {
+          return {
+               field: 'password',
+               message: 'Mật khẩu cần có ít nhất 8 ký tự.',
+          }
      }
 
      return null
@@ -117,7 +202,7 @@ export default function LoginScreen() {
 
           requestAnimationFrame(() => {
                scrollRef.current?.scrollTo({
-                    y: Math.max(0, inputY - 120),
+                    y: Math.max(0, inputY - 180),
                     animated: true,
                })
           })
@@ -142,9 +227,10 @@ export default function LoginScreen() {
                     resizeMode='cover'
                />
                <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    enabled={Platform.OS === 'ios'}
+                    behavior='padding'
                     style={loginStyles.keyboardContainer}
-                    keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 24}
+                    keyboardVerticalOffset={8}
                >
                     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
                          <ScrollView
@@ -168,13 +254,14 @@ export default function LoginScreen() {
 
                                    <Formik<LoginDTO>
                                         initialValues={{ identifier: '', password: '' }}
-                                        onSubmit={async (values) => {
+                                        onSubmit={async (values, { setFieldError, setFieldTouched }) => {
                                              const normalizedIdentifier = values.identifier.trim()
                                              const normalizedPassword = values.password.trim()
                                              const validationMessage = validateLoginInput(normalizedIdentifier, normalizedPassword)
 
                                              if (validationMessage) {
-                                                  Alert.alert('Thông tin chưa hợp lệ', validationMessage)
+                                                  setFieldTouched(validationMessage.field, true, false)
+                                                  setFieldError(validationMessage.field, validationMessage.message)
                                                   return
                                              }
 
@@ -185,21 +272,46 @@ export default function LoginScreen() {
                                                   })
                                                   router.replace('/(tabs)/home')
                                              } catch (error) {
-                                                  Alert.alert('Đăng nhập thất bại', getFriendlyAuthErrorMessage(error))
+                                                  const fieldError = resolveLoginFieldError(error)
+
+                                                  if (fieldError.field) {
+                                                       setFieldTouched(fieldError.field, true, false)
+                                                       setFieldError(fieldError.field, fieldError.message)
+                                                       Alert.alert('Đăng nhập thất bại', fieldError.message)
+                                                       return
+                                                  }
+
+                                                  Alert.alert('Đăng nhập thất bại', fieldError.message)
                                              }
                                         }}
                                    >
-                                        {({ handleChange, handleBlur, handleSubmit, values }) => (
+                                        {({
+                                             errors,
+                                             touched,
+                                             setFieldError,
+                                             handleChange,
+                                             handleBlur,
+                                             handleSubmit,
+                                             values,
+                                        }) => (
                                              <View style={loginStyles.inputForm}>
                                                   <InputField
                                                        onLayout={(event) => setIdentifierY(event.nativeEvent.layout.y)}
                                                        onFocus={() => scrollToInput(identifierY)}
-                                                       onChangeText={handleChange('identifier')}
+                                                       onChangeText={(text) => {
+                                                            if (errors.identifier) {
+                                                                 setFieldError('identifier', undefined)
+                                                            }
+                                                            handleChange('identifier')(text)
+                                                       }}
                                                        onBlur={handleBlur('identifier')}
                                                        value={values.identifier}
                                                        placeholder="Nhập email hoặc số điện thoại"
                                                        editable={!loginMutation.isPending}
                                                   />
+                                                  {touched.identifier && errors.identifier ? (
+                                                       <Text style={loginStyles.fieldErrorText}>{errors.identifier}</Text>
+                                                  ) : null}
 
                                                   <View
                                                        style={loginStyles.passwordFieldContainer}
@@ -207,7 +319,12 @@ export default function LoginScreen() {
                                                   >
                                                        <InputField
                                                             onFocus={() => scrollToInput(passwordY)}
-                                                            onChangeText={handleChange('password')}
+                                                            onChangeText={(text) => {
+                                                                 if (errors.password) {
+                                                                      setFieldError('password', undefined)
+                                                                 }
+                                                                 handleChange('password')(text)
+                                                            }}
                                                             onBlur={handleBlur('password')}
                                                             value={values.password}
                                                             placeholder="Nhập mật khẩu"
@@ -228,6 +345,9 @@ export default function LoginScreen() {
                                                             />
                                                        </TouchableOpacity>
                                                   </View>
+                                                  {touched.password && errors.password ? (
+                                                       <Text style={loginStyles.fieldErrorText}>{errors.password}</Text>
+                                                  ) : null}
 
                                                   <TouchableOpacity
                                                        onPress={() => handleSubmit()}
@@ -342,6 +462,13 @@ const loginStyles = StyleSheet.create({
           marginTop: 20,
           flexDirection: 'column',
           gap: 16,
+     },
+     fieldErrorText: {
+          marginTop: -8,
+          color: '#dc2626',
+          fontSize: 12,
+          fontWeight: 500,
+          paddingHorizontal: 4,
      },
      passwordFieldContainer: {
           position: 'relative'
