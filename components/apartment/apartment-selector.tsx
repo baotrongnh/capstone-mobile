@@ -89,7 +89,7 @@ export default function ApartmentSelector({
                <View style={styles.selectedCard}>
                     <View style={styles.selectedRow}>
                          <View style={styles.selectedContent}>
-                              <Text style={styles.selectedTitle}>Căn hộ mặc định</Text>
+                              <Text style={styles.selectedTitle}>Căn hộ</Text>
                               <Text numberOfLines={1} style={styles.selectedValue}>
                                    {selectedApartmentLabel || 'Chưa chọn căn hộ'}
                               </Text>
@@ -106,10 +106,6 @@ export default function ApartmentSelector({
                     {!selectedApartmentId ? (
                          <Text style={styles.helperText}>Vui lòng chọn căn hộ để điều khiển thiết bị.</Text>
                     ) : null}
-
-                    <Pressable onPress={onViewApartments} style={styles.linkButton}>
-                         <Text style={styles.linkButtonText}>Xem danh sách căn hộ</Text>
-                    </Pressable>
                </View>
 
                <Modal
@@ -153,9 +149,21 @@ export default function ApartmentSelector({
                                    })}
                               </ScrollView>
 
-                              <Pressable onPress={closeSelectModal} style={styles.sheetCloseButton}>
-                                   <Text style={styles.sheetCloseButtonText}>Đóng</Text>
-                              </Pressable>
+                              <View style={styles.sheetActions}>
+                                   <Pressable
+                                        onPress={() => {
+                                             closeSelectModal()
+                                             onViewApartments()
+                                        }}
+                                        style={styles.sheetViewAllButton}
+                                   >
+                                        <Text style={styles.sheetViewAllText}>Xem tất cả căn hộ</Text>
+                                   </Pressable>
+
+                                   <Pressable onPress={closeSelectModal} style={styles.sheetCloseButton}>
+                                        <Text style={styles.sheetCloseButtonText}>Đóng</Text>
+                                   </Pressable>
+                              </View>
                          </Animated.View>
                     </View>
                </Modal>
@@ -172,9 +180,10 @@ const styles = StyleSheet.create({
           backgroundColor: '#ffffff',
           borderWidth: 1,
           borderColor: '#e2e8f0',
-          borderRadius: 18,
-          padding: 14,
-          gap: 8,
+          borderRadius: 14,
+          paddingHorizontal: 12,
+          paddingVertical: 10,
+          gap: 6,
      },
      selectedRow: {
           flexDirection: 'row',
@@ -192,15 +201,15 @@ const styles = StyleSheet.create({
           fontWeight: '600',
      },
      selectedValue: {
-          paddingTop: 5,
-          fontSize: 15,
+          paddingTop: 2,
+          fontSize: 14,
           color: '#0f172a',
           fontWeight: '700',
      },
      changeButton: {
           borderRadius: 999,
-          paddingHorizontal: 10,
-          paddingVertical: 7,
+          paddingHorizontal: 9,
+          paddingVertical: 6,
           borderWidth: 1,
           borderColor: '#bfdbfe',
           backgroundColor: '#eff6ff',
@@ -209,7 +218,7 @@ const styles = StyleSheet.create({
           gap: 4,
      },
      changeButtonText: {
-          fontSize: 12,
+          fontSize: 11,
           color: '#2563eb',
           fontWeight: '700',
      },
@@ -309,6 +318,7 @@ const styles = StyleSheet.create({
           color: '#1d4ed8',
      },
      sheetCloseButton: {
+          flex: 1,
           borderRadius: 12,
           minHeight: 44,
           alignItems: 'center',
@@ -319,5 +329,25 @@ const styles = StyleSheet.create({
           fontSize: 14,
           fontWeight: '700',
           color: '#334155',
+     },
+     sheetActions: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 10,
+     },
+     sheetViewAllButton: {
+          flex: 1,
+          borderRadius: 12,
+          minHeight: 44,
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderWidth: 1,
+          borderColor: '#bfdbfe',
+          backgroundColor: '#eff6ff',
+     },
+     sheetViewAllText: {
+          fontSize: 13,
+          fontWeight: '700',
+          color: '#2563eb',
      },
 })

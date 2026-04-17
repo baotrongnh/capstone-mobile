@@ -3,8 +3,8 @@ import { MaterialCommunityIcons } from "@expo/vector-icons"
 import React, { useMemo, useState } from "react"
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native"
 import ApartmentModal from "../apartment/apartment-modal"
-import DeviceCard from "./device-card"
 import DoorAccessCard from "../door/door-access-card"
+import DeviceCard from "./device-card"
 
 const toControlTopic = (topic: string | null | undefined): IoTControlVariables["topic"] | null => {
      if (
@@ -61,6 +61,64 @@ interface DeviceGridProps {
      pending?: DeviceGridPending
 }
 
+type NormalDevice = {
+     id: string
+     boardId: string
+     apiDeviceId: string
+     title: string
+     subtitle: string | undefined
+     isOn: boolean
+     disabled: boolean
+     payload: IoTControlVariables
+}
+
+const buildDeviceGroups = (
+     boards: IotBoardItem[],
+     boardOnlineMap: Record<string, boolean>
+): { normalDevices: NormalDevice[]; doorDevices: DoorDeviceOption[] } => {
+     const normalDevices: NormalDevice[] = []
+     const doorDevices: DoorDeviceOption[] = []
+
+     for (const board of boards) {
+          const isBoardOffline = boardOnlineMap[board.id] === false
+
+          for (const device of board.devices) {
+               const topic = toControlTopic(device.topic)
+               if (!topic || device.deviceId == null) continue
+
+               if (topic === "door") {
+                    doorDevices.push({
+                         id: device.id,
+                         espId: board.id,
+                         deviceId: device.deviceId,
+                         label: device.deviceName || board.name || `Cửa ${device.deviceId}`,
+                    })
+                    continue
+               }
+
+               if (topic === "alarm") continue
+
+               normalDevices.push({
+                    id: device.id,
+                    boardId: board.id,
+                    apiDeviceId: device.id,
+                    title: device.deviceName || `Thiết bị ${device.deviceId}`,
+                    subtitle: board.name || undefined,
+                    isOn: device.state === "ON",
+                    disabled: isBoardOffline,
+                    payload: {
+                         deviceId: device.deviceId,
+                         action: "OFF",
+                         espId: board.id,
+                         topic,
+                    },
+               })
+          }
+     }
+
+     return { normalDevices, doorDevices }
+}
+
 export default function DeviceGrid({
      boards,
      boardOnlineMap = {},
@@ -110,67 +168,10 @@ export default function DeviceGrid({
           setIsRenameModalVisible(false)
      }
 
-     const { normalDevices, doorDevices } = useMemo(() => {
-          const nextNormalDevices: {
-               id: string
-               boardId: string
-               apiDeviceId: string
-               title: string
-               subtitle: string | undefined
-               isOn: boolean
-               disabled: boolean
-               payload: IoTControlVariables
-          }[] = []
-          const nextDoorDevices: DoorDeviceOption[] = []
-
-          boards.forEach((board) => {
-               const isBoardOffline = boardOnlineMap[board.id] === false
-
-               board.devices.forEach((device) => {
-                    const topic = toControlTopic(device.topic)
-                    const apiDeviceId = device.id
-                    const controlDeviceId = device.deviceId
-
-                    if (controlDeviceId == null || !topic) {
-                         return
-                    }
-
-                    if (topic === "door") {
-                         nextDoorDevices.push({
-                              id: apiDeviceId,
-                              espId: board.id,
-                              deviceId: controlDeviceId,
-                              label: device.deviceName || board.name || `Cửa ${controlDeviceId}`,
-                         })
-                         return
-                    }
-
-                    const isDisabled = isBoardOffline
-                    const subtitle = board.name || undefined
-
-                    nextNormalDevices.push({
-                         id: apiDeviceId,
-                         boardId: board.id,
-                         apiDeviceId,
-                         title: device.deviceName || `Thiết bị ${controlDeviceId}`,
-                         subtitle,
-                         isOn: device.state === "ON",
-                         disabled: isDisabled,
-                         payload: {
-                              deviceId: controlDeviceId,
-                              action: "OFF",
-                              espId: board.id,
-                              topic,
-                         },
-                    })
-               })
-          })
-
-          return {
-               normalDevices: nextNormalDevices,
-               doorDevices: nextDoorDevices,
-          }
-     }, [boardOnlineMap, boards])
+     const { normalDevices, doorDevices } = useMemo(
+          () => buildDeviceGroups(boards, boardOnlineMap),
+          [boardOnlineMap, boards]
+     )
 
      const handleToggle = async (
           device: {
@@ -210,6 +211,31 @@ export default function DeviceGrid({
 
      return (
           <>
+               {doorDevices.length > 0 &&
+                    <View style={styles.sectionBlock}>
+                         <DoorAccessCard
+                              title={doorDevices[0]?.label || "Cửa ra vào"}
+                              doorDevices={doorDevices}
+                              doorOnlineMap={boardOnlineMap}
+                              pending={{
+                                   openingDoor: pending.openingDoor,
+                                   changingDoorPin: pending.changingDoorPin,
+                              }}
+                              actions={{
+                                   openDoor: actions.openDoor,
+                                   changeDoorPassword: actions.changeDoorPassword,
+                                   requestRenameDoor: (door) => {
+                                        openRenameModal({
+                                             boardId: door.espId,
+                                             deviceId: door.id,
+                                             currentName: door.label,
+                                        })
+                                   },
+                              }}
+                         />
+                    </View>
+               }
+
                {normalDevices.length > 0 ? (
                     <View style={styles.grid}>
                          {normalDevices.map((device) => (
@@ -236,29 +262,6 @@ export default function DeviceGrid({
                          ))}
                     </View>
                ) : null}
-
-               <View style={styles.sectionBlock}>
-                    <DoorAccessCard
-                         title={doorDevices[0]?.label || "Cửa ra vào"}
-                         doorDevices={doorDevices}
-                         doorOnlineMap={boardOnlineMap}
-                         pending={{
-                              openingDoor: pending.openingDoor,
-                              changingDoorPin: pending.changingDoorPin,
-                         }}
-                         actions={{
-                              openDoor: actions.openDoor,
-                              changeDoorPassword: actions.changeDoorPassword,
-                              requestRenameDoor: (door) => {
-                                   openRenameModal({
-                                        boardId: door.espId,
-                                        deviceId: door.id,
-                                        currentName: door.label,
-                                   })
-                              },
-                         }}
-                    />
-               </View>
 
                <ApartmentModal
                     visible={isRenameModalVisible}
