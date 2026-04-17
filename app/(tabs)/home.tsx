@@ -1,5 +1,5 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons"
-import WeatherOverviewCard from "@/components/apartment/WeatherOverviewCard"
+import WeatherOverviewCard from "@/components/apartment/weather-overview-card"
 import { StyledContainer } from "@/components/styles"
 import { useUnreadNotificationCount } from "@/hooks/query/useNotifications"
 import { useUserProfile } from "@/hooks/query/useUser"

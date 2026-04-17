@@ -476,6 +476,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/apartments/cooperation-contracts/pdf/view": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * View partner cooperation contract PDF by signed token
+         * @description Public endpoint to view partner cooperation contract PDF using a short-lived signed token.
+         */
+        get: operations["ApartmentsController_viewCooperationPdfByToken"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/apartments/{id}/rating": {
         parameters: {
             query?: never;
@@ -1454,57 +1474,6 @@ export interface paths {
         patch: operations["ViewingRequestsController_cancelAppointment"];
         trace?: never;
     };
-    "/api/v1/iot/online": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Check MQTT gateway availability */
-        get: operations["IoTController_getGatewayStatus"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/iot/devices/{espId}/config-door-password/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Send door password directly to MQTT device */
-        post: operations["IoTController_configureDoorPassword"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/iot/devices/{espId}/get-telemetry": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Request telemetry from MQTT board */
-        post: operations["IoTController_requestTelemetry"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/iot/devices/{espId}/check-health": {
         parameters: {
             query?: never;
@@ -1512,27 +1481,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Send health check signal to MQTT board */
+        /** Check whether board is online (based on latest status seen) */
         get: operations["IoTController_checkHealth"];
         put?: never;
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/iot/devices/{espId}/test-sequence": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Run MQTT device test sequence */
-        post: operations["IoTController_runTestSequence"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1548,7 +1500,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Publish a generic MQTT device command by topic and device id */
+        /** Control a board device directly by espId/topic/deviceId and wait for board acknowledgement */
         post: operations["IoTController_controlDeviceByTopic"];
         delete?: never;
         options?: never;
@@ -1593,6 +1545,23 @@ export interface paths {
         patch: operations["IoTController_updateBoard"];
         trace?: never;
     };
+    "/api/v1/iot/meter": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get utility meters separated from board devices (electric and water) */
+        get: operations["IoTController_findUtilityMeters"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/iot/boards/{boardId}/unlink-apartment": {
         parameters: {
             query?: never;
@@ -1627,7 +1596,7 @@ export interface paths {
         patch: operations["IoTController_unlinkBoardsByApartment"];
         trace?: never;
     };
-    "/api/v1/iot/boards/{boardId}/devices": {
+    "/api/v1/iot/boards/{boardId}/unlink-apartment": {
         parameters: {
             query?: never;
             header?: never;
@@ -1636,12 +1605,64 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Add a child device to an IoT board */
+        /** Add a child device to an IoT board (topics: light, alarm, door, curtain) */
         post: operations["IoTController_createBoardDevice"];
         delete?: never;
         options?: never;
         head?: never;
+        /** Remove apartment link from a board and its child devices */
+        patch: operations["IoTController_unlinkBoardApartment"];
+        trace?: never;
+    };
+    "/api/v1/iot/doors/{boardId}/{deviceId}/unlock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Unlock smart door with a 6-digit PIN and wait for board acknowledgement */
+        post: operations["IoTController_unlockDoor"];
+        delete?: never;
+        options?: never;
+        head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/iot/doors/{boardId}/{deviceId}/pin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update smart door PIN with old PIN verification and board acknowledgement */
+        patch: operations["IoTController_updateDoorPin"];
+        trace?: never;
+    };
+    "/api/v1/iot/doors/{boardId}/{deviceId}/pin/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Reset smart door PIN by staff/operator/admin and wait for board acknowledgement */
+        patch: operations["IoTController_resetDoorPin"];
         trace?: never;
     };
     "/api/v1/iot/boards/{boardId}/devices/{deviceId}": {
@@ -1660,93 +1681,6 @@ export interface paths {
         head?: never;
         /** Update an IoT board child device */
         patch: operations["IoTController_updateBoardDevice"];
-        trace?: never;
-    };
-    "/api/v1/iot/meters": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List utility meters */
-        get: operations["IoTController_findAllMeters"];
-        put?: never;
-        /** Create utility meter */
-        post: operations["IoTController_createMeter"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/iot/meters/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get utility meter details */
-        get: operations["IoTController_findOneMeter"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Update utility meter */
-        patch: operations["IoTController_updateMeter"];
-        trace?: never;
-    };
-    "/api/v1/iot/readings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Create utility meter reading */
-        post: operations["IoTController_createReading"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/iot/meters/{meterId}/readings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List readings of a utility meter */
-        get: operations["IoTController_getReadings"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/iot/readings/{id}/verify": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Verify utility reading */
-        patch: operations["IoTController_verifyReading"];
         trace?: never;
     };
     "/api/v1/activity-logs": {
@@ -1830,7 +1764,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Get apartments assigned to current user
+         * @description Tra ve danh sach user-apartment cua user hien tai, bao gom day du thong tin apartment va thong tin truy cap.
+         */
+        get: operations["UserApartmentsController_findMy"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1940,7 +1878,8 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /** Update apartment-policy assignment */
+        patch: operations["ApartmentPoliciesController_update"];
         trace?: never;
     };
     "/api/v1/reservations": {
@@ -1990,7 +1929,11 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post?: never;
+        /**
+         * Bulk assign policy to apartments
+         * @description Assign a policy to multiple apartments at once
+         */
+        post: operations["ApartmentPoliciesController_bulkAssign"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2075,7 +2018,11 @@ export interface paths {
          */
         get: operations["ChatController_getMessages"];
         put?: never;
-        post?: never;
+        /**
+         * Create or resume a chat conversation
+         * @description REST alternative to socket event chat:create_conversation. Logged-in users and guests with an existing session will reuse their latest non-archived conversation instead of creating a new one.
+         */
+        post: operations["ChatController_createConversation"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2089,7 +2036,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Get conversation detail */
+        get: operations["ChatController_getConversation"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4919,14 +4867,12 @@ export interface components {
              */
             invoiceId: string;
             /**
-             * Format: uri
-             * @description Return URL after successful payment
+             * @description Return URL after successful payment. Supports both web URLs and app deep links such as homeiq://payment/success
              * @example https://app.intelliservops.com/payment/success
              */
             returnUrl?: string;
             /**
-             * Format: uri
-             * @description Cancel URL when customer cancels payment
+             * @description Cancel URL when customer cancels payment. Supports both web URLs and app deep links such as homeiq://payment/cancel
              * @example https://app.intelliservops.com/payment/cancel
              */
             cancelUrl?: string;
@@ -5550,90 +5496,17 @@ export interface components {
              */
             note?: string;
         };
-        IoTGatewayStatusDto: {
-            /** @example true */
-            success: boolean;
-            /** @example true */
-            mqttConnected: boolean;
-            brokerUrl?: string | null;
-            /** @example HOMEIQ/+/status */
-            statusTopic: string;
-            /** @example HOMEIQ/+/telemetry */
-            telemetryTopic: string;
-        };
-        IoTMqttPublishDetailsDto: {
-            brokerUrl?: string | null;
-            /** @example ESP_A101/light */
-            topic: string;
-            /** @example ON_1 */
-            payload: string;
+        IoTHealthCheckResultDto: {
             /** @example ESP_A101 */
             espId: string;
-            /** @example light */
-            deviceTopic?: string | null;
-            /** @example 1 */
-            deviceId?: number | null;
-            /** @example ON */
-            action?: string | null;
-            /**
-             * @deprecated
-             * @example light
-             */
-            controlType?: string | null;
-            /**
-             * @deprecated
-             * @example 1
-             */
-            channelId?: number | null;
+            /** @example true */
+            online: boolean;
             /** Format: date-time */
-            publishedAt: string;
+            lastSeenAt?: string | null;
         };
-        IoTMqttCommandResultDto: {
-            /** @example true */
+        IoTBoardDeviceControlResultDto: {
+            /** @example false */
             success: boolean;
-            /** @example light 1 has been ON */
-            message: string;
-            details: components["schemas"]["IoTMqttPublishDetailsDto"];
-        };
-        SetDoorPasswordDto: {
-            /**
-             * @description Door password payload sent directly to the device
-             * @example 290304
-             */
-            password: string;
-        };
-        IoTMqttSignalResultDto: {
-            /** @example true */
-            success: boolean;
-            /** @example Health check signal sent */
-            message: string;
-            details: components["schemas"]["IoTMqttPublishDetailsDto"];
-        };
-        IoTTestSequenceStepDto: {
-            /** @example 1 */
-            order: number;
-            /** @example LIGHT_1_ON */
-            action: string;
-            details: components["schemas"]["IoTMqttPublishDetailsDto"];
-        };
-        IoTTestSequenceResponseDto: {
-            /** @example true */
-            success: boolean;
-            /** @example Test sequence completed */
-            message: string;
-            /** @example 2000 */
-            holdMs: number;
-            /** @example 10 */
-            totalSteps: number;
-            steps: components["schemas"]["IoTTestSequenceStepDto"][];
-        };
-        TestSequenceDto: {
-            /**
-             * @description Delay in milliseconds between each MQTT command
-             * @default 2000
-             * @example 2000
-             */
-            holdMs: number;
         };
         DirectMqttControlDto: {
             /**
@@ -5641,7 +5514,7 @@ export interface components {
              * @example light
              * @enum {string}
              */
-            topic: "light" | "alarm" | "door" | "curtain";
+            topic: "light" | "alarm" | "door" | "curtain" | "electric" | "water";
             /**
              * @description Only ON/OFF are accepted by the current IoT backend
              * @example ON
@@ -5656,54 +5529,26 @@ export interface components {
             /** @example 123 Nguyen Hue, Q1 */
             address: string;
         };
-        IoTBoardRoomSummaryDto: {
-            id: string;
-            /** @example R01 */
-            roomNumber: string;
-            /** @example bedroom */
-            roomType: string;
-        };
         IoTBoardDeviceItemDto: {
             id: string;
             /** @example Front Door Lock */
             deviceName: string;
-            /** @example smart_lock */
-            deviceType: string;
+            /** @example 1 */
+            deviceId: number;
+            /** @example door-lock */
+            icon?: string | null;
+            /** @example door */
+            topic?: string | null;
+            /**
+             * @example OFF
+             * @enum {string|null}
+             */
+            state?: "ON" | "OFF" | null;
             /**
              * @example active
              * @enum {string}
              */
             status: "active" | "inactive" | "maintenance" | "error";
-            isControllableByTenant: boolean;
-            /** @example door-lock */
-            icon?: string | null;
-            /** @example door */
-            mqttTopic?: string | null;
-            /** @example 1 */
-            mqttDeviceId?: number | null;
-            /** @example 1 */
-            mqttDoorPasswordDeviceId?: number | null;
-            /**
-             * @example OFF
-             * @enum {string|null}
-             */
-            mqttState?: "ON" | "OFF" | null;
-            /**
-             * @deprecated
-             * @example door
-             */
-            mqttControlType?: string | null;
-            /**
-             * @deprecated
-             * @example 1
-             */
-            mqttChannelId?: number | null;
-            /**
-             * @deprecated
-             * @example 1
-             */
-            mqttDoorPasswordChannelId?: number | null;
-            room?: components["schemas"]["IoTBoardRoomSummaryDto"] | null;
         };
         IoTBoardListItemDto: {
             /** @example ESP_A101 */
@@ -5745,6 +5590,33 @@ export interface components {
             /** Format: date-time */
             lastOnlineAt?: string | null;
         };
+        IoTUtilityMeterItemDto: {
+            id: string;
+            /** @example MTR-001 */
+            meterNumber: string;
+            /** @example electricity */
+            meterType: string;
+            /** @example 1250.00 */
+            currentReading?: string | null;
+            /** @example 1100.00 */
+            previousReading?: string | null;
+            /** @example 3500.00 */
+            ratePerUnit?: string | null;
+            /** @example kWh */
+            unitOfMeasurement?: string | null;
+            /** Format: date-time */
+            readingDate?: string | null;
+            /** @example active */
+            status: string;
+        };
+        IoTBoardMetersDto: {
+            /** @example ESP_A101 */
+            boardId?: string | null;
+            /** @example 3fa85f64-5717-4562-b3fc-2c963f66afa6 */
+            apartmentId?: string | null;
+            electric?: components["schemas"]["IoTUtilityMeterItemDto"] | null;
+            water?: components["schemas"]["IoTUtilityMeterItemDto"] | null;
+        };
         CreateIoTBoardDeviceDto: {
             /**
              * @description Editable display name for this board device
@@ -5762,7 +5634,7 @@ export interface components {
              */
             icon?: string;
             /**
-             * @description MQTT topic configured on the ESP board for this child device. Legacy field 'mqttTopic' is also accepted.
+             * @description MQTT topic configured on the ESP board for this child device. Allowed values: light, alarm, door, curtain. Legacy field 'mqttTopic' is also accepted.
              * @example door
              * @enum {string}
              */
@@ -5831,6 +5703,32 @@ export interface components {
             /** @example 5 */
             affectedDevices: number;
         };
+        UnlockDoorDto: {
+            /**
+             * @description Current 6-digit PIN used to unlock the smart door
+             * @example 290304
+             */
+            pin: string;
+        };
+        UpdateDoorPinDto: {
+            /**
+             * @description Current 6-digit door PIN
+             * @example 258036
+             */
+            oldPin: string;
+            /**
+             * @description New 6-digit door PIN
+             * @example 290304
+             */
+            newPin: string;
+        };
+        ResetDoorPinDto: {
+            /**
+             * @description New 6-digit door PIN set by staff/operator/admin
+             * @example 290304
+             */
+            newPin: string;
+        };
         UpdateIoTBoardDeviceDto: {
             /**
              * @description Editable display name for this board device
@@ -5848,7 +5746,7 @@ export interface components {
              */
             icon?: string;
             /**
-             * @description MQTT topic configured on the ESP board for this child device. Legacy field 'mqttTopic' is also accepted.
+             * @description MQTT topic configured on the ESP board for this child device. Allowed values: light, alarm, door, curtain. Legacy field 'mqttTopic' is also accepted.
              * @example door
              * @enum {string}
              */
@@ -5860,168 +5758,16 @@ export interface components {
              */
             state?: "ON" | "OFF";
         };
-        DeviceApartmentSummaryDto: {
+        IoTBoardDeviceDeleteResultDto: {
+            /** @example 36ed4722-82e2-49e9-8175-4d099e80102d */
             id: string;
-            /** @example A101 */
-            apartmentNumber: string;
-            /** @example 123 Nguyen Hue, Q1 */
-            address: string;
-        };
-        UtilityMeterListItemDto: {
-            id: string;
-            /** @example MTR-001 */
-            meterNumber: string;
-            /** @example electricity */
-            meterType: string;
-            brand?: string | null;
-            model?: string | null;
-            /** @example 1234.56 */
-            currentReading?: string | null;
-            /** @example 1200.00 */
-            previousReading?: string | null;
-            /** Format: date-time */
-            readingDate?: string | null;
-            /** @example active */
-            status: string;
-            /** Format: date-time */
-            createdAt: string;
-            apartment: components["schemas"]["DeviceApartmentSummaryDto"];
-        };
-        UtilityMeterDetailDto: {
-            id: string;
-            /** @example MTR-001 */
-            meterNumber: string;
-            /** @example electricity */
-            meterType: string;
-            brand?: string | null;
-            model?: string | null;
-            /** Format: date-time */
-            installationDate: string;
-            /** Format: date-time */
-            lastInspectionDate?: string | null;
-            /** Format: date-time */
-            nextInspectionDate?: string | null;
-            unitOfMeasurement?: string | null;
-            /** @example 3500.00 */
-            ratePerUnit?: string | null;
-            /** @example 1234.56 */
-            currentReading?: string | null;
-            /** @example 1200.00 */
-            previousReading?: string | null;
-            /** Format: date-time */
-            readingDate?: string | null;
-            /** @example active */
-            status: string;
-            isDigital: boolean;
-            notes?: string | null;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-            apartment: components["schemas"]["DeviceApartmentSummaryDto"];
-        };
-        CreateUtilityMeterDto: {
-            /** @example EL-2026-001 */
-            meterNumber: string;
-            /** @enum {string} */
-            meterType: "electricity" | "water" | "gas" | "internet";
-            /** @example Schneider */
-            brand?: string;
-            /** @example iEM3155 */
-            model?: string;
+            /** @example Tmp Light 2 */
+            deviceName: string;
             /**
-             * Format: uuid
-             * @description Apartment ID
-             */
-            apartmentId: string;
-            /** @example 2026-01-15 */
-            installationDate: string;
-            /** @example kWh */
-            unitOfMeasurement?: string;
-            /**
-             * @description Rate per unit in VND
-             * @example 3500
-             */
-            ratePerUnit?: number;
-            /** @default false */
-            isDigital: boolean;
-            notes?: string;
-        };
-        UpdateUtilityMeterDto: {
-            /** @example EL-2026-001 */
-            meterNumber?: string;
-            /** @enum {string} */
-            meterType?: "electricity" | "water" | "gas" | "internet";
-            /** @example Schneider */
-            brand?: string;
-            /** @example iEM3155 */
-            model?: string;
-            /**
-             * Format: uuid
-             * @description Apartment ID
-             */
-            apartmentId?: string;
-            /** @example 2026-01-15 */
-            installationDate?: string;
-            /** @example kWh */
-            unitOfMeasurement?: string;
-            /**
-             * @description Rate per unit in VND
-             * @example 3500
-             */
-            ratePerUnit?: number;
-            /** @default false */
-            isDigital: boolean;
-            notes?: string;
-            /** @enum {string} */
-            status?: "active" | "inactive" | "faulty" | "replaced";
-        };
-        UtilityReadingDto: {
-            id: string;
-            /** @example 1234.56 */
-            readingValue: string;
-            /** @example 1200.00 */
-            previousReadingValue?: string | null;
-            /** @example 34.56 */
-            consumption?: string | null;
-            /** Format: date-time */
-            readingDate: string;
-            /** @example manual */
-            readingType: string;
-            isVerified: boolean;
-            /** Format: date-time */
-            verifiedAt?: string | null;
-            notes?: string | null;
-            images?: Record<string, never> | null;
-            /** Format: date-time */
-            createdAt: string;
-        };
-        CreateUtilityReadingDto: {
-            /**
-             * Format: uuid
-             * @description Utility meter ID
-             */
-            utilityMeterId: string;
-            /**
-             * Format: uuid
-             * @description Rental contract ID
-             */
-            rentalContractId?: string;
-            /** @example 2026-02-01 */
-            readingDate: string;
-            /**
-             * @description Current reading value
-             * @example 1250.5
-             */
-            readingValue: number;
-            /**
-             * @default manual
+             * @example inactive
              * @enum {string}
              */
-            readingType: "manual" | "automatic" | "estimated";
-            /** @description Photo evidence of meter reading */
-            images?: string[];
-            notes?: string;
+            status: "active" | "inactive" | "maintenance" | "error";
         };
         ActivityLogResponseDto: {
             id: string;
@@ -6831,38 +6577,6 @@ export interface components {
              */
             isActive: boolean;
         };
-        RevenueOverviewDto: {
-            /** @example 25 */
-            invoiceCount: number;
-            /** @example 350000000 */
-            totalInvoiceAmount: number;
-            /** @example 275000000 */
-            totalSystemRevenue: number;
-            /** @example 100000000 */
-            totalPartnerGrossRevenue: number;
-            /** @example 85000000 */
-            totalPartnerNetPayout: number;
-        };
-        RevenuePartnerDto: {
-            id: string;
-            fullName: string;
-            companyName?: string | null;
-        };
-        PartnerRevenueSummaryItemDto: {
-            partner: components["schemas"]["RevenuePartnerDto"];
-            /** @example 10 */
-            invoiceCount: number;
-            /** @example 2 */
-            apartmentCount: number;
-            /** @example 3 */
-            contractCount: number;
-            /** @example 120000000 */
-            totalGrossRevenue: number;
-            /** @example 12000000 */
-            totalSystemCommissionRevenue: number;
-            /** @example 108000000 */
-            totalNetPayoutRevenue: number;
-        };
         RevenueApartmentDto: {
             id: string;
             apartmentNumber: string;
@@ -6876,6 +6590,11 @@ export interface components {
             /** Format: date-time */
             endDate: string;
             status: string;
+        };
+        RevenuePartnerDto: {
+            id: string;
+            fullName: string;
+            companyName?: string | null;
         };
         RevenueCooperationContractDto: {
             id: string;
@@ -6909,6 +6628,40 @@ export interface components {
             contract: components["schemas"]["RevenueContractDto"];
             partner?: components["schemas"]["RevenuePartnerDto"] | null;
             cooperationContract?: components["schemas"]["RevenueCooperationContractDto"] | null;
+        };
+        RevenueOverviewDto: {
+            /** @example 25 */
+            invoiceCount: number;
+            /** @example 350000000 */
+            totalInvoiceAmount: number;
+            /** @example 275000000 */
+            totalSystemRevenue: number;
+            /** @example 100000000 */
+            totalPartnerGrossRevenue: number;
+            /** @example 85000000 */
+            totalPartnerNetPayout: number;
+            invoices: components["schemas"]["RevenueTransactionDto"][];
+            /** @example 1 */
+            page: number;
+            /** @example 20 */
+            limit: number;
+            /** @example 2 */
+            totalPages: number;
+        };
+        PartnerRevenueSummaryItemDto: {
+            partner: components["schemas"]["RevenuePartnerDto"];
+            /** @example 10 */
+            invoiceCount: number;
+            /** @example 2 */
+            apartmentCount: number;
+            /** @example 3 */
+            contractCount: number;
+            /** @example 120000000 */
+            totalGrossRevenue: number;
+            /** @example 12000000 */
+            totalSystemCommissionRevenue: number;
+            /** @example 108000000 */
+            totalNetPayoutRevenue: number;
         };
         RevenueTransactionListDto: {
             items: components["schemas"]["RevenueTransactionDto"][];
@@ -7249,7 +7002,6 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
             };
         };
     };
@@ -7324,7 +7076,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        /** @example 200 */
+                        statusCode?: number;
+                        /** @example Success */
+                        message?: string;
+                        data?: components["schemas"]["UserListItemDto"][];
+                        meta?: {
+                            /** @example 2026-02-26T10:21:00.000Z */
+                            timestamp?: string;
+                            /** @example 25 */
+                            total?: number;
+                            /** @example 1 */
+                            page?: number;
+                            /** @example 10 */
+                            limit?: number;
+                            /** @example 3 */
+                            totalPages?: number;
+                        };
+                    };
+                };
             };
         };
     };
@@ -7460,7 +7232,23 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        /** @description Upload front and back identity card images for AI to extract information. Images are NOT stored. */
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * Format: binary
+                     * @description Front image of identity card (required) - JPEG, PNG, or WebP
+                     */
+                    identityCardFront: string;
+                    /**
+                     * Format: binary
+                     * @description Back image of identity card (required) - JPEG, PNG, or WebP
+                     */
+                    identityCardBack: string;
+                };
+            };
+        };
         responses: {
             /** @description User/Staff/Operator/Admin profile */
             200: {
@@ -7469,7 +7257,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 200 */
+                        /** @example 201 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -7629,7 +7417,9 @@ export interface operations {
                 limit?: number;
             };
             header?: never;
-            path?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -7646,7 +7436,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
         requestBody: {
@@ -7733,12 +7525,25 @@ export interface operations {
                 limit?: number;
             };
             header?: never;
-            path?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateUserDto"];
+            };
+        };
         responses: {
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7757,7 +7562,9 @@ export interface operations {
             content: {
                 "application/json": components["schemas"]["CreateOperatorDto"];
             };
+            cookie?: never;
         };
+        requestBody?: never;
         responses: {
             201: {
                 headers: {
@@ -7954,7 +7761,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                contractId: string;
             };
             cookie?: never;
         };
@@ -8020,7 +7827,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["CreateApartmentRequestDto"];
+            };
+        };
         responses: {
             /** @description Paginated apartment search results */
             200: {
@@ -8029,7 +7840,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 200 */
+                        /** @example 201 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -8185,6 +7996,41 @@ export interface operations {
         responses: {
             /** @description Cooperation contract PDF file */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ApartmentsController_viewCooperationPdfByToken: {
+        parameters: {
+            query: {
+                /** @description Signed token returned in cooperationContractPublicPdfUrl field */
+                token: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Cooperation contract PDF file */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid or expired PDF token */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Cooperation contract or PDF not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8367,9 +8213,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody: {
@@ -8607,6 +8451,7 @@ export interface operations {
                         };
                     };
                 };
+                content?: never;
             };
         };
     };
@@ -8631,9 +8476,12 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
+        /** @description Upload a signed contract PDF file */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["CreateNotificationDto"];
@@ -8647,7 +8495,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 201 */
+                        /** @example 200 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -8712,10 +8560,17 @@ export interface operations {
                 limit?: number;
             };
             header?: never;
-            path?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        /** @description Partner upload signed cooperation contract PDF */
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["SignCooperationContractDto"];
+            };
+        };
         responses: {
             /** @description Paginated list of contracts */
             200: {
@@ -8724,7 +8579,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 200 */
+                        /** @example 201 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -8801,6 +8656,7 @@ export interface operations {
                         };
                     };
                 };
+                content?: never;
             };
             /** @description Contract not found */
             404: {
@@ -8861,7 +8717,9 @@ export interface operations {
                 token: string;
             };
             header?: never;
-            path?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -8882,6 +8740,13 @@ export interface operations {
             };
             /** @description Contract or PDF not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Contract cannot be cancelled */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8909,6 +8774,13 @@ export interface operations {
             };
             /** @description Contract or PDF not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Cannot renew contract due to status or date overlap */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8972,6 +8844,20 @@ export interface operations {
                 content?: never;
             };
             /** @description Contract PDF already uploaded */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Contract not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Contract cannot be activated because it is expired, invalid status, or deposit not paid */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -9084,6 +8970,27 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Invalid or unverified CCCD */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Contract not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Contract cannot add members */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     ContractsController_cancelCooperationContract: {
@@ -9093,6 +9000,8 @@ export interface operations {
             path: {
                 id: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody: {
@@ -9207,6 +9116,8 @@ export interface operations {
             path: {
                 id: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody: {
@@ -9230,6 +9141,14 @@ export interface operations {
                         meta?: {
                             /** @example 2026-02-26T10:21:00.000Z */
                             timestamp?: string;
+                            /** @example 25 */
+                            total?: number;
+                            /** @example 1 */
+                            page?: number;
+                            /** @example 10 */
+                            limit?: number;
+                            /** @example 3 */
+                            totalPages?: number;
                         };
                     };
                 };
@@ -9283,6 +9202,14 @@ export interface operations {
                         meta?: {
                             /** @example 2026-02-26T10:21:00.000Z */
                             timestamp?: string;
+                            /** @example 25 */
+                            total?: number;
+                            /** @example 1 */
+                            page?: number;
+                            /** @example 10 */
+                            limit?: number;
+                            /** @example 3 */
+                            totalPages?: number;
                         };
                     };
                 };
@@ -9316,7 +9243,9 @@ export interface operations {
             content: {
                 "application/json": components["schemas"]["CancelContractDto"];
             };
+            cookie?: never;
         };
+        requestBody?: never;
         responses: {
             /** @description Contract cancelled by user */
             200: {
@@ -9375,7 +9304,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 200 */
+                        /** @example 201 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -9427,7 +9356,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SimulatePaymentSuccessDto"];
+            };
+        };
         responses: {
             /** @description Paginated list of invoices */
             200: {
@@ -9448,6 +9381,12 @@ export interface operations {
                     };
                 };
             };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     InvoicesController_findOne: {
@@ -9457,6 +9396,8 @@ export interface operations {
             path: {
                 id: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -9555,7 +9496,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 200 */
+                        /** @example 201 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -9623,6 +9564,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description Create maintenance request with optional issue images */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["CreatePayOSPaymentLinkDto"];
@@ -9657,6 +9599,8 @@ export interface operations {
             path: {
                 invoiceId: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody: {
@@ -9680,6 +9624,14 @@ export interface operations {
                         meta?: {
                             /** @example 2026-02-26T10:21:00.000Z */
                             timestamp?: string;
+                            /** @example 25 */
+                            total?: number;
+                            /** @example 1 */
+                            page?: number;
+                            /** @example 10 */
+                            limit?: number;
+                            /** @example 3 */
+                            totalPages?: number;
                         };
                     };
                 };
@@ -9723,13 +9675,22 @@ export interface operations {
                     };
                 };
             };
+            /** @description Request not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     PaymentsController_confirmPartnerMonthlyPayout: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
         /** @description Confirm monthly partner payout and upload transfer proof image (required). */
@@ -9746,7 +9707,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 201 */
+                        /** @example 200 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -9757,6 +9718,13 @@ export interface operations {
                         };
                     };
                 };
+            };
+            /** @description Request not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -9770,7 +9738,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcceptMaintenanceDto"];
+            };
+        };
         responses: {
             /** @description Due contract deposit payouts */
             200: {
@@ -9834,10 +9806,17 @@ export interface operations {
                 status?: "submitted" | "acknowledged" | "scheduled" | "in_progress" | "completed" | "cancelled";
             };
             header?: never;
-            path?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        /** @description Complete maintenance request with optional completion images */
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["CompleteMaintenanceRequestDto"];
+            };
+        };
         responses: {
             /** @description List of maintenance requests */
             200: {
@@ -9858,13 +9837,22 @@ export interface operations {
                     };
                 };
             };
+            /** @description Request not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     MaintenanceController_create: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
         /** @description Create maintenance request with optional issue images */
@@ -9881,7 +9869,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 201 */
+                        /** @example 200 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -9913,7 +9901,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateUserViewingRequestDto"];
+            };
+        };
         responses: {
             /** @description Paginated maintenance request history */
             200: {
@@ -9922,7 +9914,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 200 */
+                        /** @example 201 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -9946,11 +9938,16 @@ export interface operations {
     };
     MaintenanceController_findOne: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
+            query?: {
+                /** @description Filter by appointment status */
+                status?: "scheduled" | "confirmed" | "completed" | "cancelled" | "no_show";
+                /** @description Page number */
+                page?: number;
+                /** @description Items per page */
+                limit?: number;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -9970,6 +9967,14 @@ export interface operations {
                         meta?: {
                             /** @example 2026-02-26T10:21:00.000Z */
                             timestamp?: string;
+                            /** @example 25 */
+                            total?: number;
+                            /** @example 1 */
+                            page?: number;
+                            /** @example 10 */
+                            limit?: number;
+                            /** @example 3 */
+                            totalPages?: number;
                         };
                     };
                 };
@@ -9987,9 +9992,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody: {
@@ -10028,10 +10031,13 @@ export interface operations {
     };
     MaintenanceController_accept: {
         parameters: {
-            query?: never;
+            query: {
+                /** @description Date (YYYY-MM-DD) */
+                date: string;
+            };
             header?: never;
             path: {
-                id: string;
+                apartmentId: string;
             };
             cookie?: never;
         };
@@ -10066,9 +10072,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         /** @description Reject maintenance request with optional evidence images */
@@ -10097,15 +10101,27 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current staff is not assigned to this appointment */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Appointment not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     MaintenanceController_complete: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         /** @description Complete maintenance request with optional completion images */
@@ -10177,13 +10193,30 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current staff is not assigned to this appointment */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Appointment not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     ViewingRequestsController_createUserViewingBooking: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                /** @description Appointment ID to cancel */
+                appointmentId: string;
+            };
             cookie?: never;
         };
         requestBody: {
@@ -10199,7 +10232,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 201 */
+                        /** @example 200 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -10286,7 +10319,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetDoorPasswordDto"];
+            };
+        };
         responses: {
             /** @description List of assigned appointments */
             200: {
@@ -10463,7 +10500,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 200 */
+                        /** @example 201 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -10514,7 +10551,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 200 */
+                        /** @example 201 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -10538,118 +10575,6 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
-            };
-        };
-    };
-    IoTController_getGatewayStatus: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description IoT MQTT gateway status */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["IoTGatewayStatusDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    IoTController_configureDoorPassword: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                espId: string;
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SetDoorPasswordDto"];
-            };
-        };
-        responses: {
-            /** @description Door password published to MQTT broker */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["IoTMqttCommandResultDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    IoTController_requestTelemetry: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                espId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Telemetry request published to MQTT broker */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["IoTMqttSignalResultDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -10664,7 +10589,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Health check signal published to MQTT broker */
+            /** @description Returns current online/offline state for the board */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -10675,55 +10600,13 @@ export interface operations {
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
-                        data?: components["schemas"]["IoTMqttSignalResultDto"];
+                        data?: components["schemas"]["IoTHealthCheckResultDto"];
                         meta?: {
                             /** @example 2026-02-26T10:21:00.000Z */
                             timestamp?: string;
                         };
                     };
                 };
-            };
-        };
-    };
-    IoTController_runTestSequence: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                espId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TestSequenceDto"];
-            };
-        };
-        responses: {
-            /** @description MQTT test sequence completed */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["IoTTestSequenceResponseDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -10741,20 +10624,22 @@ export interface operations {
             content: {
                 "application/json": components["schemas"]["DirectMqttControlDto"];
             };
+            cookie?: never;
         };
+        requestBody?: never;
         responses: {
-            /** @description Generic MQTT command published to MQTT broker */
+            /** @description Returns success only when the board responds with the expected state for this device */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** @example 201 */
+                        /** @example 200 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
-                        data?: components["schemas"]["IoTMqttCommandResultDto"];
+                        data?: components["schemas"]["IoTBoardDeviceControlResultDto"];
                         meta?: {
                             /** @example 2026-02-26T10:21:00.000Z */
                             timestamp?: string;
@@ -10771,10 +10656,16 @@ export interface operations {
                 status?: "active" | "inactive" | "maintenance" | "error";
             };
             header?: never;
-            path?: never;
+            path: {
+                boardId: string;
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateIoTBoardDto"];
+            };
+        };
         responses: {
             /** @description List of MQTT boards with grouped devices */
             200: {
@@ -10808,7 +10699,9 @@ export interface operations {
             content: {
                 "application/json": components["schemas"]["CreateIoTBoardDto"];
             };
+            cookie?: never;
         };
+        requestBody?: never;
         responses: {
             /** @description Board created successfully */
             201: {
@@ -10817,7 +10710,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 201 */
+                        /** @example 200 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -10879,7 +10772,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateIoTBoardDeviceDto"];
+            };
+        };
         responses: {
             /** @description Board deactivated successfully */
             200: {
@@ -10888,7 +10785,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 200 */
+                        /** @example 201 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -10929,6 +10826,40 @@ export interface operations {
                         /** @example Success */
                         message?: string;
                         data?: components["schemas"]["IoTBoardDetailDto"];
+                        meta?: {
+                            /** @example 2026-02-26T10:21:00.000Z */
+                            timestamp?: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    IoTController_findUtilityMeters: {
+        parameters: {
+            query?: {
+                boardId?: string;
+                apartmentId?: string;
+                status?: "active" | "inactive" | "faulty" | "replaced";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Returns electric/water utility meters for the given apartment or board */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example 200 */
+                        statusCode?: number;
+                        /** @example Success */
+                        message?: string;
+                        data?: components["schemas"]["IoTBoardMetersDto"];
                         meta?: {
                             /** @example 2026-02-26T10:21:00.000Z */
                             timestamp?: string;
@@ -11038,6 +10969,117 @@ export interface operations {
             };
         };
     };
+    IoTController_unlockDoor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                boardId: string;
+                deviceId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UnlockDoorDto"];
+            };
+        };
+        responses: {
+            /** @description Returns success only when the board confirms the door unlock action */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example 201 */
+                        statusCode?: number;
+                        /** @example Success */
+                        message?: string;
+                        data?: components["schemas"]["IoTBoardDeviceControlResultDto"];
+                        meta?: {
+                            /** @example 2026-02-26T10:21:00.000Z */
+                            timestamp?: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    IoTController_updateDoorPin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                boardId: string;
+                deviceId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateDoorPinDto"];
+            };
+        };
+        responses: {
+            /** @description Returns success only when the board confirms the PIN update */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example 200 */
+                        statusCode?: number;
+                        /** @example Success */
+                        message?: string;
+                        data?: components["schemas"]["IoTBoardDeviceControlResultDto"];
+                        meta?: {
+                            /** @example 2026-02-26T10:21:00.000Z */
+                            timestamp?: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    IoTController_resetDoorPin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                boardId: string;
+                deviceId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResetDoorPinDto"];
+            };
+        };
+        responses: {
+            /** @description Returns success only when the board confirms the PIN reset */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example 201 */
+                        statusCode?: number;
+                        /** @example Success */
+                        message?: string;
+                        data?: components["schemas"]["IoTBoardDeviceControlResultDto"];
+                        meta?: {
+                            /** @example 2026-02-26T10:21:00.000Z */
+                            timestamp?: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
     IoTController_removeBoardDevice: {
         parameters: {
             query?: never;
@@ -11061,7 +11103,7 @@ export interface operations {
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
-                        data?: components["schemas"]["IoTBoardDetailDto"];
+                        data?: components["schemas"]["IoTBoardDeviceDeleteResultDto"];
                         meta?: {
                             /** @example 2026-02-26T10:21:00.000Z */
                             timestamp?: string;
@@ -11099,241 +11141,6 @@ export interface operations {
                         /** @example Success */
                         message?: string;
                         data?: components["schemas"]["IoTBoardDetailDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    IoTController_findAllMeters: {
-        parameters: {
-            query?: {
-                apartmentId?: string;
-                status?: "active" | "inactive" | "faulty" | "replaced";
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description List of utility meters */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["UtilityMeterListItemDto"][];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    IoTController_createMeter: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateUtilityMeterDto"];
-            };
-        };
-        responses: {
-            /** @description Utility meter created successfully */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 201 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["UtilityMeterDetailDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    IoTController_findOneMeter: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Utility meter details */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["UtilityMeterDetailDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    IoTController_updateMeter: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateUtilityMeterDto"];
-            };
-        };
-        responses: {
-            /** @description Utility meter updated successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["UtilityMeterDetailDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    IoTController_createReading: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateUtilityReadingDto"];
-            };
-        };
-        responses: {
-            /** @description Utility reading created successfully */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 201 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["UtilityReadingDto"];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    IoTController_getReadings: {
-        parameters: {
-            query?: {
-                limit?: number;
-            };
-            header?: never;
-            path: {
-                meterId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Utility meter readings */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["UtilityReadingDto"][];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    IoTController_verifyReading: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Utility reading verified successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["UtilityReadingDto"];
                         meta?: {
                             /** @example 2026-02-26T10:21:00.000Z */
                             timestamp?: string;

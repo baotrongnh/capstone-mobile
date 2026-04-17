@@ -1,3 +1,4 @@
+import { useIotMeters } from '@/hooks/query/useDevices'
 import { useUserApartment } from '@/hooks/query/useUserApartment'
 import { storage } from '@/stores/storage'
 import { UserApartmentItem } from '@/types/userApartment'
@@ -9,6 +10,7 @@ import {
   Dimensions,
   Modal,
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -21,6 +23,10 @@ const APARTMENT_STORAGE_KEY = 'selectedApartmentId'
 
 const getApartmentId = (item: UserApartmentItem) => String(item.apartmentId)
 const getApartmentLabel = (item: UserApartmentItem) => item.apartment?.apartmentNumber || String(item.apartmentId)
+const toNumber = (value?: string | null) => {
+  const parsedValue = Number(value)
+  return Number.isFinite(parsedValue) ? parsedValue : 0
+}
 
 const COLORS = {
   primary: "#3b82f6",
@@ -62,7 +68,13 @@ export default function AnalyticScreen() {
   const [selectedApartmentId, setSelectedApartmentId] = useState('')
   const [isHydratedStorage, setIsHydratedStorage] = useState(false)
   const [isApartmentModalVisible, setIsApartmentModalVisible] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const { data: apartmentData, isLoading: isApartmentLoading } = useUserApartment()
+  const {
+    data: meterData,
+    isLoading: isMeterLoading,
+    refetch: refetchMeters,
+  } = useIotMeters(selectedApartmentId ? { apartmentId: selectedApartmentId } : undefined)
 
   const myApartments = useMemo<UserApartmentItem[]>(() => {
     return (apartmentData?.data as UserApartmentItem[] | undefined) ?? []
@@ -132,7 +144,37 @@ export default function AnalyticScreen() {
     setIsApartmentModalVisible(false)
   }
 
-  const data = activeTab === "electricity" ? DATA_ELECTRICITY : DATA_WATER
+  const data = useMemo(() => {
+    const fallbackData = activeTab === "electricity" ? DATA_ELECTRICITY : DATA_WATER
+    const meter = activeTab === "electricity" ? meterData?.data?.electric : meterData?.data?.water
+    const usage = toNumber(meter?.currentReading)
+    const previousUsage = toNumber(meter?.previousReading)
+    const trend = previousUsage > 0 ? (usage - previousUsage) / previousUsage : 0
+
+    return {
+      ...fallbackData,
+      usage,
+      usageUnit: meter?.unitOfMeasurement || fallbackData.usageUnit,
+      changePercent: Math.abs(trend),
+      isUp: trend >= 0,
+      charge: usage * toNumber(meter?.ratePerUnit),
+      meterStatus: meter?.status,
+      readingDate: meter?.readingDate,
+    }
+  }, [activeTab, meterData?.data?.electric, meterData?.data?.water])
+
+  const handleRefresh = useCallback(async () => {
+    if (!selectedApartmentId) {
+      return
+    }
+
+    setIsRefreshing(true)
+    try {
+      await refetchMeters()
+    } finally {
+      setIsRefreshing(false)
+    }
+  }, [refetchMeters, selectedApartmentId])
 
   if (!isHydratedStorage || isApartmentLoading) {
     return (
@@ -223,12 +265,21 @@ export default function AnalyticScreen() {
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={() => {
+                  void handleRefresh()
+                }}
+                tintColor="#2563eb"
+              />
+            }
           >
             {/* Charge Card - TODO: gắn data.charge từ API */}
             <View style={styles.chargeCard}>
               <View style={styles.chargeContent}>
                 <Text style={styles.chargeLabel}>
-                  Tổng cộng bán đầu kỳ {data.lastPayment}
+                  Tạm tính theo công tơ {data.lastPayment}
                 </Text>
                 <View style={styles.chargeAmount}>
                   <Text style={styles.chargeValue}>
@@ -250,7 +301,7 @@ export default function AnalyticScreen() {
                 </Pressable>
 
                 <Text style={styles.chargeUnit}>
-                  Lần thanh toán cuối cùng kỳ {data.lastPayment}
+                  {data.readingDate ? `Cập nhật ${new Date(data.readingDate).toLocaleDateString("vi-VN")}` : `Lần thanh toán cuối cùng kỳ ${data.lastPayment}`}
                 </Text>
               </View>
               <View style={styles.chargeIcon}>
@@ -295,11 +346,20 @@ export default function AnalyticScreen() {
                   </Text>
                 </View>
               </View>
+              {isMeterLoading ? (
+                <View style={styles.meterLoadingWrap}>
+                  <ActivityIndicator size="small" color="#2563eb" />
+                  <Text style={styles.meterLoadingText}>Đang tải dữ liệu công tơ...</Text>
+                </View>
+              ) : null}
+              <Text style={styles.meterNoteText}>
+                {data.meterStatus ? `Trạng thái công tơ: ${data.meterStatus}` : "Dữ liệu công tơ đang ở chế độ tạm"}
+              </Text>
             </View>
 
             {/* Chart */}
             <View style={styles.chartSection}>
-              <Text style={styles.chartTitle}>Tiêu thụ tháng này</Text>
+              <Text style={styles.chartTitle}>Tiêu thụ tháng này (dữ liệu tạm)</Text>
               <LineChart
                 data={chartData}
                 width={Dimensions.get("window").width - 56}
@@ -498,6 +558,21 @@ const styles = StyleSheet.create({
   },
   usageSection: {
     marginBottom: 18,
+  },
+  meterLoadingWrap: {
+    marginTop: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  meterLoadingText: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+  },
+  meterNoteText: {
+    marginTop: 8,
+    fontSize: 12,
+    color: COLORS.textMuted,
   },
   usageCard: {
     backgroundColor: COLORS.white,
