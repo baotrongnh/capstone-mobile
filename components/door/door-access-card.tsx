@@ -52,6 +52,7 @@ export default function DoorAccessCard({
      const hasDoorDevice = doorDevices.length > 0
      const isSelectedDoorOnline = selectedDoor ? doorOnlineMap[selectedDoor.espId] === true : false
      const isDoorControlDisabled = doorDevices.length > 0 && doorDevices.every((device) => doorOnlineMap[device.espId] === false)
+     const disableDoorActions = !hasDoorDevice || isDoorControlDisabled
 
      const resetAuthState = () => {
           setPin("")
@@ -59,13 +60,10 @@ export default function DoorAccessCard({
      }
 
      const openDoorAuthModal = () => {
-          if (!hasDoorDevice) {
-               Alert.alert("Thông báo", "Căn hộ này chưa có thiết bị cửa để điều khiển")
-               return
-          }
-
-          if (isDoorControlDisabled) {
-               Alert.alert("Thông báo", "Thiết bị cửa đang offline, không thể điều khiển")
+          if (disableDoorActions) {
+               Alert.alert("Thông báo", hasDoorDevice
+                    ? "Thiết bị cửa đang offline, không thể điều khiển"
+                    : "Căn hộ này chưa có thiết bị cửa để điều khiển")
                return
           }
 
@@ -75,13 +73,10 @@ export default function DoorAccessCard({
      }
 
      const openChangePasswordModal = () => {
-          if (!hasDoorDevice) {
-               Alert.alert("Thông báo", "Căn hộ này chưa có thiết bị cửa để điều khiển")
-               return
-          }
-
-          if (isDoorControlDisabled) {
-               Alert.alert("Thông báo", "Thiết bị cửa đang offline, không thể đổi mật khẩu")
+          if (disableDoorActions) {
+               Alert.alert("Thông báo", hasDoorDevice
+                    ? "Thiết bị cửa đang offline, không thể đổi mật khẩu"
+                    : "Căn hộ này chưa có thiết bị cửa để điều khiển")
                return
           }
 
@@ -110,10 +105,6 @@ export default function DoorAccessCard({
           }
 
           actions.requestRenameDoor(targetDoor)
-     }
-
-     const onPressOpenDoor = () => {
-          openDoorAuthModal()
      }
 
      const handleVerifyPin = async (enteredPin: string) => {
@@ -209,8 +200,8 @@ export default function DoorAccessCard({
                                    <Text style={styles.sectionLabel}>Cửa ra vào</Text>
                                    <Pressable
                                         onPress={openChangePasswordModal}
-                                        disabled={!hasDoorDevice || isDoorControlDisabled}
-                                        style={[styles.changePasswordBtn, (!hasDoorDevice || isDoorControlDisabled) && styles.changePasswordBtnDisabled]}
+                                        disabled={disableDoorActions}
+                                        style={[styles.changePasswordBtn, disableDoorActions && styles.changePasswordBtnDisabled]}
                                    >
                                         <MaterialCommunityIcons name="lock-reset" size={14} color="#1d4ed8" />
                                         <Text style={styles.changePasswordText}>Đổi mật khẩu</Text>
@@ -222,19 +213,19 @@ export default function DoorAccessCard({
                                         <MaterialCommunityIcons name="door-closed-lock" size={30} color="#1f2937" />
                                    </View>
                                    <Pressable
-                                        onPress={onPressOpenDoor}
-                                        disabled={!hasDoorDevice || isDoorControlDisabled}
-                                        style={[styles.unlockButton, (!hasDoorDevice || isDoorControlDisabled) && styles.unlockButtonDisabled]}
+                                        onPress={openDoorAuthModal}
+                                        disabled={disableDoorActions}
+                                        style={[styles.unlockButton, disableDoorActions && styles.unlockButtonDisabled]}
                                         hitSlop={10}
                                    >
-                                        <View style={[styles.unlockIconWrap, (!hasDoorDevice || isDoorControlDisabled) && styles.unlockIconWrapDisabled]}>
+                                        <View style={[styles.unlockIconWrap, disableDoorActions && styles.unlockIconWrapDisabled]}>
                                              <MaterialCommunityIcons
-                                                  name={(!hasDoorDevice || isDoorControlDisabled) ? "lock-outline" : "lock-open-variant-outline"}
+                                                  name={disableDoorActions ? "lock-outline" : "lock-open-variant-outline"}
                                                   size={18}
                                                   color="#ffffff"
                                              />
                                         </View>
-                                        <Text style={[styles.unlockText, (!hasDoorDevice || isDoorControlDisabled) && styles.unlockTextDisabled]}>
+                                        <Text style={[styles.unlockText, disableDoorActions && styles.unlockTextDisabled]}>
                                              Mở khóa
                                         </Text>
                                    </Pressable>

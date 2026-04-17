@@ -51,15 +51,20 @@ export default function DoorChangePasswordModal({
      }
 
      const handleSubmit = () => {
-          if (!isSubmitDisabled) {
-               if (oldPin === newPin) {
-                    setErrorText("Mật khẩu mới phải khác mật khẩu cũ")
-                    return
-               }
+          if (isSubmitDisabled) return
 
-               setErrorText("")
-               void onSubmit({ oldPin, newPin })
+          if (oldPin === newPin) {
+               setErrorText("Mật khẩu mới phải khác mật khẩu cũ")
+               return
           }
+
+          setErrorText("")
+          void onSubmit({ oldPin, newPin })
+     }
+
+     const updatePin = (setPin: (value: string) => void) => (value: string) => {
+          if (errorText) setErrorText("")
+          setPin(value)
      }
 
      const renderInput = (
@@ -122,24 +127,14 @@ export default function DoorChangePasswordModal({
           >
                {renderInput(
                     oldPin,
-                    (value) => {
-                         if (errorText) {
-                              setErrorText("")
-                         }
-                         setOldPin(value)
-                    },
+                    updatePin(setOldPin),
                     "Mật khẩu cũ",
                     !showOld,
                     () => setShowOld((prev) => !prev),
                )}
                {renderInput(
                     newPin,
-                    (value) => {
-                         if (errorText) {
-                              setErrorText("")
-                         }
-                         setNewPin(value)
-                    },
+                    updatePin(setNewPin),
                     "Mật khẩu mới",
                     !showNew,
                     () => setShowNew((prev) => !prev),

@@ -1,7 +1,11 @@
 "use client"
 
 import { invoiceService } from "@/lib/services/invoice.service"
-import { InvoiceDetailId, InvoiceQueryParams } from "@/types/invoice"
+import {
+    InvoiceDetailId,
+    InvoiceQueryParams,
+    MonthlyUtilityInvoiceQueryParams,
+} from "@/types/invoice"
 import { useQuery } from "@tanstack/react-query"
 
 export const useInvoices = (params?: InvoiceQueryParams) => {
@@ -22,5 +26,12 @@ export const useInvoice = (id?: InvoiceDetailId | null) => {
             return invoiceService.getDetail(id)
         },
         enabled: Boolean(id),
+    })
+}
+
+export const useUtilityMonthlyInvoices = (params?: MonthlyUtilityInvoiceQueryParams) => {
+    return useQuery({
+        queryKey: ["utility-monthly-invoices", params],
+        queryFn: () => invoiceService.getUtilityMonthly(params),
     })
 }
