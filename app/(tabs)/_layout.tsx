@@ -18,6 +18,7 @@ type TabVisual = {
 const TAB_VISUALS: Record<string, TabVisual> = {
   home: { label: "Trang chủ", icon: "home-outline" },
   apartment: { label: "Căn hộ", icon: "office-building-outline" },
+  "quick-scenarios": { label: "Kịch bản", icon: "lightning-bolt-outline" },
   analytic: { label: "Chỉ số", icon: "meter-electric-outline" },
   profile: { label: "Cá nhân", icon: "account-outline" },
 }
@@ -229,6 +230,12 @@ export default function TabLayout() {
         name="apartment"
         options={{
           title: "Căn hộ",
+        }}
+      />
+      <Tabs.Screen
+        name="quick-scenarios"
+        options={{
+          title: "Kịch bản",
         }}
       />
       <Tabs.Screen

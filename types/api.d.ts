@@ -1020,6 +1020,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/invoices/utility/monthly": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List monthly utility invoices */
+        get: operations["InvoicesController_findMonthlyUtilityUsage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/invoices/{id}": {
         parameters: {
             query?: never;
@@ -4655,6 +4672,67 @@ export interface components {
             /** @example 20 */
             limit: number;
             /** @example 6 */
+            totalPages: number;
+        };
+        MonthlyUtilityApartmentDto: {
+            /** @example apt-123 */
+            id: string;
+            /** @example T2-1505 */
+            apartmentNumber: string;
+        };
+        MonthlyUtilityContractDto: {
+            /** @example contract-123 */
+            id: string;
+            /** @example HD-2026-00001 */
+            contractNumber: string;
+        };
+        MonthlyUtilityBreakdownDto: {
+            /** @example 1100.00 */
+            previousReading?: string | null;
+            /** @example 1250.00 */
+            currentReading?: string | null;
+            /** @example 150.00 */
+            consumption?: string | null;
+            /** @example kWh */
+            unit?: string | null;
+            /** @example 3500.00 */
+            ratePerUnit?: string | null;
+            /** @example 525000.00 */
+            amount?: string | null;
+        };
+        MonthlyUtilityInvoiceDto: {
+            /** @example invoice-utility-202601 */
+            invoiceId: string;
+            /** @example UTIL-202601-T2-1505 */
+            invoiceNumber: string;
+            /** @example paid */
+            status: string;
+            /** Format: date-time */
+            billingPeriodStart: string;
+            /** Format: date-time */
+            billingPeriodEnd: string;
+            /** Format: date-time */
+            issueDate: string;
+            /** Format: date-time */
+            dueDate: string;
+            /** Format: date-time */
+            paidAt?: string | null;
+            apartment: components["schemas"]["MonthlyUtilityApartmentDto"];
+            contract: components["schemas"]["MonthlyUtilityContractDto"];
+            electricity?: components["schemas"]["MonthlyUtilityBreakdownDto"] | null;
+            water?: components["schemas"]["MonthlyUtilityBreakdownDto"] | null;
+            /** @example 900000.00 */
+            totalUtilityAmount: string;
+        };
+        MonthlyUtilityInvoiceListDto: {
+            items: components["schemas"]["MonthlyUtilityInvoiceDto"][];
+            /** @example 10 */
+            total: number;
+            /** @example 1 */
+            page: number;
+            /** @example 12 */
+            limit: number;
+            /** @example 1 */
             totalPages: number;
         };
         InvoiceContentItemDto: {
@@ -9214,6 +9292,39 @@ export interface operations {
                         /** @example Success */
                         message?: string;
                         data?: components["schemas"]["InvoiceListPaginatedDto"];
+                        meta?: {
+                            /** @example 2026-02-26T10:21:00.000Z */
+                            timestamp?: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    InvoicesController_findMonthlyUtilityUsage: {
+        parameters: {
+            query?: {
+                page?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated list of monthly utility invoices with electricity and water usage details */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example 200 */
+                        statusCode?: number;
+                        /** @example Success */
+                        message?: string;
+                        data?: components["schemas"]["MonthlyUtilityInvoiceListDto"];
                         meta?: {
                             /** @example 2026-02-26T10:21:00.000Z */
                             timestamp?: string;
