@@ -5,145 +5,392 @@ import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { Formik } from 'formik'
 import React from 'react'
-import { Alert, Image, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import {
+     Alert,
+     Image,
+     Keyboard,
+     KeyboardAvoidingView,
+     Platform,
+     ScrollView,
+     StyleSheet,
+     Text,
+     TouchableOpacity,
+     TouchableWithoutFeedback,
+     View,
+} from 'react-native'
+
+const NETWORK_ERROR_MESSAGE = 'Không thể kết nối máy chủ. Vui lòng kiểm tra mạng và thử lại.'
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const PHONE_REGEX = /^(\+84|0)\d{9,10}$/
+
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+     return typeof value === 'object' && value !== null
+}
+
+const isCredentialErrorMessage = (message: string): boolean => {
+     const normalizedMessage = message.toLowerCase()
+     return (
+          normalizedMessage.includes('invalid credential') ||
+          normalizedMessage.includes('incorrect credential') ||
+          normalizedMessage.includes('unauthorized')
+     )
+}
+
+const isPasswordLengthErrorMessage = (message: string): boolean => {
+     const normalizedMessage = message.toLowerCase()
+     return (
+          normalizedMessage.includes('password must be longer than or equal to 8 characters') ||
+          normalizedMessage.includes('mật khẩu') && normalizedMessage.includes('8')
+     )
+}
+
+const resolveLoginFieldError = (
+     error: unknown,
+): {
+     field: 'identifier' | 'password' | null
+     message: string
+} => {
+     const fallbackMessage = getFriendlyAuthErrorMessage(error)
+
+     if (!isRecord(error)) {
+          return { field: null, message: fallbackMessage }
+     }
+
+     const response = isRecord(error.response) ? error.response : null
+     const status = typeof response?.status === 'number' ? response.status : undefined
+     const responseData = isRecord(response?.data) ? response.data : null
+     const rawMessage = responseData?.message
+     const message = typeof rawMessage === 'string'
+          ? rawMessage
+          : Array.isArray(rawMessage)
+               ? String(rawMessage[0] ?? '')
+               : ''
+
+     if (status === 400 && isPasswordLengthErrorMessage(message)) {
+          return {
+               field: 'password',
+               message: 'Mật khẩu phải có ít nhất 8 ký tự.',
+          }
+     }
+
+     if (status === 401 || isCredentialErrorMessage(message)) {
+          return {
+               field: 'password',
+               message: 'Email/số điện thoại hoặc mật khẩu chưa đúng.',
+          }
+     }
+
+     return { field: null, message: fallbackMessage }
+}
+
+const getFriendlyAuthErrorMessage = (error: unknown, isGoogleLogin = false): string => {
+     const defaultMessage = isGoogleLogin
+          ? 'Đăng nhập Google không thành công. Vui lòng thử lại.'
+          : 'Đăng nhập không thành công. Vui lòng thử lại.'
+
+     if (!isRecord(error)) {
+          return defaultMessage
+     }
+
+     const response = isRecord(error.response) ? error.response : null
+     const status = typeof response?.status === 'number' ? response.status : undefined
+
+     if (!response) {
+          return NETWORK_ERROR_MESSAGE
+     }
+
+     if (status === 401) {
+          return isGoogleLogin
+               ? 'Phiên đăng nhập Google đã hết hạn hoặc không hợp lệ. Vui lòng thử lại.'
+               : 'Email/số điện thoại hoặc mật khẩu chưa đúng.'
+     }
+
+     const responseData = isRecord(response.data) ? response.data : null
+     const rawMessage = responseData?.message
+
+     if (typeof rawMessage === 'string' && isPasswordLengthErrorMessage(rawMessage)) {
+          return 'Mật khẩu phải có ít nhất 8 ký tự.'
+     }
+
+     if (Array.isArray(rawMessage)) {
+          const firstMessage = rawMessage.find((item) => typeof item === 'string' && item.trim().length > 0)
+          if (typeof firstMessage === 'string' && isPasswordLengthErrorMessage(firstMessage)) {
+               return 'Mật khẩu phải có ít nhất 8 ký tự.'
+          }
+     }
+
+     if (status && status >= 500) {
+          return 'Hệ thống đang bận. Vui lòng thử lại sau ít phút.'
+     }
+
+     if (typeof rawMessage === 'string' && rawMessage.trim().length > 0) {
+          return rawMessage
+     }
+
+     if (Array.isArray(rawMessage)) {
+          const firstMessage = rawMessage.find((item) => typeof item === 'string' && item.trim().length > 0)
+          if (firstMessage) {
+               return firstMessage
+          }
+     }
+
+     const errorMessage = typeof error.message === 'string' ? error.message : ''
+     if (
+          errorMessage.includes('Network Error') ||
+          errorMessage.includes('timeout') ||
+          errorMessage.includes('Request failed with status code')
+     ) {
+          return status === 401
+               ? (isGoogleLogin
+                    ? 'Phiên đăng nhập Google đã hết hạn hoặc không hợp lệ. Vui lòng thử lại.'
+                    : 'Email/số điện thoại hoặc mật khẩu chưa đúng.')
+               : defaultMessage
+     }
+
+     return defaultMessage
+}
+
+const validateLoginInput = (
+     identifier: string,
+     password: string,
+): {
+     field: 'identifier' | 'password'
+     message: string
+} | null => {
+     if (!identifier) {
+          return {
+               field: 'identifier',
+               message: 'Vui lòng nhập email hoặc số điện thoại.',
+          }
+     }
+
+     if (!EMAIL_REGEX.test(identifier) && !PHONE_REGEX.test(identifier)) {
+          return {
+               field: 'identifier',
+               message: 'Email hoặc số điện thoại chưa đúng định dạng.',
+          }
+     }
+
+     if (!password) {
+          return {
+               field: 'password',
+               message: 'Vui lòng nhập mật khẩu.',
+          }
+     }
+
+     if (password.length < 8) {
+          return {
+               field: 'password',
+               message: 'Mật khẩu cần có ít nhất 8 ký tự.',
+          }
+     }
+
+     return null
+}
 
 export default function LoginScreen() {
      const loginMutation = useLogin()
      const googleLogin = useGoogleLogin()
      const router = useRouter()
      const [showPassword, setShowPassword] = React.useState(false)
-     const [keyboardVisible, setKeyboardVisible] = React.useState(false)
+     const scrollRef = React.useRef<ScrollView>(null)
+     const [identifierY, setIdentifierY] = React.useState(0)
+     const [passwordY, setPasswordY] = React.useState(0)
 
-     React.useEffect(() => {
-          const show = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true))
-          const hide = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false))
+     const scrollToInput = (inputY: number) => {
+          if (Platform.OS !== 'android') return
 
-          return () => {
-               show.remove()
-               hide.remove()
-          }
-     }, [])
+          requestAnimationFrame(() => {
+               scrollRef.current?.scrollTo({
+                    y: Math.max(0, inputY - 180),
+                    animated: true,
+               })
+          })
+     }
 
      const handleGoogleLogin = async () => {
           try {
-               await googleLogin.login()
-               router.replace('/(tabs)/home')
-          } catch {
-               Alert.alert('Đăng nhập Google thất bại')
+               const isSuccess = await googleLogin.login()
+               if (isSuccess) {
+                    router.replace('/(tabs)/home')
+               }
+          } catch (error) {
+               Alert.alert('Đăng nhập Google thất bại', getFriendlyAuthErrorMessage(error, true))
           }
      }
 
      return (
           <View style={loginStyles.page}>
-               {!keyboardVisible && (
-                    <Image
-                         source={require('../assets/images/login-frame.png')}
-                         style={loginStyles.loginHeader}
-                         resizeMode='cover'
-                    />
-               )}
+               <Image
+                    source={require('../assets/images/login-frame.png')}
+                    style={loginStyles.loginHeader}
+                    resizeMode='cover'
+               />
                <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    enabled={Platform.OS === 'ios'}
+                    behavior='padding'
                     style={loginStyles.keyboardContainer}
+                    keyboardVerticalOffset={8}
                >
-                    <View style={[loginStyles.contentWrapper, keyboardVisible && loginStyles.contentWrapperKeyboard]}>
-                         <View style={[loginStyles.logoBlock, keyboardVisible && loginStyles.logoBlockKeyboard]}>
-                              <Image
-                                   source={require('../assets/images/app-logo.png')}
-                                   style={loginStyles.pageLogo}
-                                   resizeMode='cover'
-                              />
-                              <PageTitle style={loginStyles.pageTitle}>Chào mừng trở lại!</PageTitle>
-                         </View>
-
-                         <Formik<LoginDTO>
-                              initialValues={{ identifier: '', password: '' }}
-                              onSubmit={async (values) => {
-                                   try {
-                                        await loginMutation.mutateAsync({
-                                             identifier: values.identifier.trim(),
-                                             password: values.password,
-                                        })
-                                        router.replace('/(tabs)/home')
-                                   } catch {
-                                        Alert.alert('Đăng nhập thất bại')
-                                   }
-                              }}
+                    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+                         <ScrollView
+                              ref={scrollRef}
+                              style={loginStyles.scrollView}
+                              contentContainerStyle={loginStyles.contentWrapper}
+                              keyboardShouldPersistTaps='handled'
+                              keyboardDismissMode='on-drag'
+                              showsVerticalScrollIndicator={false}
+                              bounces={false}
                          >
-                              {({ handleChange, handleBlur, handleSubmit, values }) => (
-                                   <View style={loginStyles.inputForm}>
-                                        <InputField
-                                             onChangeText={handleChange('identifier')}
-                                             onBlur={handleBlur('identifier')}
-                                             value={values.identifier}
-                                             placeholder="Nhập email hoặc số điện thoại"
-                                             editable={!loginMutation.isPending}
+                              <View style={loginStyles.animatedContent}>
+                                   <View style={loginStyles.logoBlock}>
+                                        <Image
+                                             source={require('../assets/images/app-logo.png')}
+                                             style={loginStyles.pageLogo}
+                                             resizeMode='cover'
                                         />
-
-                                        <View style={loginStyles.passwordFieldContainer}>
-                                             <InputField
-                                                  onChangeText={handleChange('password')}
-                                                  onBlur={handleBlur('password')}
-                                                  value={values.password}
-                                                  placeholder="Nhập mật khẩu"
-                                                  secureTextEntry={!showPassword}
-                                                  editable={!loginMutation.isPending}
-                                                  style={loginStyles.passwordInput}
-                                             />
-                                             <TouchableOpacity
-                                                  onPress={() => setShowPassword((prev) => !prev)}
-                                                  style={loginStyles.passwordToggleButton}
-                                                  disabled={loginMutation.isPending}
-                                                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                                             >
-                                                  <Ionicons
-                                                       name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                                                       size={22}
-                                                       color={Colors.muted}
-                                                  />
-                                             </TouchableOpacity>
-                                        </View>
-
-                                        <TouchableOpacity
-                                             onPress={() => handleSubmit()}
-                                             style={[
-                                                  loginStyles.loginButton,
-                                                  loginMutation.isPending && loginStyles.loginButtonDisabled
-                                             ]}
-                                             disabled={loginMutation.isPending || googleLogin.loading}
-                                        >
-                                             <Text style={loginStyles.buttonText}>
-                                                  {loginMutation.isPending ? 'Đang đăng nhập...' : 'Đăng nhập'}
-                                             </Text>
-                                        </TouchableOpacity>
-
-                                        <View style={loginStyles.dividerRow}>
-                                             <View style={loginStyles.dividerLine} />
-                                             <Text style={loginStyles.dividerText}>HOẶC</Text>
-                                             <View style={loginStyles.dividerLine} />
-                                        </View>
-
-                                        <TouchableOpacity
-                                             onPress={handleGoogleLogin}
-                                             style={[
-                                                  loginStyles.googleLoginButton,
-                                                  googleLogin.loading && loginStyles.loginButtonDisabled
-                                             ]}
-                                             disabled={googleLogin.loading || loginMutation.isPending}
-                                        >
-                                             <Image
-                                                  source={require('../assets/images/google-logo.png')}
-                                                  style={loginStyles.googleIcon}
-                                                  resizeMode='contain'
-                                             />
-                                             <Text style={loginStyles.googleButtonText}>
-                                                  {googleLogin.loading ? 'Đang đăng nhập Google...' : 'Đăng nhập với Google'}
-                                             </Text>
-                                        </TouchableOpacity>
+                                        <PageTitle style={loginStyles.pageTitle}>Chào mừng trở lại!</PageTitle>
                                    </View>
-                              )}
-                         </Formik>
-                    </View>
+
+                                   <Formik<LoginDTO>
+                                        initialValues={{ identifier: '', password: '' }}
+                                        onSubmit={async (values, { setFieldError, setFieldTouched }) => {
+                                             const normalizedIdentifier = values.identifier.trim()
+                                             const normalizedPassword = values.password.trim()
+                                             const validationMessage = validateLoginInput(normalizedIdentifier, normalizedPassword)
+
+                                             if (validationMessage) {
+                                                  setFieldTouched(validationMessage.field, true, false)
+                                                  setFieldError(validationMessage.field, validationMessage.message)
+                                                  return
+                                             }
+
+                                             try {
+                                                  await loginMutation.mutateAsync({
+                                                       identifier: normalizedIdentifier,
+                                                       password: normalizedPassword,
+                                                  })
+                                                  router.replace('/(tabs)/home')
+                                             } catch (error) {
+                                                  const fieldError = resolveLoginFieldError(error)
+
+                                                  if (fieldError.field) {
+                                                       setFieldTouched(fieldError.field, true, false)
+                                                       setFieldError(fieldError.field, fieldError.message)
+                                                       Alert.alert('Đăng nhập thất bại', fieldError.message)
+                                                       return
+                                                  }
+
+                                                  Alert.alert('Đăng nhập thất bại', fieldError.message)
+                                             }
+                                        }}
+                                   >
+                                        {({
+                                             errors,
+                                             touched,
+                                             setFieldError,
+                                             handleChange,
+                                             handleBlur,
+                                             handleSubmit,
+                                             values,
+                                        }) => (
+                                             <View style={loginStyles.inputForm}>
+                                                  <InputField
+                                                       onLayout={(event) => setIdentifierY(event.nativeEvent.layout.y)}
+                                                       onFocus={() => scrollToInput(identifierY)}
+                                                       onChangeText={(text) => {
+                                                            if (errors.identifier) {
+                                                                 setFieldError('identifier', undefined)
+                                                            }
+                                                            handleChange('identifier')(text)
+                                                       }}
+                                                       onBlur={handleBlur('identifier')}
+                                                       value={values.identifier}
+                                                       placeholder="Nhập email hoặc số điện thoại"
+                                                       editable={!loginMutation.isPending}
+                                                  />
+                                                  {touched.identifier && errors.identifier ? (
+                                                       <Text style={loginStyles.fieldErrorText}>{errors.identifier}</Text>
+                                                  ) : null}
+
+                                                  <View
+                                                       style={loginStyles.passwordFieldContainer}
+                                                       onLayout={(event) => setPasswordY(event.nativeEvent.layout.y)}
+                                                  >
+                                                       <InputField
+                                                            onFocus={() => scrollToInput(passwordY)}
+                                                            onChangeText={(text) => {
+                                                                 if (errors.password) {
+                                                                      setFieldError('password', undefined)
+                                                                 }
+                                                                 handleChange('password')(text)
+                                                            }}
+                                                            onBlur={handleBlur('password')}
+                                                            value={values.password}
+                                                            placeholder="Nhập mật khẩu"
+                                                            secureTextEntry={!showPassword}
+                                                            editable={!loginMutation.isPending}
+                                                            style={loginStyles.passwordInput}
+                                                       />
+                                                       <TouchableOpacity
+                                                            onPress={() => setShowPassword((prev) => !prev)}
+                                                            style={loginStyles.passwordToggleButton}
+                                                            disabled={loginMutation.isPending}
+                                                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                                       >
+                                                            <Ionicons
+                                                                 name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                                                                 size={22}
+                                                                 color={Colors.muted}
+                                                            />
+                                                       </TouchableOpacity>
+                                                  </View>
+                                                  {touched.password && errors.password ? (
+                                                       <Text style={loginStyles.fieldErrorText}>{errors.password}</Text>
+                                                  ) : null}
+
+                                                  <TouchableOpacity
+                                                       onPress={() => handleSubmit()}
+                                                       style={[
+                                                            loginStyles.loginButton,
+                                                            loginMutation.isPending && loginStyles.loginButtonDisabled,
+                                                       ]}
+                                                       disabled={loginMutation.isPending || googleLogin.loading}
+                                                  >
+                                                       <Text style={loginStyles.buttonText}>
+                                                            {loginMutation.isPending ? 'Đang đăng nhập...' : 'Đăng nhập'}
+                                                       </Text>
+                                                  </TouchableOpacity>
+
+                                                  <View style={loginStyles.dividerRow}>
+                                                       <View style={loginStyles.dividerLine} />
+                                                       <Text style={loginStyles.dividerText}>HOẶC</Text>
+                                                       <View style={loginStyles.dividerLine} />
+                                                  </View>
+
+                                                  <TouchableOpacity
+                                                       onPress={handleGoogleLogin}
+                                                       style={[
+                                                            loginStyles.googleLoginButton,
+                                                            googleLogin.loading && loginStyles.loginButtonDisabled,
+                                                       ]}
+                                                       disabled={googleLogin.loading || loginMutation.isPending}
+                                                  >
+                                                       <Image
+                                                            source={require('../assets/images/google-logo.png')}
+                                                            style={loginStyles.googleIcon}
+                                                            resizeMode='contain'
+                                                       />
+                                                       <Text style={loginStyles.googleButtonText}>
+                                                            {googleLogin.loading ? 'Đang đăng nhập Google...' : 'Đăng nhập với Google'}
+                                                       </Text>
+                                                  </TouchableOpacity>
+                                             </View>
+                                        )}
+                                   </Formik>
+                              </View>
+                         </ScrollView>
+                    </TouchableWithoutFeedback>
                </KeyboardAvoidingView>
           </View>
      )
@@ -157,15 +404,19 @@ const loginStyles = StyleSheet.create({
      keyboardContainer: {
           flex: 1
      },
+     scrollView: {
+          flex: 1,
+          zIndex: 2,
+     },
      loginHeader: {
           position: 'absolute',
           top: 0,
           left: 0,
           width: '100%',
-          height: 200,
+          height: 220,
           zIndex: 1,
           borderBottomLeftRadius: 36,
-          borderBottomRightRadius: 36
+          borderBottomRightRadius: 36,
      },
      logoView: {
           flexDirection: 'row',
@@ -192,30 +443,32 @@ const loginStyles = StyleSheet.create({
           padding: 0,
      },
      contentWrapper: {
-          flex: 1,
-          justifyContent: 'flex-end',
-          zIndex: 2,
+          flexGrow: 1,
+          justifyContent: 'flex-start',
           paddingHorizontal: 25,
-          paddingTop: 180,
-          paddingBottom: 24
+          paddingTop: 170,
+          paddingBottom: 32,
      },
-     contentWrapperKeyboard: {
-          paddingTop: 40
+     animatedContent: {
+          flex: 1,
      },
      logoBlock: {
           justifyContent: 'center',
           alignItems: 'center',
-          marginBottom: 30
-     },
-     logoBlockKeyboard: {
-          justifyContent: 'center',
-          alignItems: 'center',
-          marginBottom: 0
+          marginTop: 100,
+          marginBottom: 24,
      },
      inputForm: {
-          marginTop: 24,
+          marginTop: 20,
           flexDirection: 'column',
-          gap: 16
+          gap: 16,
+     },
+     fieldErrorText: {
+          marginTop: -8,
+          color: '#dc2626',
+          fontSize: 12,
+          fontWeight: 500,
+          paddingHorizontal: 4,
      },
      passwordFieldContainer: {
           position: 'relative'
@@ -252,7 +505,7 @@ const loginStyles = StyleSheet.create({
      dividerRow: {
           flexDirection: 'row',
           alignItems: 'center',
-          marginTop: 16
+          marginTop: 12,
      },
      dividerLine: {
           flex: 1,
@@ -270,11 +523,11 @@ const loginStyles = StyleSheet.create({
           flexDirection: 'row',
           justifyContent: 'flex-start',
           alignItems: 'center',
-          marginTop: 8,
+          marginTop: 6,
           backgroundColor: `${Colors.backgroundSecondary}`,
           borderRadius: 12,
           padding: 16,
-          gap: 60
+          gap: 60,
      },
      googleIcon: {
           width: 24,

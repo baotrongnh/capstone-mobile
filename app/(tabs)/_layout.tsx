@@ -1,9 +1,14 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { Tabs } from "expo-router";
+import { Tabs, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
+import { useAuthStore } from "@/stores/auth.store";
+import { ActivityIndicator, Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  FLOATING_TAB_BAR_HEIGHT,
+  FLOATING_TAB_BAR_MIN_BOTTOM_PADDING,
+} from "@/utils/bottomTab";
 
 type TabVisual = {
   label: string
@@ -79,7 +84,7 @@ function FloatingAnimatedTabBar({
     <View
       style={[
         styles.tabBarShell,
-        { paddingBottom: Math.max(insets.bottom, 10) },
+        { paddingBottom: Math.max(insets.bottom, FLOATING_TAB_BAR_MIN_BOTTOM_PADDING) },
       ]}
     >
       <View style={styles.tabBar}>
@@ -176,6 +181,36 @@ function FloatingAnimatedTabBar({
 }
 
 export default function TabLayout() {
+  const router = useRouter();
+  const isHydrated = useAuthStore((state) => state.isHydrated);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const userId = useAuthStore((state) => state.user?.id);
+  const accessToken = useAuthStore((state) => state.tokens?.accessToken);
+  const refreshToken = useAuthStore((state) => state.tokens?.refreshToken);
+
+  const hasSession = Boolean(
+    isAuthenticated && userId && accessToken && refreshToken
+  );
+
+  useEffect(() => {
+    if (!isHydrated) return;
+    if (hasSession) return;
+
+    router.replace("/login");
+  }, [hasSession, isHydrated, router]);
+
+  if (!isHydrated) {
+    return (
+      <View style={styles.authGuardContainer}>
+        <ActivityIndicator size="large" color="#3b82f6" />
+      </View>
+    );
+  }
+
+  if (!hasSession) {
+    return null;
+  }
+
   return (
     <Tabs
       screenOptions={{
@@ -213,6 +248,12 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
+  authGuardContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f8fafc",
+  },
   tabBarShell: {
     position: "absolute",
     left: 0,
@@ -221,7 +262,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   tabBar: {
-    height: 82,
+    height: FLOATING_TAB_BAR_HEIGHT,
     borderRadius: 26,
     backgroundColor: "#ffffff",
     flexDirection: "row",

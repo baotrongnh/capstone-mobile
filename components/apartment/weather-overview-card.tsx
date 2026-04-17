@@ -9,6 +9,10 @@ type WeatherPayload = {
      locationLabel: string
 }
 
+type WeatherOverviewCardProps = {
+     variant?: "card" | "inline"
+}
+
 const weatherCodeText: Record<number, string> = {
      0: "Trời quang",
      1: "Ít mây",
@@ -58,10 +62,11 @@ const buildLocationLabel = (place?: Location.LocationGeocodedAddress) => {
      return "Không xác định vị trí"
 }
 
-export default function WeatherOverviewCard() {
+export default function WeatherOverviewCard({ variant = "card" }: WeatherOverviewCardProps) {
      const [weather, setWeather] = useState<WeatherPayload | null>(null)
      const [loading, setLoading] = useState(true)
      const [errorText, setErrorText] = useState<string | null>(null)
+     const isInline = variant === "inline"
 
      const fetchWeather = useCallback(async () => {
           setLoading(true)
@@ -116,6 +121,15 @@ export default function WeatherOverviewCard() {
      }, [fetchWeather])
 
      if (loading) {
+          if (isInline) {
+               return (
+                    <View style={[styles.inlineWrap, styles.center]}>
+                         <ActivityIndicator size="small" color="#ffffff" />
+                         <Text style={styles.inlineLoadingText}>Đang lấy thời tiết...</Text>
+                    </View>
+               )
+          }
+
           return (
                <View style={[styles.card, styles.center]}>
                     <ActivityIndicator size="small" color="#3b82f6" />
@@ -125,6 +139,17 @@ export default function WeatherOverviewCard() {
      }
 
      if (!weather || errorText) {
+          if (isInline) {
+               return (
+                    <View style={[styles.inlineWrap, styles.center]}>
+                         <Text style={styles.inlineErrorText}>{errorText ?? "Không có dữ liệu thời tiết"}</Text>
+                         <Pressable onPress={fetchWeather} style={styles.inlineRetryLink}>
+                              <Text style={styles.inlineRetryText}>Thử lại</Text>
+                         </Pressable>
+                    </View>
+               )
+          }
+
           return (
                <View style={[styles.card, styles.center]}>
                     <Text style={styles.errorText}>{errorText ?? "Không có dữ liệu thời tiết"}</Text>
@@ -138,6 +163,23 @@ export default function WeatherOverviewCard() {
      const weatherText = weatherCodeText[weather.weatherCode] ?? "Thời tiết ổn định"
      const iconName = weatherCodeIcon(weather.weatherCode)
      const iconColor = weatherCodeColor(weather.weatherCode)
+
+     if (isInline) {
+          return (
+               <View style={styles.inlineWrap}>
+                    <View style={styles.inlineMain}>
+                         <MaterialCommunityIcons name={iconName} size={18} color="#ffffff" />
+
+                         <View style={styles.inlineBody}>
+                              <Text style={styles.inlineTemperature}>{weather.temperature}°C</Text>
+                              <Text numberOfLines={1} style={styles.inlineWeatherText}>
+                                   {weatherText}
+                              </Text>
+                         </View>
+                    </View>
+               </View>
+          )
+     }
 
      return (
           <View style={styles.card}>
@@ -219,10 +261,23 @@ const styles = StyleSheet.create({
           fontSize: 13,
           color: "#64748b",
      },
+     inlineLoadingText: {
+          color: "#ffffff",
+          fontWeight: "600",
+     },
      errorText: {
           fontSize: 13,
           color: "#b91c1c",
           fontWeight: "600",
+     },
+     inlineErrorText: {
+          color: "#ffffff",
+          fontSize: 12,
+     },
+     inlineRetryLink: {
+          marginTop: 2,
+          paddingHorizontal: 4,
+          paddingVertical: 2,
      },
      retryButton: {
           paddingHorizontal: 12,
@@ -234,5 +289,43 @@ const styles = StyleSheet.create({
           color: "#ffffff",
           fontSize: 12,
           fontWeight: "700",
+     },
+     inlineRetryText: {
+          color: "#ffffff",
+          fontSize: 12,
+          fontWeight: "700",
+          textDecorationLine: "underline",
+     },
+     inlineWrap: {
+          minHeight: 36,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 8,
+     },
+     inlineMain: {
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 6,
+          flex: 1,
+          minWidth: 0,
+     },
+     inlineBody: {
+          flex: 1,
+          minWidth: 0,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 6,
+     },
+     inlineTemperature: {
+          fontSize: 17,
+          fontWeight: "800",
+          color: "#ffffff",
+     },
+     inlineWeatherText: {
+          fontSize: 12,
+          color: "rgba(255,255,255,0.92)",
+          fontWeight: "500",
+          flexShrink: 1,
      },
 })
