@@ -1596,7 +1596,7 @@ export interface paths {
         patch: operations["IoTController_unlinkBoardsByApartment"];
         trace?: never;
     };
-    "/api/v1/iot/boards/{boardId}/unlink-apartment": {
+    "/api/v1/iot/boards/{boardId}/devices": {
         parameters: {
             query?: never;
             header?: never;
@@ -1610,8 +1610,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Remove apartment link from a board and its child devices */
-        patch: operations["IoTController_unlinkBoardApartment"];
+        patch?: never;
         trace?: never;
     };
     "/api/v1/iot/doors/{boardId}/{deviceId}/unlock": {
@@ -1764,11 +1763,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * Get apartments assigned to current user
-         * @description Tra ve danh sach user-apartment cua user hien tai, bao gom day du thong tin apartment va thong tin truy cap.
-         */
-        get: operations["UserApartmentsController_findMy"];
+        get?: never;
         put?: never;
         post?: never;
         delete?: never;
@@ -1878,8 +1873,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Update apartment-policy assignment */
-        patch: operations["ApartmentPoliciesController_update"];
+        patch?: never;
         trace?: never;
     };
     "/api/v1/reservations": {
@@ -1929,11 +1923,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Bulk assign policy to apartments
-         * @description Assign a policy to multiple apartments at once
-         */
-        post: operations["ApartmentPoliciesController_bulkAssign"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2018,11 +2008,7 @@ export interface paths {
          */
         get: operations["ChatController_getMessages"];
         put?: never;
-        /**
-         * Create or resume a chat conversation
-         * @description REST alternative to socket event chat:create_conversation. Logged-in users and guests with an existing session will reuse their latest non-archived conversation instead of creating a new one.
-         */
-        post: operations["ChatController_createConversation"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2036,8 +2022,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get conversation detail */
-        get: operations["ChatController_getConversation"];
+        get?: never;
         put?: never;
         post?: never;
         delete?: never;
@@ -7002,6 +6987,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
+                content?: never;
             };
         };
     };
@@ -7076,27 +7062,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": {
-                        /** @example 200 */
-                        statusCode?: number;
-                        /** @example Success */
-                        message?: string;
-                        data?: components["schemas"]["UserListItemDto"][];
-                        meta?: {
-                            /** @example 2026-02-26T10:21:00.000Z */
-                            timestamp?: string;
-                            /** @example 25 */
-                            total?: number;
-                            /** @example 1 */
-                            page?: number;
-                            /** @example 10 */
-                            limit?: number;
-                            /** @example 3 */
-                            totalPages?: number;
-                        };
-                    };
-                };
+                content?: never;
             };
         };
     };
@@ -7232,23 +7198,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        /** @description Upload front and back identity card images for AI to extract information. Images are NOT stored. */
-        requestBody: {
-            content: {
-                "multipart/form-data": {
-                    /**
-                     * Format: binary
-                     * @description Front image of identity card (required) - JPEG, PNG, or WebP
-                     */
-                    identityCardFront: string;
-                    /**
-                     * Format: binary
-                     * @description Back image of identity card (required) - JPEG, PNG, or WebP
-                     */
-                    identityCardBack: string;
-                };
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description User/Staff/Operator/Admin profile */
             200: {
@@ -7257,7 +7207,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 201 */
+                        /** @example 200 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -7417,9 +7367,7 @@ export interface operations {
                 limit?: number;
             };
             header?: never;
-            path: {
-                id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -7436,9 +7384,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody: {
@@ -7525,25 +7471,12 @@ export interface operations {
                 limit?: number;
             };
             header?: never;
-            path: {
-                id: string;
-            };
+            path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateUserDto"];
-            };
-        };
+        requestBody?: never;
         responses: {
             200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description User not found */
-            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7562,9 +7495,7 @@ export interface operations {
             content: {
                 "application/json": components["schemas"]["CreateOperatorDto"];
             };
-            cookie?: never;
         };
-        requestBody?: never;
         responses: {
             201: {
                 headers: {
@@ -7761,7 +7692,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                contractId: string;
+                id: string;
             };
             cookie?: never;
         };
@@ -7827,11 +7758,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "multipart/form-data": components["schemas"]["CreateApartmentRequestDto"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Paginated apartment search results */
             200: {
@@ -7840,7 +7767,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 201 */
+                        /** @example 200 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -8213,7 +8140,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
         requestBody: {
@@ -8451,7 +8380,6 @@ export interface operations {
                         };
                     };
                 };
-                content?: never;
             };
         };
     };
@@ -8476,12 +8404,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                id: string;
-            };
+            path?: never;
             cookie?: never;
         };
-        /** @description Upload a signed contract PDF file */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["CreateNotificationDto"];
@@ -8495,7 +8420,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 200 */
+                        /** @example 201 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -8560,17 +8485,10 @@ export interface operations {
                 limit?: number;
             };
             header?: never;
-            path: {
-                id: string;
-            };
+            path?: never;
             cookie?: never;
         };
-        /** @description Partner upload signed cooperation contract PDF */
-        requestBody: {
-            content: {
-                "multipart/form-data": components["schemas"]["SignCooperationContractDto"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Paginated list of contracts */
             200: {
@@ -8579,7 +8497,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 201 */
+                        /** @example 200 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -8656,7 +8574,6 @@ export interface operations {
                         };
                     };
                 };
-                content?: never;
             };
             /** @description Contract not found */
             404: {
@@ -8717,9 +8634,7 @@ export interface operations {
                 token: string;
             };
             header?: never;
-            path: {
-                id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -8740,13 +8655,6 @@ export interface operations {
             };
             /** @description Contract or PDF not found */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Contract cannot be cancelled */
-            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8774,13 +8682,6 @@ export interface operations {
             };
             /** @description Contract or PDF not found */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Cannot renew contract due to status or date overlap */
-            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8844,20 +8745,6 @@ export interface operations {
                 content?: never;
             };
             /** @description Contract PDF already uploaded */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Contract not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Contract cannot be activated because it is expired, invalid status, or deposit not paid */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -8970,27 +8857,6 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Invalid or unverified CCCD */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Contract not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Contract cannot add members */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
         };
     };
     ContractsController_cancelCooperationContract: {
@@ -9000,8 +8866,6 @@ export interface operations {
             path: {
                 id: string;
             };
-            header?: never;
-            path?: never;
             cookie?: never;
         };
         requestBody: {
@@ -9116,8 +8980,6 @@ export interface operations {
             path: {
                 id: string;
             };
-            header?: never;
-            path?: never;
             cookie?: never;
         };
         requestBody: {
@@ -9141,14 +9003,6 @@ export interface operations {
                         meta?: {
                             /** @example 2026-02-26T10:21:00.000Z */
                             timestamp?: string;
-                            /** @example 25 */
-                            total?: number;
-                            /** @example 1 */
-                            page?: number;
-                            /** @example 10 */
-                            limit?: number;
-                            /** @example 3 */
-                            totalPages?: number;
                         };
                     };
                 };
@@ -9202,14 +9056,6 @@ export interface operations {
                         meta?: {
                             /** @example 2026-02-26T10:21:00.000Z */
                             timestamp?: string;
-                            /** @example 25 */
-                            total?: number;
-                            /** @example 1 */
-                            page?: number;
-                            /** @example 10 */
-                            limit?: number;
-                            /** @example 3 */
-                            totalPages?: number;
                         };
                     };
                 };
@@ -9243,9 +9089,7 @@ export interface operations {
             content: {
                 "application/json": components["schemas"]["CancelContractDto"];
             };
-            cookie?: never;
         };
-        requestBody?: never;
         responses: {
             /** @description Contract cancelled by user */
             200: {
@@ -9304,7 +9148,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 201 */
+                        /** @example 200 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -9356,11 +9200,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SimulatePaymentSuccessDto"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Paginated list of invoices */
             200: {
@@ -9381,12 +9221,6 @@ export interface operations {
                     };
                 };
             };
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
         };
     };
     InvoicesController_findOne: {
@@ -9396,8 +9230,6 @@ export interface operations {
             path: {
                 id: string;
             };
-            header?: never;
-            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -9496,7 +9328,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 201 */
+                        /** @example 200 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -9564,7 +9396,6 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        /** @description Create maintenance request with optional issue images */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["CreatePayOSPaymentLinkDto"];
@@ -9599,8 +9430,6 @@ export interface operations {
             path: {
                 invoiceId: string;
             };
-            header?: never;
-            path?: never;
             cookie?: never;
         };
         requestBody: {
@@ -9624,14 +9453,6 @@ export interface operations {
                         meta?: {
                             /** @example 2026-02-26T10:21:00.000Z */
                             timestamp?: string;
-                            /** @example 25 */
-                            total?: number;
-                            /** @example 1 */
-                            page?: number;
-                            /** @example 10 */
-                            limit?: number;
-                            /** @example 3 */
-                            totalPages?: number;
                         };
                     };
                 };
@@ -9675,22 +9496,13 @@ export interface operations {
                     };
                 };
             };
-            /** @description Request not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
         };
     };
     PaymentsController_confirmPartnerMonthlyPayout: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         /** @description Confirm monthly partner payout and upload transfer proof image (required). */
@@ -9707,7 +9519,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 200 */
+                        /** @example 201 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -9718,13 +9530,6 @@ export interface operations {
                         };
                     };
                 };
-            };
-            /** @description Request not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -9738,11 +9543,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AcceptMaintenanceDto"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Due contract deposit payouts */
             200: {
@@ -9806,17 +9607,10 @@ export interface operations {
                 status?: "submitted" | "acknowledged" | "scheduled" | "in_progress" | "completed" | "cancelled";
             };
             header?: never;
-            path: {
-                id: string;
-            };
+            path?: never;
             cookie?: never;
         };
-        /** @description Complete maintenance request with optional completion images */
-        requestBody: {
-            content: {
-                "multipart/form-data": components["schemas"]["CompleteMaintenanceRequestDto"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description List of maintenance requests */
             200: {
@@ -9837,22 +9631,13 @@ export interface operations {
                     };
                 };
             };
-            /** @description Request not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
         };
     };
     MaintenanceController_create: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         /** @description Create maintenance request with optional issue images */
@@ -9869,7 +9654,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 200 */
+                        /** @example 201 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -9901,11 +9686,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateUserViewingRequestDto"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Paginated maintenance request history */
             200: {
@@ -9914,7 +9695,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 201 */
+                        /** @example 200 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -9938,16 +9719,11 @@ export interface operations {
     };
     MaintenanceController_findOne: {
         parameters: {
-            query?: {
-                /** @description Filter by appointment status */
-                status?: "scheduled" | "confirmed" | "completed" | "cancelled" | "no_show";
-                /** @description Page number */
-                page?: number;
-                /** @description Items per page */
-                limit?: number;
-            };
+            query?: never;
             header?: never;
-            path?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -9967,14 +9743,6 @@ export interface operations {
                         meta?: {
                             /** @example 2026-02-26T10:21:00.000Z */
                             timestamp?: string;
-                            /** @example 25 */
-                            total?: number;
-                            /** @example 1 */
-                            page?: number;
-                            /** @example 10 */
-                            limit?: number;
-                            /** @example 3 */
-                            totalPages?: number;
                         };
                     };
                 };
@@ -9992,7 +9760,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
         requestBody: {
@@ -10031,13 +9801,10 @@ export interface operations {
     };
     MaintenanceController_accept: {
         parameters: {
-            query: {
-                /** @description Date (YYYY-MM-DD) */
-                date: string;
-            };
+            query?: never;
             header?: never;
             path: {
-                apartmentId: string;
+                id: string;
             };
             cookie?: never;
         };
@@ -10072,7 +9839,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
         /** @description Reject maintenance request with optional evidence images */
@@ -10101,27 +9870,15 @@ export interface operations {
                     };
                 };
             };
-            /** @description Current staff is not assigned to this appointment */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Appointment not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
         };
     };
     MaintenanceController_complete: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
         /** @description Complete maintenance request with optional completion images */
@@ -10193,30 +9950,13 @@ export interface operations {
                     };
                 };
             };
-            /** @description Current staff is not assigned to this appointment */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Appointment not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
         };
     };
     ViewingRequestsController_createUserViewingBooking: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                /** @description Appointment ID to cancel */
-                appointmentId: string;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody: {
@@ -10232,7 +9972,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 200 */
+                        /** @example 201 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -10319,11 +10059,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SetDoorPasswordDto"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description List of assigned appointments */
             200: {
@@ -10500,7 +10236,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 201 */
+                        /** @example 200 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -10551,7 +10287,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 201 */
+                        /** @example 200 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -10575,6 +10311,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
+                content?: never;
             };
         };
     };
@@ -10624,9 +10361,7 @@ export interface operations {
             content: {
                 "application/json": components["schemas"]["DirectMqttControlDto"];
             };
-            cookie?: never;
         };
-        requestBody?: never;
         responses: {
             /** @description Returns success only when the board responds with the expected state for this device */
             201: {
@@ -10635,7 +10370,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 200 */
+                        /** @example 201 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -10656,16 +10391,10 @@ export interface operations {
                 status?: "active" | "inactive" | "maintenance" | "error";
             };
             header?: never;
-            path: {
-                boardId: string;
-            };
+            path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateIoTBoardDto"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description List of MQTT boards with grouped devices */
             200: {
@@ -10699,9 +10428,7 @@ export interface operations {
             content: {
                 "application/json": components["schemas"]["CreateIoTBoardDto"];
             };
-            cookie?: never;
         };
-        requestBody?: never;
         responses: {
             /** @description Board created successfully */
             201: {
@@ -10710,7 +10437,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 200 */
+                        /** @example 201 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -10772,11 +10499,7 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateIoTBoardDeviceDto"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Board deactivated successfully */
             200: {
@@ -10785,7 +10508,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 201 */
+                        /** @example 200 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
@@ -11066,7 +10789,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example 201 */
+                        /** @example 200 */
                         statusCode?: number;
                         /** @example Success */
                         message?: string;
