@@ -27,15 +27,19 @@ apiClient.interceptors.request.use(async (config) => {
 
 apiClient.interceptors.response.use(undefined, async (error) => {
   const originalRequest = error.config;
+  const status = error.response?.status;
+  const isAuthEndpoint = originalRequest?.url?.includes("/auth/");
+  const isExpectedAuthError = isAuthEndpoint && (status === 400 || status === 401);
+  const logError = isExpectedAuthError ? console.log : console.error;
 
   // Log detailed error information
-  console.error("=== API Error Details ===");
-  console.error("URL:", originalRequest?.url);
-  console.error("Method:", originalRequest?.method);
-  console.error("Status:", error.response?.status);
-  console.error("Error message:", error.message);
-  console.error("Response data:", error.response?.data);
-  console.error(
+  logError("=== API Error Details ===");
+  logError("URL:", originalRequest?.url);
+  logError("Method:", originalRequest?.method);
+  logError("Status:", status);
+  logError("Error message:", error.message);
+  logError("Response data:", error.response?.data);
+  logError(
     "Network error:",
     !error.response
       ? "YES - Network/Connection Issue"
@@ -44,10 +48,8 @@ apiClient.interceptors.response.use(undefined, async (error) => {
 
   // Skip refresh logic for auth endpoints (login, register, etc.) to avoid
   // premature page reloads that swallow error toasts and network responses.
-  const isAuthEndpoint = originalRequest?.url?.includes("/auth/");
-
   if (
-    error.response?.status === 401 &&
+    status === 401 &&
     !originalRequest._retry &&
     !isAuthEndpoint
   ) {

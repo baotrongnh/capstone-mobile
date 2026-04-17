@@ -15,6 +15,7 @@ export const endpoints = {
   partners: createEndpoints("partners"),
   reservations: createEndpoints("reservations"),
   invoices: createEndpoints("invoices"),
+  payments: createEndpoints("payments"),
   notifications: createEndpoints("notifications"),
   iot: createEndpoints("iot"),
   myApartment: createEndpoints("user-apartments/my"),
