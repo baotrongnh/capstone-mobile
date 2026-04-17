@@ -11,6 +11,7 @@ interface DeviceCardProps {
      onLongPress?: () => void
      loading?: boolean
      disabled?: boolean
+     topic: string
 }
 
 export default function DeviceCard({
@@ -22,6 +23,8 @@ export default function DeviceCard({
      onLongPress,
      loading = false,
      disabled = false,
+     topic
+
 }: DeviceCardProps) {
      const toggleSwitch = () => {
           if (loading || disabled) return
@@ -65,7 +68,10 @@ export default function DeviceCard({
                          <Text numberOfLines={1} style={styles.title}>{title}</Text>
                          {subtitle ? <Text numberOfLines={1} style={styles.subtitle}>{subtitle}</Text> : null}
                          <Text style={[styles.statusText, isOn && styles.statusTextOn]}>
-                              {loading ? "Đang xử lý..." : isOn ? "Đang bật" : "Đang tắt"}
+                              {loading ? "Đang xử lý..." : isOn ?
+                                   (topic === 'curtain' ? 'Đang mở' : "Đang bật") :
+                                   (topic === 'curtain' ? 'Đang đóng' : "Đang tắt")
+                              }
                          </Text>
                     </View>
                )}
