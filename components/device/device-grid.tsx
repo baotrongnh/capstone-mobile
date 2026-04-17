@@ -247,6 +247,7 @@ export default function DeviceGrid({
                                         isOn={device.isOn}
                                         disabled={device.disabled}
                                         loading={Boolean(deviceLoadingMap[device.id])}
+                                        topic={device.payload.topic}
                                         onLongPress={() =>
                                              openRenameModal({
                                                   boardId: device.boardId,
