@@ -4,6 +4,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  RefreshControl,
   StyleSheet,
   Text,
   TextInput,
@@ -37,6 +38,8 @@ export default function ProfileDetails({
   user,
   onSave,
   saving,
+  onRefresh,
+  refreshing,
 }: ProfileDetailsProps) {
   const insets = useSafeAreaInsets();
   const contentBottomPadding = getBottomTabContentPadding(insets.bottom);
@@ -118,6 +121,14 @@ export default function ProfileDetails({
             { paddingBottom: contentBottomPadding },
           ]}
           keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#2563eb"
+              colors={["#2563eb"]}
+            />
+          }
         >
           <Text style={styles.pageSubtitle}>
             Quản lý thông tin cá nhân và xác minh danh tính

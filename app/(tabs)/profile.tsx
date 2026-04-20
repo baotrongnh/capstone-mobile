@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Alert, BackHandler, Text } from "react-native";
+import { Alert, BackHandler, RefreshControl, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Container,
@@ -15,6 +15,8 @@ import { uploadImageFromUri } from "@/utils/uploadFile";
 import { MenuItemData, UserProfileEditableValues } from "@/types/user";
 import { getBottomTabContentPadding } from "@/utils/bottomTab";
 import { toUserText } from "@/utils/user";
+import { userService } from "@/lib/services/user.service";
+import { useQueryClient } from "@tanstack/react-query";
 
 const menuItems: MenuItemData[] = [
   {
@@ -53,14 +55,19 @@ export default function ProfileScreenPage() {
   const insets = useSafeAreaInsets();
   const contentBottomPadding = getBottomTabContentPadding(insets.bottom);
   const user = useAuthStore((state) => state.user);
+  const tokens = useAuthStore((state) => state.tokens);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const setAuth = useAuthStore((state) => state.setAuth);
   const isHydrated = useAuthStore((state) => state.isHydrated);
   const logout = useAuthStore((state) => state.logout);
+  const queryClient = useQueryClient();
   const { mutateAsync: updateUser, isPending: isUpdatingProfile } = useUpdateUser(user?.id ?? "");
   const { mutateAsync: updateUserAvatar } = useUpdateUserAvatar(user?.id ?? "");
 
   const [currentScreen, setCurrentScreen] = useState<string>("main");
   const [localAvatar, setLocalAvatar] = useState<string | null>(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
+  const [refreshingProfile, setRefreshingProfile] = useState(false);
 
   React.useEffect(() => {
     const onBackPress = () => {
@@ -144,6 +151,29 @@ export default function ProfileScreenPage() {
     }
   };
 
+  const handleRefreshProfile = async () => {
+    if (refreshingProfile || !isHydrated || !isAuthenticated || !tokens) {
+      return;
+    }
+
+    try {
+      setRefreshingProfile(true);
+      await queryClient.invalidateQueries({ queryKey: ["user", "profile"] });
+
+      const refreshedUser = await queryClient.fetchQuery({
+        queryKey: ["user", "profile"],
+        queryFn: () => userService.getProfile(),
+      });
+
+      await setAuth(refreshedUser, tokens);
+    } catch (error) {
+      console.error("Profile refresh failed", error);
+      Alert.alert("Làm mới thất bại", "Không thể tải lại thông tin tài khoản. Vui lòng thử lại.");
+    } finally {
+      setRefreshingProfile(false);
+    }
+  };
+
   if (!isHydrated) {
     return (
       <Container>
@@ -167,6 +197,8 @@ export default function ProfileScreenPage() {
         user={user}
         onSave={handleSaveProfile}
         saving={isUpdatingProfile}
+        onRefresh={handleRefreshProfile}
+        refreshing={refreshingProfile}
       />
     );
   }
@@ -191,6 +223,14 @@ export default function ProfileScreenPage() {
       <ScrollContainer
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: contentBottomPadding }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshingProfile}
+            onRefresh={handleRefreshProfile}
+            tintColor="#2563eb"
+            colors={["#2563eb"]}
+          />
+        }
       >
         <ProfileHeader
           name={toUserText(user?.fullName)}
