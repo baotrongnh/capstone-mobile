@@ -1,4 +1,4 @@
-import { getMyUserApartments, getUserApartmentById, updateMyHousePassword } from "@/lib/services/userApartment.service"
+import { getIotBoards, getMyUserApartments, getUserApartmentById, updateDoorPin } from "@/lib/services/userApartment.service"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { AxiosError } from "axios"
 
@@ -17,13 +17,22 @@ export const useUserApartmentDetail = (id: string) => {
     })
 }
 
-export const useUpdateMyHousePassword = () => {
+export const useIotBoardsByApartment = (apartmentId?: string) => {
+    return useQuery({
+        queryKey: ['iot-boards', 'by-apartment', apartmentId],
+        queryFn: () => getIotBoards({ apartmentId }),
+        enabled: Boolean(apartmentId),
+    })
+}
+
+export const useUpdateDoorPin = () => {
     const queryClient = useQueryClient()
 
     return useMutation({
-        mutationFn: updateMyHousePassword,
+        mutationFn: updateDoorPin,
         onSuccess: (res) => {
             queryClient.invalidateQueries({ queryKey: ['user-apartments'] })
+            queryClient.invalidateQueries({ queryKey: ['iot-boards'] })
             console.log(res)
         },
         onError: (error: AxiosError) => {
@@ -31,3 +40,5 @@ export const useUpdateMyHousePassword = () => {
         },
     })
 }
+
+export const useUpdateMyHousePassword = useUpdateDoorPin

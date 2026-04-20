@@ -128,7 +128,10 @@ export default function InvoiceDetailScreen() {
     const invoiceStatus = String(invoice?.status || '').toLowerCase()
     const canPayNow = ['issued', 'overdue'].includes(invoiceStatus)
 
-    const contentItems: InvoiceDetailContentItem[] = invoice?.invoiceContent?.items ?? []
+    const contentItems = useMemo<InvoiceDetailContentItem[]>(
+        () => invoice?.invoiceContent?.items ?? [],
+        [invoice?.invoiceContent?.items]
+    )
 
     const overviewRows = useMemo(() => {
         if (!invoice) return [] as { label: string; value: React.ReactNode }[]

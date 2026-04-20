@@ -52,6 +52,18 @@ export const toDisplayText = (value: unknown, fallback = EMPTY_TEXT): string => 
     return fallback
 }
 
+export const hasDisplayValue = (value: unknown): boolean => {
+    if (value === null || value === undefined) {
+        return false
+    }
+
+    if (typeof value === "string") {
+        return value.trim().length > 0
+    }
+
+    return true
+}
+
 export const toReadableStatus = (value: unknown, fallback = EMPTY_TEXT): string => {
     const text = toDisplayText(value, fallback)
     if (text === fallback) return text
@@ -100,6 +112,28 @@ export const formatArea = (value: unknown): string => {
     return `${parsed.toLocaleString("vi-VN")} m2`
 }
 
+export const formatFurnishing = (value: unknown): string => {
+    if (typeof value !== "string" || value.trim().length === 0) {
+        return EMPTY_TEXT
+    }
+
+    const normalized = value.trim().toLowerCase()
+
+    if (normalized === "fully_furnished") {
+        return "Đầy đủ nội thất"
+    }
+
+    if (normalized === "semi_furnished") {
+        return "Nội thất cơ bản"
+    }
+
+    if (normalized === "unfurnished") {
+        return "Không nội thất"
+    }
+
+    return value.replace(/_/g, " ")
+}
+
 export const formatAmenities = (value: unknown): string[] => {
     if (!Array.isArray(value)) return []
 
@@ -129,7 +163,7 @@ export const maskSecret = (value: unknown): string => {
 }
 
 export const isValidHousePassword = (value: string): boolean => {
-    return /^\d{4,12}$/.test(value)
+    return /^\d{6}$/.test(value)
 }
 
 export const getApiErrorMessage = (error: unknown, fallback = "Đã xảy ra lỗi. Vui lòng thử lại."): string => {

@@ -34,11 +34,13 @@ export type ApartmentHeaderProps = {
 
 export type ChangeHousePasswordModalProps = {
     visible: boolean
+    oldHousePassword: string
     newHousePassword: string
     confirmNewHousePassword: string
     isUpdating: boolean
     helperText?: string
     passwordLength?: number
+    onChangeOldPassword: (value: string) => void
     onChangeNewPassword: (value: string) => void
     onChangeConfirmPassword: (value: string) => void
     onClose: () => void
