@@ -1,9 +1,45 @@
 import AuthProvider from "@/components/providers/auth-provider";
 import ReactQueryProvider from "@/components/providers/react-query-provider";
+import {
+  getNotificationsModule,
+  isPushNotificationSupported,
+} from "@/utils/pushNotification";
 import { Stack } from "expo-router";
+import React from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function RootLayout() {
+  React.useEffect(() => {
+    let mounted = true;
+
+    const configureNotificationHandler = async () => {
+      if (!isPushNotificationSupported()) {
+        return;
+      }
+
+      const Notifications = await getNotificationsModule();
+
+      if (!mounted || !Notifications) {
+        return;
+      }
+
+      Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowBanner: true,
+          shouldShowList: true,
+          shouldPlaySound: true,
+          shouldSetBadge: false,
+        }),
+      });
+    };
+
+    void configureNotificationHandler();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ReactQueryProvider>

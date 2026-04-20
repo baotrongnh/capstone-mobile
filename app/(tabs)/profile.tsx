@@ -1,55 +1,23 @@
+import { PROFILE_MENU_ITEMS } from "@/constants/profile";
+import { useUpdateUser, useUpdateUserAvatar } from "@/hooks/query/useUser";
+import { userService } from "@/lib/services/user.service";
+import { useAuthStore } from "@/stores/auth.store";
+import { UserProfileEditableValues } from "@/types/user";
+import { getBottomTabContentPadding } from "@/utils/bottomTab";
+import { uploadImageFromUri } from "@/utils/uploadFile";
+import { toUserText } from "@/utils/user";
+import { useQueryClient } from "@tanstack/react-query";
 import React, { useState } from "react";
 import { Alert, BackHandler, RefreshControl, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Container,
-  ScrollContainer,
+  ProfileDetails,
   ProfileHeader,
   ProfileMenu,
-  ProfileDetails,
-  PushNotifications,
+  ScrollContainer,
+  Settings
 } from "../../components/profile";
-import { useAuthStore } from "@/stores/auth.store";
-import { useUpdateUser, useUpdateUserAvatar } from "@/hooks/query/useUser";
-import { uploadImageFromUri } from "@/utils/uploadFile";
-import { MenuItemData, UserProfileEditableValues } from "@/types/user";
-import { getBottomTabContentPadding } from "@/utils/bottomTab";
-import { toUserText } from "@/utils/user";
-import { userService } from "@/lib/services/user.service";
-import { useQueryClient } from "@tanstack/react-query";
-
-const menuItems: MenuItemData[] = [
-  {
-    id: "profile-details",
-    label: "Thông tin tài khoản",
-    icon: "person",
-    screen: "profile-details",
-  },
-  {
-    id: "settings",
-    label: "Cài đặt",
-    icon: "settings",
-    screen: "settings",
-  },
-  {
-    id: "push-notifications",
-    label: "Thông báo đẩy",
-    icon: "notifications",
-    screen: "push-notifications",
-  },
-  {
-    id: "support",
-    label: "Hỗ trợ",
-    icon: "help-circle",
-    screen: "support",
-  },
-  {
-    id: "logout",
-    label: "Đăng xuất",
-    icon: "log-out",
-    screen: "logout",
-  },
-];
 
 export default function ProfileScreenPage() {
   const insets = useSafeAreaInsets();
@@ -144,7 +112,7 @@ export default function ProfileScreenPage() {
           style: "destructive",
         },
       ]);
-    } else if (screen === "settings" || screen === "support") {
+    } else if (screen === "support") {
       Alert.alert("Thông báo", "Tính năng này sẽ được cập nhật sớm.");
     } else {
       setCurrentScreen(screen);
@@ -203,8 +171,9 @@ export default function ProfileScreenPage() {
     );
   }
 
-  if (currentScreen === "push-notifications") {
-    return <PushNotifications onBack={() => setCurrentScreen("main")} />;
+
+  if (currentScreen === "settings") {
+    return <Settings onBack={() => setCurrentScreen("main")} />;
   }
 
   return (
@@ -240,7 +209,7 @@ export default function ProfileScreenPage() {
           avatarUploading={avatarUploading}
           onAvatarChange={handleAvatarChange}
         />
-        <ProfileMenu items={menuItems} onMenuPress={handleMenuPress} />
+        <ProfileMenu items={PROFILE_MENU_ITEMS} onMenuPress={handleMenuPress} />
       </ScrollContainer>
     </Container>
   );
