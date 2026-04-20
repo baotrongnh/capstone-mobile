@@ -1142,6 +1142,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/payments/payos/webhook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Receive PayOS payment webhook
+         * @description Public callback endpoint used by PayOS to confirm payment results.
+         */
+        post: operations["PaymentsController_handlePayOSWebhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/payments/invoice/{invoiceId}/mock-success": {
         parameters: {
             query?: never;
@@ -7919,6 +7939,8 @@ export interface operations {
                 provinceCode?: number;
                 /** @description Ward code filter. */
                 wardCode?: number;
+                /** @description Owner user ID filter. */
+                ownerId?: string;
                 keyword?: string;
                 /** @description Minimum bedrooms */
                 minBedrooms?: number;
@@ -9694,6 +9716,24 @@ export interface operations {
                         };
                     };
                 };
+            };
+        };
+    };
+    PaymentsController_handlePayOSWebhook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Webhook received and processed */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

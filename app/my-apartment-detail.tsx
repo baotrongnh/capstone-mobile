@@ -1,30 +1,35 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons"
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons"
 import ApartmentHeader from "@/components/my-apartment/ApartmentHeader"
 import ChangeHousePasswordModal from "@/components/my-apartment/ChangeHousePasswordModal"
 import DetailRow from "@/components/my-apartment/DetailRow"
 import SectionCard from "@/components/my-apartment/SectionCard"
 import { StyledContainer } from "@/components/styles"
-import { useUpdateMyHousePassword, useUserApartment, useUserApartmentDetail } from "@/hooks/query/useUserApartment"
-import { UserApartmentDetailItem, UserApartmentItem } from "@/types/userApartment"
+import { IOT_TOPIC_ICON_MAP } from "@/constants/myApartment"
+import { useIotBoardsByApartment, useUpdateDoorPin, useUserApartment, useUserApartmentDetail } from "@/hooks/query/useUserApartment"
+import { DoorPinTarget, UserApartmentDetailItem, UserApartmentItem } from "@/types/userApartment"
+import { buildApartmentIotDevices, resolveDoorPinTargetFromBoards } from "@/utils/iot"
+import { formatContractMemberStatus, formatContractMemberType, formatIotState } from "@/utils/myApartment"
 import {
     formatAddress,
     formatArea,
     formatCurrency,
     formatDate,
+    formatFurnishing,
     formatTenantStatus,
     getApartmentStatusMeta,
     getApiErrorMessage,
+    hasDisplayValue,
     isValidHousePassword,
     maskSecret,
     toDisplayText,
 } from "@/utils/userApartment"
-import { Ionicons } from "@expo/vector-icons"
 import { useLocalSearchParams, useRouter } from "expo-router"
-import React, { useMemo, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 import {
     ActivityIndicator,
     Alert,
     BackHandler,
+    Linking,
     Pressable,
     RefreshControl,
     ScrollView,
@@ -38,17 +43,18 @@ export default function MyApartmentDetail() {
     const params = useLocalSearchParams<{ id?: string }>()
     const userApartmentId = typeof params?.id === "string" ? params.id : ""
 
-    const handleBack = () => {
+    const handleBack = useCallback(() => {
         if (router.canGoBack()) {
             router.back()
             return
         }
 
         router.replace("/my-apartments")
-    }
+    }, [router])
 
     const [showDoorPassword, setShowDoorPassword] = useState(false)
     const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
+    const [oldHousePassword, setOldHousePassword] = useState("")
     const [newHousePassword, setNewHousePassword] = useState("")
     const [confirmNewHousePassword, setConfirmNewHousePassword] = useState("")
 
@@ -69,11 +75,38 @@ export default function MyApartmentDetail() {
     } = useUserApartment()
 
     const {
-        mutateAsync: updateHousePassword,
+        mutateAsync: updateDoorPin,
         isPending: isUpdatingHousePassword,
-    } = useUpdateMyHousePassword()
+    } = useUpdateDoorPin()
 
-    React.useEffect(() => {
+    const userApartment = useMemo<UserApartmentDetailItem | undefined>(() => {
+        if (userApartmentId) {
+            return detailData?.data as UserApartmentDetailItem | undefined
+        }
+
+        const firstApartment = myData?.data?.[0] as UserApartmentItem | undefined
+        if (!firstApartment) {
+            return undefined
+        }
+
+        return firstApartment as unknown as UserApartmentDetailItem
+    }, [detailData, myData, userApartmentId])
+
+    const apartmentId = typeof userApartment?.apartmentId === "string" ? userApartment.apartmentId : undefined
+
+    const { data: iotBoardsData, refetch: refetchIotBoards } = useIotBoardsByApartment(apartmentId)
+
+    const iotDevices = useMemo(
+        () => buildApartmentIotDevices(iotBoardsData?.data, apartmentId),
+        [apartmentId, iotBoardsData?.data],
+    )
+
+    const doorPinTarget = useMemo<DoorPinTarget | null>(
+        () => resolveDoorPinTargetFromBoards(iotBoardsData?.data, apartmentId),
+        [apartmentId, iotBoardsData?.data],
+    )
+
+    useEffect(() => {
         const onBackPress = () => {
             if (showChangePasswordModal) {
                 if (isUpdatingHousePassword) {
@@ -90,20 +123,7 @@ export default function MyApartmentDetail() {
 
         const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress)
         return () => subscription.remove()
-    }, [isUpdatingHousePassword, router, showChangePasswordModal])
-
-    const userApartment = useMemo<UserApartmentDetailItem | undefined>(() => {
-        if (userApartmentId) {
-            return detailData?.data as UserApartmentDetailItem | undefined
-        }
-
-        const firstApartment = myData?.data?.[0] as UserApartmentItem | undefined
-        if (!firstApartment) {
-            return undefined
-        }
-
-        return firstApartment as unknown as UserApartmentDetailItem
-    }, [detailData, myData, userApartmentId])
+    }, [handleBack, isUpdatingHousePassword, showChangePasswordModal])
 
     const isLoading = userApartmentId ? isDetailLoading : isMyLoading
     const isRefetching = userApartmentId ? isDetailRefetching : isMyRefetching
@@ -111,7 +131,20 @@ export default function MyApartmentDetail() {
     const error = userApartmentId ? detailError : myError
 
     const apartment = userApartment?.apartment
+    const rentalContract = userApartment?.rentalContract
+    const contractMembers = Array.isArray(rentalContract?.members) ? rentalContract.members : []
     const statusMeta = getApartmentStatusMeta(apartment?.status)
+    const emergencyContactName = userApartment?.emergencyContactName ?? userApartment?.user?.emergencyContactName
+    const emergencyContactPhone = userApartment?.emergencyContactPhone ?? userApartment?.user?.emergencyContactPhone
+    const videoTourUrl = useMemo(() => {
+        if (typeof apartment?.videoTourUrl !== "string") {
+            return null
+        }
+
+        const normalized = apartment.videoTourUrl.trim()
+        return normalized.length > 0 ? normalized : null
+    }, [apartment?.videoTourUrl])
+
     const amenities = useMemo(
         () => {
             const amenityList = apartment?.apartmentAmenities
@@ -160,15 +193,169 @@ export default function MyApartmentDetail() {
 
     const displayedAddress = formatAddress(apartment?.streetAddress, apartment?.wardCode, apartment?.provinceCode)
 
-    const displayedDoorPassword = showDoorPassword
-        ? toDisplayText(userApartment?.apartmentDoorPassword)
-        : maskSecret(userApartment?.apartmentDoorPassword)
+    const shouldShowDoorPassword = hasDisplayValue(userApartment?.apartmentDoorPassword) || Boolean(doorPinTarget)
+
+    const displayedDoorPassword = hasDisplayValue(userApartment?.apartmentDoorPassword)
+        ? showDoorPassword
+            ? toDisplayText(userApartment?.apartmentDoorPassword)
+            : maskSecret(userApartment?.apartmentDoorPassword)
+        : "--"
+
+    const rentalRows = useMemo(() => {
+        const rows: { label: string; value: string }[] = [
+            { label: "Trạng thái cư dân", value: formatTenantStatus(userApartment?.status) },
+            { label: "Cư dân chính", value: userApartment?.isPrimaryTenant ? "Có" : "Không" },
+            { label: "Ngày vào ở", value: formatDate(userApartment?.moveInDate) },
+            { label: "Ngày dự kiến rời đi", value: formatDate(userApartment?.moveOutDate) },
+        ]
+
+        if (hasDisplayValue(userApartment?.rentalContract?.contractNumber)) {
+            rows.push({
+                label: "Số hợp đồng",
+                value: toDisplayText(userApartment?.rentalContract?.contractNumber),
+            })
+        }
+
+        return rows
+    }, [
+        userApartment?.isPrimaryTenant,
+        userApartment?.moveInDate,
+        userApartment?.moveOutDate,
+        userApartment?.rentalContract?.contractNumber,
+        userApartment?.status,
+    ])
+
+    const apartmentRows = useMemo(() => {
+        const rows: { label: string; value: string }[] = [
+            { label: "Mã căn hộ", value: apartmentNumber },
+            { label: "Tòa nhà", value: buildingName },
+            { label: "Địa chỉ", value: displayedAddress },
+        ]
+
+        if (hasDisplayValue(apartment?.floorNumber)) {
+            rows.push({ label: "Tầng", value: toDisplayText(apartment?.floorNumber) })
+        }
+
+        if (hasDisplayValue(apartment?.numberOfBedrooms)) {
+            rows.push({ label: "Phòng ngủ", value: toDisplayText(apartment?.numberOfBedrooms) })
+        }
+
+        if (hasDisplayValue(apartment?.numberOfBathrooms)) {
+            rows.push({ label: "Phòng tắm", value: toDisplayText(apartment?.numberOfBathrooms) })
+        }
+
+        if (hasDisplayValue(apartment?.usableArea)) {
+            rows.push({ label: "Diện tích sử dụng", value: formatArea(apartment?.usableArea) })
+        }
+
+        if (hasDisplayValue(apartment?.totalArea)) {
+            rows.push({ label: "Tổng diện tích", value: formatArea(apartment?.totalArea) })
+        }
+
+        if (hasDisplayValue(apartment?.depositAmount)) {
+            rows.push({ label: "Tiền cọc", value: formatCurrency(apartment?.depositAmount) })
+        }
+
+        if (hasDisplayValue(apartment?.furnishingStatus)) {
+            rows.push({ label: "Nội thất", value: formatFurnishing(apartment?.furnishingStatus) })
+        }
+
+        if (hasDisplayValue(apartment?.yearBuilt)) {
+            rows.push({ label: "Năm xây dựng", value: toDisplayText(apartment?.yearBuilt) })
+        }
+
+        return rows
+    }, [
+        apartment?.depositAmount,
+        apartment?.floorNumber,
+        apartment?.furnishingStatus,
+        apartment?.numberOfBathrooms,
+        apartment?.numberOfBedrooms,
+        apartment?.totalArea,
+        apartment?.usableArea,
+        apartment?.yearBuilt,
+        apartmentNumber,
+        buildingName,
+        displayedAddress,
+    ])
+
+    const accessRows = useMemo(() => {
+        const rows: { label: string; value: string }[] = []
+
+        if (hasDisplayValue(userApartment?.buildingGateCode)) {
+            rows.push({ label: "Mã cổng tòa nhà", value: toDisplayText(userApartment?.buildingGateCode) })
+        }
+
+        if (hasDisplayValue(userApartment?.smartLockPin)) {
+            rows.push({ label: "Mã khóa thông minh", value: toDisplayText(userApartment?.smartLockPin) })
+        }
+
+        if (hasDisplayValue(userApartment?.mailboxCode)) {
+            rows.push({ label: "Mã hộp thư", value: toDisplayText(userApartment?.mailboxCode) })
+        }
+
+        if (hasDisplayValue(userApartment?.parkingAccessCode)) {
+            rows.push({ label: "Mã vào bãi xe", value: toDisplayText(userApartment?.parkingAccessCode) })
+        }
+
+        if (hasDisplayValue(userApartment?.wifiName)) {
+            rows.push({ label: "Wi-Fi", value: toDisplayText(userApartment?.wifiName) })
+        }
+
+        if (hasDisplayValue(userApartment?.wifiPassword)) {
+            rows.push({ label: "Mật khẩu Wi-Fi", value: toDisplayText(userApartment?.wifiPassword) })
+        }
+
+        if (hasDisplayValue(emergencyContactName)) {
+            rows.push({ label: "Liên hệ khẩn cấp", value: toDisplayText(emergencyContactName) })
+        }
+
+        if (hasDisplayValue(emergencyContactPhone)) {
+            rows.push({ label: "SĐT khẩn cấp", value: toDisplayText(emergencyContactPhone) })
+        }
+
+        if (hasDisplayValue(userApartment?.notes)) {
+            rows.push({ label: "Ghi chú", value: toDisplayText(userApartment?.notes) })
+        }
+
+        return rows
+    }, [
+        emergencyContactName,
+        emergencyContactPhone,
+        userApartment?.buildingGateCode,
+        userApartment?.mailboxCode,
+        userApartment?.notes,
+        userApartment?.parkingAccessCode,
+        userApartment?.smartLockPin,
+        userApartment?.wifiName,
+        userApartment?.wifiPassword,
+    ])
 
     const openChangePasswordModal = () => {
+        setOldHousePassword("")
         setNewHousePassword("")
         setConfirmNewHousePassword("")
         setShowChangePasswordModal(true)
     }
+
+    const openVideoTour = useCallback(async () => {
+        if (!videoTourUrl) {
+            return
+        }
+
+        try {
+            const supported = await Linking.canOpenURL(videoTourUrl)
+
+            if (!supported) {
+                Alert.alert("Video tour", "Không thể mở liên kết video tour")
+                return
+            }
+
+            await Linking.openURL(videoTourUrl)
+        } catch {
+            Alert.alert("Video tour", "Không thể mở liên kết video tour")
+        }
+    }, [videoTourUrl])
 
     const closeChangePasswordModal = () => {
         if (isUpdatingHousePassword) {
@@ -178,12 +365,22 @@ export default function MyApartmentDetail() {
     }
 
     const submitChangePassword = async () => {
-        if (!userApartment?.id) {
+        if (!apartmentId) {
+            return
+        }
+
+        if (!isValidHousePassword(oldHousePassword)) {
+            Alert.alert("Thông báo", "Mật khẩu hiện tại phải gồm 6 chữ số")
             return
         }
 
         if (!isValidHousePassword(newHousePassword)) {
-            Alert.alert("Thông báo", "Mật khẩu nhà phải là 4-12 chữ số")
+            Alert.alert("Thông báo", "Mật khẩu mới phải gồm 6 chữ số")
+            return
+        }
+
+        if (oldHousePassword === newHousePassword) {
+            Alert.alert("Thông báo", "Mật khẩu mới phải khác mật khẩu hiện tại")
             return
         }
 
@@ -193,13 +390,30 @@ export default function MyApartmentDetail() {
         }
 
         try {
-            await updateHousePassword({
-                id: String(userApartment.id),
-                payload: { housePassword: newHousePassword },
+            let target = doorPinTarget
+
+            if (!target) {
+                const latestBoards = await refetchIotBoards()
+                target = resolveDoorPinTargetFromBoards(latestBoards.data?.data, apartmentId)
+            }
+
+            if (!target) {
+                Alert.alert("Thông báo", "Không tìm thấy thiết bị cửa để đổi mật khẩu")
+                return
+            }
+
+            await updateDoorPin({
+                boardId: target.boardId,
+                deviceId: target.deviceId,
+                payload: {
+                    oldPin: oldHousePassword,
+                    newPin: newHousePassword,
+                },
             })
 
             setShowDoorPassword(false)
             setShowChangePasswordModal(false)
+            setOldHousePassword("")
             setNewHousePassword("")
             setConfirmNewHousePassword("")
             Alert.alert("Thành công", "Đã đổi mật khẩu cửa nhà")
@@ -261,67 +475,118 @@ export default function MyApartmentDetail() {
                             apartmentImages={apartmentImages}
                         />
                         <SectionCard title="Thông tin thuê">
-                            <DetailRow label="Trạng thái cư dân" value={formatTenantStatus(userApartment.status)} />
-                            <DetailRow label="Ngày vào ở" value={formatDate(userApartment.moveInDate)} />
-                            <DetailRow label="Ngày dự kiến rời đi" value={formatDate(userApartment.moveOutDate)} />
-                            <DetailRow
-                                label="Số hợp đồng"
-                                value={toDisplayText(userApartment.rentalContract?.contractNumber)}
-                            />
+                            {rentalRows.map((row) => (
+                                <DetailRow key={row.label} label={row.label} value={row.value} />
+                            ))}
                         </SectionCard>
+
+                        {contractMembers.length > 0 ? (
+                            <SectionCard title="Thành viên hợp đồng">
+                                <View style={styles.contractMembersList}>
+                                    {contractMembers.map((member, index) => (
+                                        <View
+                                            key={String(member.id ?? `${member.user?.id ?? "member"}-${index}`)}
+                                            style={styles.contractMemberCard}
+                                        >
+                                            <Text style={styles.contractMemberName}>
+                                                {toDisplayText(member.user?.fullName, "Thành viên")}
+                                            </Text>
+                                            <Text style={styles.contractMemberMeta}>
+                                                {toDisplayText(member.user?.phone)}
+                                            </Text>
+                                            <Text style={styles.contractMemberMeta}>
+                                                {formatContractMemberType(member.memberType)} - {formatContractMemberStatus(member.status)}
+                                            </Text>
+                                        </View>
+                                    ))}
+                                </View>
+                            </SectionCard>
+                        ) : null}
 
                         <SectionCard title="Thông tin căn hộ">
-                            <DetailRow label="Mã căn hộ" value={apartmentNumber} />
-                            <DetailRow label="Tòa nhà" value={buildingName} />
-                            <DetailRow label="Tầng" value={toDisplayText(apartment?.floorNumber)} />
-                            <DetailRow label="Địa chỉ" value={displayedAddress} />
-                            <DetailRow label="Phòng ngủ" value={toDisplayText(apartment?.numberOfBedrooms)} />
-                            <DetailRow label="Phòng tắm" value={toDisplayText(apartment?.numberOfBathrooms)} />
-                            <DetailRow label="Tổng diện tích" value={formatArea(apartment?.totalArea)} />
-                            <DetailRow label="Diện tích sử dụng" value={formatArea(apartment?.usableArea)} />
-                            <DetailRow label="Tiền thuê" value={formatCurrency(apartment?.baseRentPrice)} />
-                            <DetailRow label="Tiền cọc" value={formatCurrency(apartment?.depositAmount)} />
-                            <DetailRow label="Năm xây dựng" value={toDisplayText(apartment?.yearBuilt)} />
-                            <DetailRow label="Nội thất" value={toDisplayText(apartment?.furnishingStatus)} />
+                            {apartmentRows.map((row) => (
+                                <DetailRow key={row.label} label={row.label} value={row.value} />
+                            ))}
                         </SectionCard>
 
-                        <SectionCard title="Thông tin truy cập">
-                            <View style={styles.passwordRow}>
-                                <View style={styles.passwordInfo}>
-                                    <Text style={styles.passwordLabel}>Mật khẩu cửa</Text>
-                                    <Text style={styles.passwordValue}>{displayedDoorPassword}</Text>
+                        {iotDevices.length > 0 ? (
+                            <SectionCard title="Thiết bị IoT">
+                                <View style={styles.iotDevicesList}>
+                                    {iotDevices.map((device) => {
+                                        const stateMeta = formatIotState(device.state)
+                                        const topicIcon = (IOT_TOPIC_ICON_MAP[device.normalizedTopic] ?? IOT_TOPIC_ICON_MAP.unknown) as keyof typeof MaterialCommunityIcons.glyphMap
+
+                                        return (
+                                            <View key={device.key} style={styles.iotDeviceCard}>
+                                                <View style={styles.iotDeviceIconWrap}>
+                                                    <MaterialCommunityIcons name={topicIcon} size={18} color="#2563eb" />
+                                                </View>
+
+                                                <View style={styles.iotDeviceBody}>
+                                                    <Text style={styles.iotDeviceName}>{toDisplayText(device.deviceName, "Thiết bị IoT")}</Text>
+                                                    <Text style={styles.iotDeviceSub}>Board: {toDisplayText(device.boardId)}</Text>
+                                                </View>
+
+                                                <View style={[styles.iotDeviceStateBadge, stateMeta.isOn ? styles.iotStateOn : styles.iotStateOff]}>
+                                                    <Text style={[styles.iotDeviceStateText, stateMeta.isOn ? styles.iotStateOnText : styles.iotStateOffText]}>
+                                                        {stateMeta.label}
+                                                    </Text>
+                                                </View>
+                                            </View>
+                                        )
+                                    })}
                                 </View>
+                            </SectionCard>
+                        ) : null}
 
-                                <View style={styles.passwordActions}>
-                                    <Pressable
-                                        style={styles.iconActionButton}
-                                        onPress={() => setShowDoorPassword((prev) => !prev)}
-                                    >
-                                        <MaterialCommunityIcons
-                                            name={showDoorPassword ? "eye-off-outline" : "eye-outline"}
-                                            size={18}
-                                            color="#1e40af"
-                                        />
-                                    </Pressable>
-                                    <Pressable style={styles.changePasswordButton} onPress={openChangePasswordModal}>
-                                        <MaterialCommunityIcons name="lock-reset" size={16} color="#1e40af" />
-                                        <Text style={styles.changePasswordButtonText}>Đổi mật khẩu</Text>
-                                    </Pressable>
-                                </View>
-                            </View>
+                        {videoTourUrl ? (
+                            <SectionCard title="Video tour">
+                                <Text style={styles.videoTourDescription}>Khám phá căn hộ qua video tham quan trực tuyến.</Text>
+                                <Pressable style={styles.videoTourButton} onPress={() => void openVideoTour()}>
+                                    <MaterialCommunityIcons name="play-circle-outline" size={20} color="#1e40af" />
+                                    <Text style={styles.videoTourButtonText}>Xem video tour</Text>
+                                </Pressable>
+                                <Text numberOfLines={1} style={styles.videoTourUrlText}>{videoTourUrl}</Text>
+                            </SectionCard>
+                        ) : null}
 
-                            <DetailRow label="Mã cổng tòa nhà" value={toDisplayText(userApartment.buildingGateCode)} />
-                            <DetailRow label="Mã khóa thông minh" value={toDisplayText(userApartment.smartLockPin)} />
-                            <DetailRow label="Mã hộp thư" value={toDisplayText(userApartment.mailboxCode)} />
-                            <DetailRow label="Mã vào bãi xe" value={toDisplayText(userApartment.parkingAccessCode)} />
-                            <DetailRow label="Wi-Fi" value={toDisplayText(userApartment.wifiName)} />
-                            <DetailRow label="Mật khẩu Wi-Fi" value={toDisplayText(userApartment.wifiPassword)} />
-                            <DetailRow label="Liên hệ khẩn cấp" value={toDisplayText(userApartment.emergencyContactName)} />
-                            <DetailRow label="SĐT khẩn cấp" value={toDisplayText(userApartment.emergencyContactPhone)} />
-                        </SectionCard>
+                        {(shouldShowDoorPassword || accessRows.length > 0) ? (
+                            <SectionCard title="Thông tin truy cập">
+                                {shouldShowDoorPassword ? (
+                                    <View style={styles.passwordRow}>
+                                        <View style={styles.passwordInfo}>
+                                            <Text style={styles.passwordLabel}>Mật khẩu cửa</Text>
+                                            <Text style={styles.passwordValue}>{displayedDoorPassword}</Text>
+                                        </View>
 
-                        <SectionCard title="Tiện ích">
-                            {amenities.length > 0 ? (
+                                        <View style={styles.passwordActions}>
+                                            <Pressable
+                                                style={styles.iconActionButton}
+                                                onPress={() => setShowDoorPassword((prev) => !prev)}
+                                                hitSlop={8}
+                                            >
+                                                <MaterialCommunityIcons
+                                                    name={showDoorPassword ? "eye-off-outline" : "eye-outline"}
+                                                    size={18}
+                                                    color="#1e40af"
+                                                />
+                                            </Pressable>
+                                            <Pressable style={styles.changePasswordButton} onPress={openChangePasswordModal}>
+                                                <MaterialCommunityIcons name="lock-reset" size={16} color="#1e40af" />
+                                                <Text style={styles.changePasswordButtonText}>Đổi mật khẩu nhà</Text>
+                                            </Pressable>
+                                        </View>
+                                    </View>
+                                ) : null}
+
+                                {accessRows.map((row) => (
+                                    <DetailRow key={row.label} label={row.label} value={row.value} />
+                                ))}
+                            </SectionCard>
+                        ) : null}
+
+                        {amenities.length > 0 ? (
+                            <SectionCard title="Tiện ích">
                                 <View style={styles.amenitiesContainer}>
                                     {amenities.map((item) => (
                                         <View key={item} style={styles.amenityChip}>
@@ -329,14 +594,14 @@ export default function MyApartmentDetail() {
                                         </View>
                                     ))}
                                 </View>
-                            ) : (
-                                <Text style={styles.emptyText}>Chưa có thông tin tiện ích</Text>
-                            )}
-                        </SectionCard>
+                            </SectionCard>
+                        ) : null}
 
-                        <SectionCard title="Mô tả">
-                            <Text style={styles.descriptionText}>{toDisplayText(apartment?.description)}</Text>
-                        </SectionCard>
+                        {hasDisplayValue(apartment?.description) ? (
+                            <SectionCard title="Mô tả">
+                                <Text style={styles.descriptionText}>{toDisplayText(apartment?.description)}</Text>
+                            </SectionCard>
+                        ) : null}
                     </>
                 ) : (
                     <View style={styles.stateCard}>
@@ -366,9 +631,11 @@ export default function MyApartmentDetail() {
 
             <ChangeHousePasswordModal
                 visible={showChangePasswordModal}
+                oldHousePassword={oldHousePassword}
                 newHousePassword={newHousePassword}
                 confirmNewHousePassword={confirmNewHousePassword}
                 isUpdating={isUpdatingHousePassword}
+                onChangeOldPassword={setOldHousePassword}
                 onChangeNewPassword={setNewHousePassword}
                 onChangeConfirmPassword={setConfirmNewHousePassword}
                 onClose={closeChangePasswordModal}
@@ -390,14 +657,16 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: "row",
         alignItems: "center",
-        justifyContent: "space-between",
-        marginBottom: 8,
+        justifyContent: "flex-start",
+        marginBottom: 18,
     },
     backButton: {
         width: 36,
         height: 36,
         borderRadius: 18,
         backgroundColor: "#ffffff",
+        borderWidth: 1,
+        borderColor: "#e2e8f0",
         alignItems: "center",
         justifyContent: "center",
     },
@@ -418,6 +687,113 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: "#475569",
         fontWeight: "600",
+    },
+    contractMembersList: {
+        gap: 8,
+    },
+    contractMemberCard: {
+        borderWidth: 1,
+        borderColor: "#e2e8f0",
+        borderRadius: 12,
+        backgroundColor: "#f8fafc",
+        paddingVertical: 10,
+        paddingHorizontal: 12,
+        gap: 2,
+    },
+    contractMemberName: {
+        fontSize: 14,
+        fontWeight: "700",
+        color: "#0f172a",
+    },
+    contractMemberMeta: {
+        fontSize: 12,
+        color: "#64748b",
+        fontWeight: "600",
+    },
+    iotDevicesList: {
+        gap: 8,
+    },
+    iotDeviceCard: {
+        borderWidth: 1,
+        borderColor: "#dbe5f3",
+        borderRadius: 12,
+        backgroundColor: "#f8fbff",
+        paddingVertical: 10,
+        paddingHorizontal: 10,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
+    },
+    iotDeviceIconWrap: {
+        width: 34,
+        height: 34,
+        borderRadius: 17,
+        backgroundColor: "#eff6ff",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    iotDeviceBody: {
+        flex: 1,
+        gap: 1,
+    },
+    iotDeviceName: {
+        fontSize: 13,
+        fontWeight: "700",
+        color: "#0f172a",
+    },
+    iotDeviceSub: {
+        fontSize: 11,
+        color: "#64748b",
+        fontWeight: "600",
+    },
+    iotDeviceStateBadge: {
+        borderRadius: 999,
+        paddingVertical: 4,
+        paddingHorizontal: 10,
+    },
+    iotDeviceStateText: {
+        fontSize: 11,
+        fontWeight: "700",
+    },
+    iotStateOn: {
+        backgroundColor: "#dcfce7",
+    },
+    iotStateOff: {
+        backgroundColor: "#e2e8f0",
+    },
+    iotStateOnText: {
+        color: "#166534",
+    },
+    iotStateOffText: {
+        color: "#334155",
+    },
+    videoTourDescription: {
+        fontSize: 13,
+        color: "#475569",
+        fontWeight: "600",
+        marginBottom: 2,
+    },
+    videoTourButton: {
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: "#bfdbfe",
+        backgroundColor: "#eff6ff",
+        minHeight: 42,
+        paddingHorizontal: 12,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 6,
+    },
+    videoTourButtonText: {
+        fontSize: 13,
+        color: "#1e40af",
+        fontWeight: "700",
+    },
+    videoTourUrlText: {
+        marginTop: 4,
+        fontSize: 11,
+        color: "#64748b",
     },
     passwordRow: {
         borderBottomWidth: 1,
@@ -490,11 +866,6 @@ const styles = StyleSheet.create({
         color: "#155e75",
         fontSize: 12,
         fontWeight: "700",
-    },
-    emptyText: {
-        fontSize: 13,
-        color: "#64748b",
-        fontWeight: "600",
     },
     descriptionText: {
         fontSize: 14,

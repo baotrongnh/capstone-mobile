@@ -13,21 +13,25 @@ import {
 
 export default function ChangeHousePasswordModal({
     visible,
+    oldHousePassword,
     newHousePassword,
     confirmNewHousePassword,
     isUpdating,
     helperText,
-    passwordLength = 12,
+    passwordLength = 6,
+    onChangeOldPassword,
     onChangeNewPassword,
     onChangeConfirmPassword,
     onClose,
     onSubmit,
 }: ChangeHousePasswordModalProps) {
+    const [showOldPassword, setShowOldPassword] = useState(false)
     const [showNewPassword, setShowNewPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
     useEffect(() => {
         if (!visible) {
+            setShowOldPassword(false)
             setShowNewPassword(false)
             setShowConfirmPassword(false)
         }
@@ -43,7 +47,30 @@ export default function ChangeHousePasswordModal({
             <View style={styles.modalOverlay}>
                 <View style={styles.modalCard}>
                     <Text style={styles.modalTitle}>Đổi mật khẩu cửa</Text>
-                    <Text style={styles.modalSubtitle}>{helperText || "Nhập mật khẩu mới gồm 4 đến 12 chữ số"}</Text>
+                    <Text style={styles.modalSubtitle}>{helperText || "Nhập mật khẩu cũ và mật khẩu mới gồm 6 chữ số"}</Text>
+
+                    <View style={styles.modalInputWrap}>
+                        <TextInput
+                            value={oldHousePassword}
+                            onChangeText={(text) => onChangeOldPassword(text.replace(/\D/g, "").slice(0, passwordLength))}
+                            placeholder="Mật khẩu hiện tại"
+                            placeholderTextColor="#94a3b8"
+                            keyboardType="number-pad"
+                            secureTextEntry={!showOldPassword}
+                            maxLength={passwordLength}
+                            style={styles.modalInput}
+                        />
+                        <Pressable
+                            style={styles.inputActionButton}
+                            onPress={() => setShowOldPassword((prev) => !prev)}
+                        >
+                            <MaterialCommunityIcons
+                                name={showOldPassword ? "eye-off-outline" : "eye-outline"}
+                                size={18}
+                                color="#475569"
+                            />
+                        </Pressable>
+                    </View>
 
                     <View style={styles.modalInputWrap}>
                         <TextInput

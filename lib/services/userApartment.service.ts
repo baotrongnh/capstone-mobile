@@ -1,8 +1,10 @@
 import {
+    GetIotBoardsQuery,
+    GetIotBoardsRes,
     GetUserApartmentByIdRes,
     ListMyUserApartmentsRes,
-    UpdateMyHousePasswordParams,
-    UpdateMyHousePasswordRes,
+    UpdateDoorPinParams,
+    UpdateDoorPinRes,
 } from '@/types/userApartment'
 import { apiClient } from '../apis/client'
 import { endpoints } from '../apis/endpoints'
@@ -17,7 +19,12 @@ export const getUserApartmentById = async (id: string): Promise<GetUserApartment
     return res.data
 }
 
-export const updateMyHousePassword = async ({ id, payload }: UpdateMyHousePasswordParams): Promise<UpdateMyHousePasswordRes> => {
-    const res = await apiClient.patch(`${endpoints.userApartments}/${id}/house-password`, payload)
+export const getIotBoards = async (query?: GetIotBoardsQuery): Promise<GetIotBoardsRes> => {
+    const res = await apiClient.get(`${endpoints.iot}/boards`, { params: query })
+    return res.data
+}
+
+export const updateDoorPin = async ({ boardId, deviceId, payload }: UpdateDoorPinParams): Promise<UpdateDoorPinRes> => {
+    const res = await apiClient.patch(`${endpoints.iot}/doors/${boardId}/${deviceId}/pin`, payload)
     return res.data
 }
