@@ -1,7 +1,7 @@
 import { StyledContainer } from '@/components/styles'
 import { useInvoice } from '@/hooks/query/useInvoice'
 import { useCreatePayOSPaymentLink } from '@/hooks/query/usePayments'
-import type { InvoiceDetailContentItem, InvoiceDetailPayment } from '@/types/invoice'
+import type { InvoiceDetailContentItem } from '@/types/invoice'
 import { toPayOSPayloadLog } from '@/utils/payment'
 import {
     formatCurrency,
@@ -11,7 +11,6 @@ import {
     formatPaymentMethod,
     getInvoiceStatusVariant,
     normalizeInvoiceText,
-    toInvoiceRows,
 } from '@/utils/invoices'
 import { Ionicons } from '@expo/vector-icons'
 import * as ExpoLinking from 'expo-linking'
@@ -21,7 +20,6 @@ import React, { useMemo } from 'react'
 import {
     ActivityIndicator,
     Alert,
-    Linking,
     Pressable,
     ScrollView,
     StyleSheet,
@@ -69,6 +67,15 @@ const getQueryValue = (value: unknown): string | undefined => {
 
 const APP_DEEP_LINK_SCHEME = 'homeiq'
 
+const normalizeComparableText = (value: unknown) => String(value ?? '').trim().toLowerCase()
+
+const isSameContentText = (left: unknown, right: unknown) => {
+    const normalizedLeft = normalizeComparableText(left)
+    const normalizedRight = normalizeComparableText(right)
+
+    return normalizedLeft.length > 0 && normalizedLeft === normalizedRight
+}
+
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => {
     return (
         <View style={styles.section}>
@@ -78,9 +85,17 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
     )
 }
 
-const DetailRow = ({ label, value }: { label: string; value: React.ReactNode }) => {
+const DetailRow = ({
+    label,
+    value,
+    isLast = false,
+}: {
+    label: string
+    value: React.ReactNode
+    isLast?: boolean
+}) => {
     return (
-        <View style={styles.detailRow}>
+        <View style={[styles.detailRow, !isLast && styles.detailRowBordered]}>
             <Text style={styles.detailLabel}>{label}</Text>
             {typeof value === 'string' ? <Text style={styles.detailValue}>{value}</Text> : value}
         </View>
@@ -114,44 +129,36 @@ export default function InvoiceDetailScreen() {
     const canPayNow = ['issued', 'overdue'].includes(invoiceStatus)
 
     const contentItems: InvoiceDetailContentItem[] = invoice?.invoiceContent?.items ?? []
-    const payments: InvoiceDetailPayment[] = invoice?.payments ?? []
-
-    const utilityRows = useMemo(() => toInvoiceRows(invoice?.utilityCharges), [invoice?.utilityCharges])
-    const additionalRows = useMemo(() => toInvoiceRows(invoice?.additionalCharges), [invoice?.additionalCharges])
-    const discountRows = useMemo(() => toInvoiceRows(invoice?.discounts), [invoice?.discounts])
 
     const overviewRows = useMemo(() => {
         if (!invoice) return [] as { label: string; value: React.ReactNode }[]
 
         return [
-            { label: 'Mã hóa đơn', value: normalizeInvoiceText(invoice.invoiceNumber) },
+            { label: 'Số hóa đơn', value: normalizeInvoiceText(invoice.invoiceNumber) },
+            { label: 'Mã căn hộ', value: normalizeInvoiceText(invoice.contract?.apartment?.apartmentNumber) },
             { label: 'Trạng thái', value: formatInvoiceStatus(invoice.status) },
             { label: 'Loại hóa đơn', value: formatInvoiceType(invoice.invoiceType) },
-            { label: 'Tổng tiền', value: formatCurrency(invoice.totalAmount) },
-            { label: 'Tiền thuê cơ bản', value: formatCurrency(invoice.baseRent) },
-            { label: 'Thuế', value: formatCurrency(invoice.taxAmount) },
-            { label: 'Tiền tệ', value: normalizeInvoiceText(invoice.currency) },
-            { label: 'Kỳ từ', value: formatDate(invoice.billingPeriodStart) },
-            { label: 'Kỳ đến', value: formatDate(invoice.billingPeriodEnd) },
-            { label: 'Ngày xuất', value: formatDate(invoice.issueDate) },
+            { label: 'Kỳ thanh toán bắt đầu', value: formatDate(invoice.billingPeriodStart) },
             { label: 'Hạn thanh toán', value: formatDate(invoice.dueDate) },
-            { label: 'Ngày gửi', value: formatDate(invoice.sentAt || undefined) },
+            { label: 'Ngày phát hành', value: formatDate(invoice.issueDate) },
             { label: 'Ngày thanh toán', value: formatDate(invoice.paidAt || undefined) },
+            { label: 'Tiền tệ', value: normalizeInvoiceText(invoice.currency) },
             { label: 'Phương thức thanh toán', value: formatPaymentMethod(invoice.paymentMethod) },
-            { label: 'Số hợp đồng', value: normalizeInvoiceText(invoice.contract?.contractNumber) },
-            { label: 'Căn hộ', value: normalizeInvoiceText(invoice.contract?.apartment?.apartmentNumber) },
-            { label: 'Ghi chú', value: normalizeInvoiceText(invoice.notes) },
+            { label: 'Tổng tiền', value: formatCurrency(invoice.totalAmount) },
             { label: 'Ngày tạo', value: formatDate(invoice.createdAt) },
-            { label: 'Ngày cập nhật', value: formatDate(invoice.updatedAt) },
-            { label: 'ID', value: normalizeInvoiceText(invoice.id) },
+            { label: 'Mã hóa đơn', value: normalizeInvoiceText(invoice.id) },
         ]
     }, [invoice])
 
-    const openDocument = async (url: string) => {
-        const canOpen = await Linking.canOpenURL(url)
-        if (!canOpen) return
-        await Linking.openURL(url)
-    }
+    const shouldShowContentDescription = useMemo(() => {
+        if (!invoice) return false
+        if (contentItems.length !== 1) return true
+
+        const invoiceDescription = invoice.invoiceContent?.description
+        const firstItemDescription = contentItems[0]?.description
+
+        return !isSameContentText(invoiceDescription, firstItemDescription)
+    }, [invoice, contentItems])
 
     const handleBack = () => {
         if (router.canGoBack()) {
@@ -352,90 +359,39 @@ export default function InvoiceDetailScreen() {
                         </View>
 
                         <Section title='Tổng quan'>
-                            {overviewRows.map((item) => (
-                                <DetailRow key={item.label} label={item.label} value={item.value} />
+                            {overviewRows.map((item, index) => (
+                                <DetailRow
+                                    key={item.label}
+                                    label={item.label}
+                                    value={item.value}
+                                    isLast={index === overviewRows.length - 1}
+                                />
                             ))}
-
-                            <DetailRow
-                                label='Tài liệu hóa đơn'
-                                value={
-                                    invoice.invoiceDocumentUrl ? (
-                                        <Pressable onPress={() => openDocument(invoice.invoiceDocumentUrl || '')}>
-                                            <Text style={styles.documentLink}>Mở tài liệu</Text>
-                                        </Pressable>
-                                    ) : (
-                                        '--'
-                                    )
-                                }
-                            />
                         </Section>
 
                         <Section title='Nội dung hóa đơn'>
-                            <DetailRow label='Tiêu đề' value={normalizeInvoiceText(invoice.invoiceContent?.title)} />
-                            <DetailRow label='Mô tả' value={normalizeInvoiceText(invoice.invoiceContent?.description)} />
+                            <DetailRow
+                                label='Tiêu đề'
+                                value={normalizeInvoiceText(invoice.invoiceContent?.title)}
+                                isLast={!shouldShowContentDescription && contentItems.length === 0}
+                            />
+                            {shouldShowContentDescription && (
+                                <DetailRow
+                                    label='Mô tả'
+                                    value={normalizeInvoiceText(invoice.invoiceContent?.description)}
+                                    isLast={contentItems.length === 0}
+                                />
+                            )}
 
                             {contentItems.length === 0 ? (
-                                <Text style={styles.emptyText}>Không có dòng nội dung.</Text>
+                                <Text style={styles.emptyText}>Không có hạng mục hóa đơn</Text>
                             ) : (
                                 contentItems.map((item, index) => (
                                     <View key={`${item.description}-${item.itemType}-${index}`} style={styles.subCard}>
                                         <DetailRow label='Mô tả' value={normalizeInvoiceText(item.description)} />
                                         <DetailRow label='Loại' value={formatInvoiceType(item.itemType)} />
                                         <DetailRow label='Số lượng' value={normalizeInvoiceText(item.quantity)} />
-                                        <DetailRow label='Số tiền' value={formatCurrency(String(item.amount))} />
-                                    </View>
-                                ))
-                            )}
-                        </Section>
-
-                        <Section title='Phí tiện ích'>
-                            {utilityRows.length === 0 ? (
-                                <Text style={styles.emptyText}>Không có phí tiện ích.</Text>
-                            ) : (
-                                utilityRows.map((item) => (
-                                    <DetailRow key={item.key} label={item.key} value={item.value} />
-                                ))
-                            )}
-                        </Section>
-
-                        <Section title='Phí bổ sung'>
-                            {additionalRows.length === 0 ? (
-                                <Text style={styles.emptyText}>Không có phí bổ sung.</Text>
-                            ) : (
-                                additionalRows.map((item) => (
-                                    <DetailRow key={item.key} label={item.key} value={item.value} />
-                                ))
-                            )}
-                        </Section>
-
-                        <Section title='Giảm trừ'>
-                            {discountRows.length === 0 ? (
-                                <Text style={styles.emptyText}>Không có giảm trừ.</Text>
-                            ) : (
-                                discountRows.map((item) => (
-                                    <DetailRow key={item.key} label={item.key} value={item.value} />
-                                ))
-                            )}
-                        </Section>
-
-                        <Section title='Lịch sử thanh toán'>
-                            {payments.length === 0 ? (
-                                <Text style={styles.emptyText}>Chưa có thanh toán nào.</Text>
-                            ) : (
-                                payments.map((payment) => (
-                                    <View key={payment.id} style={styles.subCard}>
-                                        <DetailRow label='Mã thanh toán' value={normalizeInvoiceText(payment.id)} />
-                                        <DetailRow label='Phương thức' value={formatPaymentMethod(payment.paymentMethod)} />
-                                        <DetailRow label='Ngày thanh toán' value={formatDate(payment.paymentDate)} />
-                                        <DetailRow
-                                            label='Trạng thái'
-                                            value={
-                                                <Text style={[styles.statusChip, statusStyleByVariant[getInvoiceStatusVariant(payment.status)]]}>
-                                                    {formatInvoiceStatus(payment.status)}
-                                                </Text>
-                                            }
-                                        />
-                                        <DetailRow label='Số tiền' value={formatCurrency(payment.amount)} />
+                                        <DetailRow label='Số tiền' value={formatCurrency(String(item.amount))} isLast />
                                     </View>
                                 ))
                             )}
@@ -451,7 +407,7 @@ export default function InvoiceDetailScreen() {
                             >
                                 <Ionicons name='card-outline' size={18} color='#ffffff' />
                                 <Text style={styles.payActionButtonText}>
-                                    {isPaying ? 'Đang mở cổng thanh toán...' : 'Thanh toán ngay'}
+                                    {isPaying ? 'Đang mở cổng thanh toán...' : 'Thanh toán'}
                                 </Text>
                             </Pressable>
                         </View>
@@ -551,11 +507,17 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         gap: 12,
         alignItems: 'flex-start',
+        paddingVertical: 7,
+    },
+    detailRowBordered: {
+        borderBottomWidth: 1,
+        borderBottomColor: '#f1f5f9',
     },
     detailLabel: {
-        flex: 1,
+        width: '42%',
         fontSize: 13,
         color: '#6b7280',
+        lineHeight: 20,
     },
     detailValue: {
         flex: 1,
@@ -563,6 +525,8 @@ const styles = StyleSheet.create({
         fontSize: 13,
         color: '#111827',
         fontWeight: 500,
+        lineHeight: 20,
+        flexShrink: 1,
     },
     statusChip: {
         fontSize: 12,
@@ -604,16 +568,11 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         padding: 10,
         gap: 6,
-        backgroundColor: '#f9fafb',
+        backgroundColor: '#f8fafc',
     },
     emptyText: {
         fontSize: 13,
         color: '#6b7280',
-    },
-    documentLink: {
-        color: '#2563eb',
-        fontSize: 13,
-        fontWeight: 600,
     },
     centered: {
         flex: 1,
