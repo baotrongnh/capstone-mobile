@@ -5,6 +5,11 @@ import {
      NotificationListResponse,
 } from "@/types/notification"
 
+type RegisterFcmTokenPayload = {
+     token: string
+     device?: string
+}
+
 const getNumber = (value: unknown): number | null => {
      if (typeof value === "number" && Number.isFinite(value)) {
           return value
@@ -76,5 +81,15 @@ export const notificationService = {
 
      markAllAsRead: async (): Promise<void> => {
           await apiClient.patch(`${endpoints.notifications}/read-all`)
+     },
+
+     registerFcmToken: async (payload: RegisterFcmTokenPayload): Promise<void> => {
+          await apiClient.post(`${endpoints.notifications}/fcm-token`, payload)
+     },
+
+     removeFcmToken: async (token: string): Promise<void> => {
+          await apiClient.delete(`${endpoints.notifications}/fcm-token`, {
+               data: { token },
+          })
      },
 }

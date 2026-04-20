@@ -17,41 +17,11 @@ import {
      Text,
      View,
 } from "react-native"
-
-const typeIconMap: Record<string, keyof typeof MaterialCommunityIcons.glyphMap> = {
-     info: "information-outline",
-     warning: "alert-outline",
-     success: "check-circle-outline",
-     error: "close-circle-outline",
-     reminder: "clock-outline",
-     promotion: "tag-outline",
-}
-
-const typeColorMap: Record<string, string> = {
-     info: "#2563eb",
-     warning: "#d97706",
-     success: "#059669",
-     error: "#dc2626",
-     reminder: "#7c3aed",
-     promotion: "#ea580c",
-}
-
-const formatTime = (isoDate: string) => {
-     const date = new Date(isoDate)
-     if (Number.isNaN(date.getTime())) {
-          return "Vừa xong"
-     }
-
-     return date.toLocaleString("vi-VN", {
-          hour: "2-digit",
-          minute: "2-digit",
-          day: "2-digit",
-          month: "2-digit",
-     })
-}
-
-const getTypeIcon = (type: string) => typeIconMap[type] ?? "bell-outline"
-const getTypeColor = (type: string) => typeColorMap[type] ?? "#3b82f6"
+import {
+     formatNotificationTime,
+     getNotificationTypeColor,
+     getNotificationTypeIcon,
+} from "@/utils/notification"
 
 export default function NotificationsScreen() {
      const router = useRouter()
@@ -85,7 +55,7 @@ export default function NotificationsScreen() {
      }, [isMarkAllDisabled, markAllMutation])
 
      const renderItem = useCallback(({ item }: { item: NotificationItem }) => {
-          const iconColor = getTypeColor(item.notificationType)
+          const iconColor = getNotificationTypeColor(item.notificationType)
 
           return (
                <Pressable
@@ -94,7 +64,7 @@ export default function NotificationsScreen() {
                >
                     <View style={[styles.iconWrap, { backgroundColor: `${iconColor}1A` }]}>
                          <MaterialCommunityIcons
-                              name={getTypeIcon(item.notificationType)}
+                              name={getNotificationTypeIcon(item.notificationType)}
                               size={22}
                               color={iconColor}
                          />
@@ -105,7 +75,7 @@ export default function NotificationsScreen() {
                               <Text numberOfLines={1} style={styles.itemTitle}>
                                    {item.title}
                               </Text>
-                              <Text style={styles.itemTime}>{formatTime(item.createdAt)}</Text>
+                              <Text style={styles.itemTime}>{formatNotificationTime(item.createdAt)}</Text>
                          </View>
 
                          <Text numberOfLines={2} style={styles.itemMessage}>

@@ -31,6 +31,8 @@ export type ProfileDetailsProps = {
     user: UserDetail | null;
     onSave: (values: UserProfileEditableValues) => Promise<void>;
     saving: boolean;
+    onRefresh: () => Promise<void>;
+    refreshing: boolean;
 }
 
 export type UserIdentityField = {

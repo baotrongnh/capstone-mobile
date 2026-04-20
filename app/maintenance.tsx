@@ -33,6 +33,7 @@ interface MaintenanceRequestUI {
   apartment: string;
   assignedTo: string | null;
   room: string | null;
+  isRated?: boolean;
 }
 
 // Helper function to transform API data to UI format
@@ -56,6 +57,7 @@ const transformMaintenanceData = (
     apartment: item.apartment?.apartmentNumber || "N/A",
     assignedTo: null,
     room: item.room?.roomNumber || null,
+    isRated: item.isRated || false, // Assuming rating is null if not rated
   }));
 
   // KHÔNG dùng Map để lọc trùng nữa, vì 1 căn hộ có thể có nhiều yêu cầu
@@ -100,6 +102,7 @@ export default function MaintenanceScreen() {
       createdAt: new Date().toISOString().split("T")[0],
       status: "pending",
       assignedTo: null,
+      isRated: false,
     };
     setRequests([request, ...requests]);
     setIsModalVisible(false);
