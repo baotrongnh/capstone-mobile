@@ -39,10 +39,14 @@ export const SubTitle = styled.Text`
     font-weight: bold
     color: ${Colors.muted}
 `
-export const InputField = styled.TextInput`
+export const InputField = styled.TextInput.attrs({
+    placeholderTextColor: '#94a3b8',
+    selectionColor: Colors.primary,
+})`
     background-color: #F8F8F8;
     height: 54px;
     padding: 15px 16px;
-    fontSize: 16px;
-    borderRadius: 12px;
+    font-size: 16px;
+    border-radius: 12px;
+    color: ${Colors.foreground};
 `
