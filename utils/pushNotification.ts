@@ -3,10 +3,7 @@ import { Platform } from "react-native";
 
 type NotificationsModule = typeof import("expo-notifications");
 
-const executionEnvironment = (Constants as { executionEnvironment?: string }).executionEnvironment;
-const isExpoGo =
-    executionEnvironment === "storeClient" ||
-    Constants.appOwnership === "expo";
+const isExpoGo = Constants.executionEnvironment === "storeClient";
 
 let notificationsModulePromise: Promise<NotificationsModule | null> | null = null;
 
