@@ -24,7 +24,6 @@ import {
     View,
 } from "react-native"
 
-
 export default function MyApartmentsPage() {
     const router = useRouter()
     const [search, setSearch] = useState("")
@@ -86,11 +85,11 @@ export default function MyApartmentsPage() {
     if (isLoading) {
         return (
             <StyledContainer style={styles.container}>
-                <View style={styles.breadcrumbRow}>
-                    <Pressable style={styles.breadcrumbBack} onPress={handleBack} hitSlop={10}>
-                        <Ionicons name="chevron-back" size={24} color="#6b7280" />
-                        <Text style={styles.breadcrumbBackText}>Quay lại</Text>
+                <View style={styles.pageHeader}>
+                    <Pressable style={styles.backButton} onPress={handleBack} hitSlop={10}>
+                        <Ionicons name="chevron-back" size={24} color="#334155" />
                     </Pressable>
+                    <Text style={styles.pageTitle}>Căn hộ của tôi</Text>
                 </View>
 
                 <View style={styles.centerContent}>
@@ -103,11 +102,11 @@ export default function MyApartmentsPage() {
 
     return (
         <StyledContainer style={styles.container}>
-            <View style={styles.breadcrumbRow}>
-                <Pressable style={styles.breadcrumbBack} onPress={handleBack} hitSlop={10}>
-                    <Ionicons name="chevron-back" size={24} color="#6b7280" />
-                    <Text style={styles.breadcrumbBackText}>Quay lại</Text>
+            <View style={styles.pageHeader}>
+                <Pressable style={styles.backButton} onPress={handleBack} hitSlop={10}>
+                    <Ionicons name="chevron-back" size={24} color="#334155" />
                 </Pressable>
+                <Text style={styles.pageTitle}>Căn hộ của tôi</Text>
             </View>
 
             <ScrollView
@@ -116,7 +115,7 @@ export default function MyApartmentsPage() {
                 refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#3b82f6" />}
             >
                 <View style={styles.headerCard}>
-                    <Text style={styles.headerTitle}>Căn hộ của tôi</Text>
+                    <Text style={styles.headerCardTitle}>Danh sách căn hộ</Text>
                     <Text style={styles.headerSubtitle}>Danh sách căn hộ bạn đang được gán</Text>
                 </View>
 
@@ -279,21 +278,28 @@ const styles = StyleSheet.create({
         gap: 12,
         paddingBottom: 130,
     },
-    breadcrumbRow: {
-        marginBottom: 4,
-    },
-    breadcrumbBack: {
+    pageHeader: {
         flexDirection: "row",
         alignItems: "center",
-        alignSelf: "flex-start",
-        gap: 4,
-        paddingVertical: 4,
-        paddingRight: 4,
+        justifyContent: "flex-start",
+        marginBottom: 18,
     },
-    breadcrumbBackText: {
-        fontSize: 18,
-        fontWeight: "600",
-        color: "#6d6d6d",
+    backButton: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: "#ffffff",
+        borderWidth: 1,
+        borderColor: "#e2e8f0",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    pageTitle: {
+        flex: 1,
+        marginLeft: 10,
+        fontSize: 22,
+        fontWeight: "700",
+        color: "#0f172a",
     },
     centerContent: {
         flex: 1,
@@ -314,10 +320,10 @@ const styles = StyleSheet.create({
         padding: 16,
         gap: 4,
     },
-    headerTitle: {
-        fontSize: 22,
+    headerCardTitle: {
+        fontSize: 18,
         color: "#0f172a",
-        fontWeight: "800",
+        fontWeight: "700",
     },
     headerSubtitle: {
         fontSize: 13,

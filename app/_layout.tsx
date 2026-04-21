@@ -1,9 +1,87 @@
 import AuthProvider from "@/components/providers/auth-provider";
 import ReactQueryProvider from "@/components/providers/react-query-provider";
+import {
+  getNotificationsModule,
+  isPushNotificationSupported,
+} from "@/utils/pushNotification";
 import { Stack } from "expo-router";
+import React from "react";
+import { Alert, Linking } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function RootLayout() {
+  React.useEffect(() => {
+    let mounted = true;
+
+    const configureNotificationHandler = async () => {
+      if (!isPushNotificationSupported()) {
+        return;
+      }
+
+      const Notifications = await getNotificationsModule();
+
+      if (!mounted || !Notifications) {
+        return;
+      }
+
+      Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowBanner: true,
+          shouldShowList: true,
+          shouldPlaySound: true,
+          shouldSetBadge: false,
+        }),
+      });
+    };
+
+    const requestNotificationPermissionOnLaunch = async () => {
+      if (!isPushNotificationSupported()) {
+        return;
+      }
+
+      const Notifications = await getNotificationsModule();
+
+      if (!mounted || !Notifications) {
+        return;
+      }
+
+      const currentPermission = await Notifications.getPermissionsAsync();
+      if (currentPermission.granted) {
+        return;
+      }
+
+      const requestedPermission = await Notifications.requestPermissionsAsync();
+
+      if (!mounted || requestedPermission.granted) {
+        return;
+      }
+
+      Alert.alert(
+        "Chưa cấp quyền thông báo",
+        "Bạn đã từ chối thông báo. Bạn có thể bật lại quyền này trong Cài đặt thiết bị.",
+        [
+          {
+            text: "Để sau",
+            style: "cancel",
+          },
+          {
+            text: "Mở Cài đặt",
+            onPress: () => {
+              void Linking.openSettings();
+            },
+          },
+        ],
+      );
+    };
+
+    void configureNotificationHandler();
+    void requestNotificationPermissionOnLaunch();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ReactQueryProvider>

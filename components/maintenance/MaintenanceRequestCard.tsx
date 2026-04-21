@@ -174,7 +174,7 @@ export default function MaintenanceRequestCard({
             >
               <View></View>
 
-              {item.isRated === true && (
+              {!item.isRated && (
                 <>
                   <Pressable
                     onPress={() => onRating?.(item)}

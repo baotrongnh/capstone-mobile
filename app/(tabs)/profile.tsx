@@ -1,66 +1,41 @@
+import { PROFILE_MENU_ITEMS } from "@/constants/profile";
+import { useUpdateUser, useUpdateUserAvatar } from "@/hooks/query/useUser";
+import { userService } from "@/lib/services/user.service";
+import { useAuthStore } from "@/stores/auth.store";
+import { UserProfileEditableValues } from "@/types/user";
+import { getBottomTabContentPadding } from "@/utils/bottomTab";
+import { uploadImageFromUri } from "@/utils/uploadFile";
+import { toUserText } from "@/utils/user";
+import { useQueryClient } from "@tanstack/react-query";
 import React, { useState } from "react";
-import { Alert, BackHandler, Text } from "react-native";
+import { Alert, BackHandler, RefreshControl, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Container,
-  ScrollContainer,
+  ProfileDetails,
   ProfileHeader,
   ProfileMenu,
-  ProfileDetails,
-  PushNotifications,
+  ScrollContainer,
+  Settings
 } from "../../components/profile";
-import { useAuthStore } from "@/stores/auth.store";
-import { useUpdateUser, useUpdateUserAvatar } from "@/hooks/query/useUser";
-import { uploadImageFromUri } from "@/utils/uploadFile";
-import { MenuItemData, UserProfileEditableValues } from "@/types/user";
-import { getBottomTabContentPadding } from "@/utils/bottomTab";
-import { toUserText } from "@/utils/user";
-
-const menuItems: MenuItemData[] = [
-  {
-    id: "profile-details",
-    label: "Thông tin tài khoản",
-    icon: "person",
-    screen: "profile-details",
-  },
-  {
-    id: "settings",
-    label: "Cài đặt",
-    icon: "settings",
-    screen: "settings",
-  },
-  {
-    id: "push-notifications",
-    label: "Thông báo đẩy",
-    icon: "notifications",
-    screen: "push-notifications",
-  },
-  {
-    id: "support",
-    label: "Hỗ trợ",
-    icon: "help-circle",
-    screen: "support",
-  },
-  {
-    id: "logout",
-    label: "Đăng xuất",
-    icon: "log-out",
-    screen: "logout",
-  },
-];
 
 export default function ProfileScreenPage() {
   const insets = useSafeAreaInsets();
   const contentBottomPadding = getBottomTabContentPadding(insets.bottom);
   const user = useAuthStore((state) => state.user);
+  const tokens = useAuthStore((state) => state.tokens);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const setAuth = useAuthStore((state) => state.setAuth);
   const isHydrated = useAuthStore((state) => state.isHydrated);
   const logout = useAuthStore((state) => state.logout);
+  const queryClient = useQueryClient();
   const { mutateAsync: updateUser, isPending: isUpdatingProfile } = useUpdateUser(user?.id ?? "");
   const { mutateAsync: updateUserAvatar } = useUpdateUserAvatar(user?.id ?? "");
 
   const [currentScreen, setCurrentScreen] = useState<string>("main");
   const [localAvatar, setLocalAvatar] = useState<string | null>(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
+  const [refreshingProfile, setRefreshingProfile] = useState(false);
 
   React.useEffect(() => {
     const onBackPress = () => {
@@ -137,10 +112,33 @@ export default function ProfileScreenPage() {
           style: "destructive",
         },
       ]);
-    } else if (screen === "settings" || screen === "support") {
+    } else if (screen === "support") {
       Alert.alert("Thông báo", "Tính năng này sẽ được cập nhật sớm.");
     } else {
       setCurrentScreen(screen);
+    }
+  };
+
+  const handleRefreshProfile = async () => {
+    if (refreshingProfile || !isHydrated || !isAuthenticated || !tokens) {
+      return;
+    }
+
+    try {
+      setRefreshingProfile(true);
+      await queryClient.invalidateQueries({ queryKey: ["user", "profile"] });
+
+      const refreshedUser = await queryClient.fetchQuery({
+        queryKey: ["user", "profile"],
+        queryFn: () => userService.getProfile(),
+      });
+
+      await setAuth(refreshedUser, tokens);
+    } catch (error) {
+      console.error("Profile refresh failed", error);
+      Alert.alert("Làm mới thất bại", "Không thể tải lại thông tin tài khoản. Vui lòng thử lại.");
+    } finally {
+      setRefreshingProfile(false);
     }
   };
 
@@ -167,12 +165,15 @@ export default function ProfileScreenPage() {
         user={user}
         onSave={handleSaveProfile}
         saving={isUpdatingProfile}
+        onRefresh={handleRefreshProfile}
+        refreshing={refreshingProfile}
       />
     );
   }
 
-  if (currentScreen === "push-notifications") {
-    return <PushNotifications onBack={() => setCurrentScreen("main")} />;
+
+  if (currentScreen === "settings") {
+    return <Settings onBack={() => setCurrentScreen("main")} />;
   }
 
   return (
@@ -191,6 +192,14 @@ export default function ProfileScreenPage() {
       <ScrollContainer
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: contentBottomPadding }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshingProfile}
+            onRefresh={handleRefreshProfile}
+            tintColor="#2563eb"
+            colors={["#2563eb"]}
+          />
+        }
       >
         <ProfileHeader
           name={toUserText(user?.fullName)}
@@ -200,7 +209,7 @@ export default function ProfileScreenPage() {
           avatarUploading={avatarUploading}
           onAvatarChange={handleAvatarChange}
         />
-        <ProfileMenu items={menuItems} onMenuPress={handleMenuPress} />
+        <ProfileMenu items={PROFILE_MENU_ITEMS} onMenuPress={handleMenuPress} />
       </ScrollContainer>
     </Container>
   );

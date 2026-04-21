@@ -1,23 +1,25 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { useCallback } from "react";
+import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
   Container,
   ScrollContainer,
   HeaderBar,
   BackButton,
-  MenuItem,
-  MenuLeft,
-  MenuIcon,
-  MenuText,
 } from "./styles";
+import { usePushNotificationSetting } from "@/hooks/usePushNotificationSetting";
+import PushNotificationToggle from "./PushNotificationToggle";
 
 interface PushNotificationsProps {
   onBack: () => void;
 }
 
 export default function PushNotifications({ onBack }: PushNotificationsProps) {
-  const [isEnabled, setIsEnabled] = useState(true);
+  const { isEnabled, isLoading, isUpdating, setPushEnabled } = usePushNotificationSetting();
+
+  const handleToggle = useCallback(() => {
+    void setPushEnabled(!isEnabled);
+  }, [isEnabled, setPushEnabled]);
 
   return (
     <Container>
@@ -27,43 +29,28 @@ export default function PushNotifications({ onBack }: PushNotificationsProps) {
         </BackButton>
         <Text style={styles.headerTitle}>Thông báo đẩy</Text>
       </HeaderBar>
-      <ScrollContainer style={{ padding: 20 }}>
-        <MenuItem
-          style={{ marginBottom: 0 }}
-          onPress={() => setIsEnabled(!isEnabled)}
-        >
-          <MenuLeft>
-            <MenuIcon>
-              <Ionicons name="notifications" size={20} color="#6b7280" />
-            </MenuIcon>
-            <View>
-              <MenuText>Push Notifications</MenuText>
-              <Text style={{ fontSize: 12, color: "#9ca3af", marginTop: 4 }}>
-                Get notified when you receive messages
-              </Text>
+      <ScrollContainer style={styles.content}>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Tuỳ chọn thông báo</Text>
+          <Text style={styles.cardDescription}>
+            Bật để nhận thông báo khi có tin nhắn, nhắc thanh toán hoặc cập nhật quan trọng.
+          </Text>
+
+          {isLoading ? (
+            <View style={styles.loadingState}>
+              <ActivityIndicator size="small" color="#2563eb" />
+              <Text style={styles.loadingText}>Đang tải cài đặt...</Text>
             </View>
-          </MenuLeft>
-          <View
-            style={{
-              width: 50,
-              height: 28,
-              borderRadius: 14,
-              backgroundColor: isEnabled ? "#3b82f6" : "#d1d5db",
-              justifyContent: "center",
-              paddingHorizontal: 2,
-            }}
-          >
-            <View
-              style={{
-                width: 24,
-                height: 24,
-                borderRadius: 12,
-                backgroundColor: "#ffffff",
-                marginLeft: isEnabled ? "auto" : undefined,
-              }}
+          ) : (
+            <PushNotificationToggle
+              enabled={isEnabled}
+              loading={isUpdating}
+              onToggle={handleToggle}
+              title="Bật thông báo đẩy"
+              description="Nhận thông báo ngay khi có hoạt động mới liên quan đến tài khoản của bạn."
             />
-          </View>
-        </MenuItem>
+          )}
+        </View>
       </ScrollContainer>
     </Container>
   );
@@ -91,5 +78,38 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "700",
     color: "#0f172a",
+  },
+  content: {
+    paddingHorizontal: 20,
+  },
+  card: {
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 14,
+    backgroundColor: "#ffffff",
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+  cardDescription: {
+    marginTop: 5,
+    marginBottom: 8,
+    fontSize: 13,
+    color: "#64748b",
+    lineHeight: 18,
+  },
+  loadingState: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 12,
+  },
+  loadingText: {
+    fontSize: 13,
+    color: "#64748b",
   },
 });

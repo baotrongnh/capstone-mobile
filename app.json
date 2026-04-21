@@ -20,7 +20,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.homeiq"
     },
     "web": {
       "output": "static",
@@ -40,11 +41,18 @@
           }
         }
       ],
+      "expo-notifications",
       "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e5a7c2aa-8265-4dec-a091-7d42373d41ab"
+      }
     }
   }
 }
