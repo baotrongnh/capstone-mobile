@@ -14,6 +14,12 @@ export const PROFILE_MENU_ITEMS: MenuItemData[] = [
         screen: "settings",
     },
     {
+        id: "debug",
+        label: "Debug thiết bị",
+        icon: "bug-outline",
+        screen: "debug",
+    },
+    {
         id: "support",
         label: "Hỗ trợ",
         icon: "help-circle",

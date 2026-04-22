@@ -5,11 +5,13 @@ import {
 import { notificationService } from "@/lib/services/notification.service";
 import { storage } from "@/stores/storage";
 import {
-    getNativePushToken,
+    getNativePushTokenDetailed,
+    hasPushPermission,
     isPushNotificationSupported,
     requestPushPermission,
     setupPushNotificationChannel,
-} from "@/utils/pushNotification";
+} from "../utils/pushNotification";
+import type { NativePushTokenFailureReason } from "../utils/pushNotification";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Platform } from "react-native";
 
@@ -24,19 +26,88 @@ const getDeviceName = () => {
     return `mobile-${Platform.OS}-${version ?? "unknown"}`;
 };
 
+const getTokenFailureMessage = (reason?: NativePushTokenFailureReason) => {
+    if (reason === "firebase-not-configured") {
+        return "Không lấy được token thiết bị do app Android chưa có cấu hình Firebase (google-services.json).";
+    }
+
+    if (reason === "unsupported") {
+        return "Thiết bị hoặc môi trường hiện tại chưa hỗ trợ thông báo đẩy cho app này.";
+    }
+
+    return "Không lấy được token thiết bị. Hãy kiểm tra mạng và thử lại sau vài giây.";
+};
+
 export const usePushNotificationSetting = () => {
     const [isEnabled, setIsEnabled] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isUpdating, setIsUpdating] = useState(false);
 
+    const persistEnabledState = useCallback(async (enabled: boolean, token = "") => {
+        await storage.multiSet([
+            [PUSH_NOTIFICATION_ENABLED_KEY, enabled ? ENABLED_VALUE : DISABLED_VALUE],
+            [PUSH_NOTIFICATION_TOKEN_KEY, token],
+        ]);
+    }, []);
+
+    const tryRegisterToken = useCallback(async () => {
+        await setupPushNotificationChannel();
+
+        const tokenResult = await getNativePushTokenDetailed();
+        if (!tokenResult.token) {
+            return tokenResult;
+        }
+
+        await notificationService.registerFcmToken({
+            token: tokenResult.token,
+            device: getDeviceName(),
+        });
+
+        await persistEnabledState(true, tokenResult.token);
+        setIsEnabled(true);
+
+        return tokenResult;
+    }, [persistEnabledState]);
+
     const hydrate = useCallback(async () => {
         try {
+            const granted = await hasPushPermission();
+            if (!granted) {
+                await persistEnabledState(false, "");
+                setIsEnabled(false);
+                return;
+            }
+
             const saved = await storage.getItem(PUSH_NOTIFICATION_ENABLED_KEY);
-            setIsEnabled(saved === ENABLED_VALUE);
+            const savedToken = await storage.getItem(PUSH_NOTIFICATION_TOKEN_KEY);
+            const hasSavedEnabled = saved === ENABLED_VALUE;
+
+            if (hasSavedEnabled && savedToken) {
+                setIsEnabled(true);
+                return;
+            }
+
+            if (!hasSavedEnabled) {
+                setIsEnabled(false);
+                return;
+            }
+
+            try {
+                const tokenResult = await tryRegisterToken();
+                if (!tokenResult.token) {
+                    console.warn("Cannot sync push notification state", tokenResult.reason, tokenResult.errorMessage);
+                    await persistEnabledState(false, "");
+                    setIsEnabled(false);
+                }
+            } catch (error) {
+                console.error("Cannot sync push notification state", error);
+                await persistEnabledState(false, "");
+                setIsEnabled(false);
+            }
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [persistEnabledState, tryRegisterToken]);
 
     useEffect(() => {
         void hydrate();
@@ -61,30 +132,18 @@ export const usePushNotificationSetting = () => {
             return false;
         }
 
-        await setupPushNotificationChannel();
-
-        const token = await getNativePushToken();
-        if (!token) {
+        const tokenResult = await tryRegisterToken();
+        if (!tokenResult.token) {
+            console.warn("Cannot enable push notification", tokenResult.reason, tokenResult.errorMessage);
             Alert.alert(
                 "Không thể bật thông báo đẩy",
-                "Không lấy được token thiết bị. Hãy thử lại trên thiết bị thật.",
+                getTokenFailureMessage(tokenResult.reason),
             );
             return false;
         }
 
-        await notificationService.registerFcmToken({
-            token,
-            device: getDeviceName(),
-        });
-
-        await storage.multiSet([
-            [PUSH_NOTIFICATION_ENABLED_KEY, ENABLED_VALUE],
-            [PUSH_NOTIFICATION_TOKEN_KEY, token],
-        ]);
-        setIsEnabled(true);
-
         return true;
-    }, []);
+    }, [tryRegisterToken]);
 
     const disablePushNotifications = useCallback(async () => {
         const token = await storage.getItem(PUSH_NOTIFICATION_TOKEN_KEY);
@@ -97,14 +156,11 @@ export const usePushNotificationSetting = () => {
             }
         }
 
-        await storage.multiSet([
-            [PUSH_NOTIFICATION_ENABLED_KEY, DISABLED_VALUE],
-            [PUSH_NOTIFICATION_TOKEN_KEY, ""],
-        ]);
+        await persistEnabledState(false, "");
         setIsEnabled(false);
 
         return true;
-    }, []);
+    }, [persistEnabledState]);
 
     const setPushEnabled = useCallback(async (nextEnabled: boolean) => {
         if (isUpdating) {

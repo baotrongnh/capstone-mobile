@@ -18,6 +18,9 @@ export type IotDoorUnlockPathParams = paths['/api/v1/iot/doors/{boardId}/{device
 export type IotDoorUnlockPayload = paths['/api/v1/iot/doors/{boardId}/{deviceId}/unlock']['post']['requestBody']['content']['application/json']
 export type IotDoorUnlockResponse = paths['/api/v1/iot/doors/{boardId}/{deviceId}/unlock']['post']['responses']['201']['content']['application/json']
 export type IotDoorUnlockVariables = IotDoorUnlockPathParams & IotDoorUnlockPayload
+export type IotDoorHistoryResponse = paths['/api/v1/iot/doors/history']['get']['responses']['200']['content']['application/json']
+export type IotDoorHistoryQueryParams = NonNullable<paths['/api/v1/iot/doors/history']['get']['parameters']['query']>
+export type IotDoorHistoryItem = NonNullable<NonNullable<IotDoorHistoryResponse['data']>['items']>[number]
 export type IotDoorPinUpdatePathParams = paths['/api/v1/iot/doors/{boardId}/{deviceId}/pin']['patch']['parameters']['path']
 export type IotDoorPinUpdatePayload = paths['/api/v1/iot/doors/{boardId}/{deviceId}/pin']['patch']['requestBody']['content']['application/json']
 export type IotDoorPinUpdateResponse = paths['/api/v1/iot/doors/{boardId}/{deviceId}/pin']['patch']['responses']['200']['content']['application/json']
@@ -55,6 +58,11 @@ export const iotServices = {
      },
      unlockDoor: async ({ boardId, deviceId, pin }: IotDoorUnlockVariables): Promise<IotDoorUnlockResponse> => {
           const { data } = await apiClient.post(`${endpoints.iot}/doors/${boardId}/${deviceId}/unlock`, { pin })
+
+          return data
+     },
+     getDoorHistory: async (params?: IotDoorHistoryQueryParams): Promise<IotDoorHistoryResponse> => {
+          const { data } = await apiClient.get(`${endpoints.iot}/doors/history`, { params })
 
           return data
      },

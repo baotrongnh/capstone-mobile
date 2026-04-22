@@ -33,6 +33,8 @@ export type DoorDeviceOption = {
      espId: string
      deviceId: number
      label: string
+     boardName: string
+     isBoardLocked: boolean
 }
 
 type RenameTarget = {
@@ -59,6 +61,7 @@ interface DeviceGridProps {
      boardOnlineMap?: Record<string, boolean>
      actions: DeviceGridActions
      pending?: DeviceGridPending
+     onViewDoorHistory?: () => void
 }
 
 type NormalDevice = {
@@ -72,17 +75,48 @@ type NormalDevice = {
      payload: IoTControlVariables
 }
 
+type LockedBoardInfo = {
+     id: string
+     name: string
+}
+
+type DeviceGroups = {
+     normalDevices: NormalDevice[]
+     doorDevices: DoorDeviceOption[]
+     lockedBoards: LockedBoardInfo[]
+     boardLockedMap: Record<string, boolean>
+}
+
+const LOCKED_BOARD_SUPPORT_MESSAGE =
+     "Vui lòng liên hệ nhân viên hỗ trợ để biết thêm chi tiết và được hỗ trợ."
+
+const isInactiveStatus = (status?: string | null) => (status ?? "").toLowerCase() === "inactive"
+
 const buildDeviceGroups = (
      boards: IotBoardItem[],
      boardOnlineMap: Record<string, boolean>
-): { normalDevices: NormalDevice[]; doorDevices: DoorDeviceOption[] } => {
+): DeviceGroups => {
      const normalDevices: NormalDevice[] = []
      const doorDevices: DoorDeviceOption[] = []
+     const lockedBoards: LockedBoardInfo[] = []
+     const boardLockedMap: Record<string, boolean> = {}
 
      for (const board of boards) {
+          const isBoardLocked = isInactiveStatus(board.status)
+          boardLockedMap[board.id] = isBoardLocked
+
+          if (isBoardLocked) {
+               lockedBoards.push({
+                    id: board.id,
+                    name: board.name || board.id,
+               })
+          }
+
           const isBoardOffline = boardOnlineMap[board.id] === false
 
           for (const device of board.devices) {
+               if (isInactiveStatus(device.status)) continue
+
                const topic = toControlTopic(device.topic)
                if (!topic || device.deviceId == null) continue
 
@@ -92,6 +126,8 @@ const buildDeviceGroups = (
                          espId: board.id,
                          deviceId: device.deviceId,
                          label: device.deviceName || board.name || `Cửa ${device.deviceId}`,
+                         boardName: board.name || board.id,
+                         isBoardLocked,
                     })
                     continue
                }
@@ -105,7 +141,7 @@ const buildDeviceGroups = (
                     title: device.deviceName || `Thiết bị ${device.deviceId}`,
                     subtitle: board.name || undefined,
                     isOn: device.state === "ON",
-                    disabled: isBoardOffline,
+                    disabled: isBoardOffline || isBoardLocked,
                     payload: {
                          deviceId: device.deviceId,
                          action: "OFF",
@@ -116,7 +152,7 @@ const buildDeviceGroups = (
           }
      }
 
-     return { normalDevices, doorDevices }
+     return { normalDevices, doorDevices, lockedBoards, boardLockedMap }
 }
 
 export default function DeviceGrid({
@@ -124,6 +160,7 @@ export default function DeviceGrid({
      boardOnlineMap = {},
      actions,
      pending = {},
+     onViewDoorHistory,
 }: DeviceGridProps) {
      const [renameTarget, setRenameTarget] = useState<RenameTarget | null>(null)
      const [renameValue, setRenameValue] = useState("")
@@ -168,7 +205,7 @@ export default function DeviceGrid({
           setIsRenameModalVisible(false)
      }
 
-     const { normalDevices, doorDevices } = useMemo(
+     const { normalDevices, doorDevices, lockedBoards, boardLockedMap } = useMemo(
           () => buildDeviceGroups(boards, boardOnlineMap),
           [boardOnlineMap, boards]
      )
@@ -211,12 +248,27 @@ export default function DeviceGrid({
 
      return (
           <>
+               {lockedBoards.length > 0 ? (
+                    <View style={styles.lockedBoardsWrap}>
+                         {lockedBoards.map((board) => (
+                              <View key={board.id} style={styles.lockedBoardCard}>
+                                   <View style={styles.lockedBoardTopRow}>
+                                        <MaterialCommunityIcons name="lock-alert-outline" size={18} color="#b45309" />
+                                        <Text style={styles.lockedBoardTitle}>Mạch {board.name} đang bị khóa</Text>
+                                   </View>
+                                   <Text style={styles.lockedBoardDescription}>{LOCKED_BOARD_SUPPORT_MESSAGE}</Text>
+                              </View>
+                         ))}
+                    </View>
+               ) : null}
+
                {doorDevices.length > 0 &&
                     <View style={styles.sectionBlock}>
                          <DoorAccessCard
                               title={doorDevices[0]?.label || "Cửa ra vào"}
                               doorDevices={doorDevices}
                               doorOnlineMap={boardOnlineMap}
+                              doorLockedMap={boardLockedMap}
                               pending={{
                                    openingDoor: pending.openingDoor,
                                    changingDoorPin: pending.changingDoorPin,
@@ -224,6 +276,7 @@ export default function DeviceGrid({
                               actions={{
                                    openDoor: actions.openDoor,
                                    changeDoorPassword: actions.changeDoorPassword,
+                                   viewDoorHistory: onViewDoorHistory,
                                    requestRenameDoor: (door) => {
                                         openRenameModal({
                                              boardId: door.espId,
@@ -248,7 +301,7 @@ export default function DeviceGrid({
                                         disabled={device.disabled}
                                         loading={Boolean(deviceLoadingMap[device.id])}
                                         topic={device.payload.topic}
-                                        onLongPress={() =>
+                                        onLongPress={device.disabled ? undefined : () =>
                                              openRenameModal({
                                                   boardId: device.boardId,
                                                   deviceId: device.apiDeviceId,
@@ -307,6 +360,33 @@ export default function DeviceGrid({
 }
 
 const styles = StyleSheet.create({
+     lockedBoardsWrap: {
+          gap: 8,
+     },
+     lockedBoardCard: {
+          borderRadius: 14,
+          borderWidth: 1,
+          borderColor: "#fde68a",
+          backgroundColor: "#fffbeb",
+          paddingHorizontal: 12,
+          paddingVertical: 10,
+          gap: 4,
+     },
+     lockedBoardTopRow: {
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 6,
+     },
+     lockedBoardTitle: {
+          fontSize: 13,
+          fontWeight: "700",
+          color: "#92400e",
+     },
+     lockedBoardDescription: {
+          fontSize: 12,
+          lineHeight: 18,
+          color: "#a16207",
+     },
      grid: {
           flexDirection: "row",
           flexWrap: "wrap",

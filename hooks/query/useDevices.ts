@@ -1,6 +1,7 @@
 import {
      IoTControlVariables,
      IotBoardDeviceUpdateVariables,
+     IotDoorHistoryQueryParams,
      IotDoorPinUpdateVariables,
      IotDoorUnlockVariables,
      IotHealthCheckParams,
@@ -21,6 +22,14 @@ export const useIotMeters = (params?: IotUtilityMetersQueryParams) => {
      return useQuery({
           queryKey: ["iot-meter", params?.apartmentId, params?.boardId, params?.status],
           queryFn: () => iotServices.getUtilityMeters(params),
+          enabled: Boolean(params?.apartmentId || params?.boardId),
+     })
+}
+
+export const useDoorHistory = (params?: IotDoorHistoryQueryParams) => {
+     return useQuery({
+          queryKey: ["iot-door-history", params?.apartmentId, params?.boardId, params?.from, params?.to, params?.limit],
+          queryFn: () => iotServices.getDoorHistory(params),
           enabled: Boolean(params?.apartmentId || params?.boardId),
      })
 }
