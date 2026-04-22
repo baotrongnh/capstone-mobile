@@ -3,6 +3,18 @@ import { Platform } from "react-native";
 
 type NotificationsModule = typeof import("expo-notifications");
 
+export type NativePushTokenFailureReason =
+    | "unsupported"
+    | "firebase-not-configured"
+    | "native-error"
+    | "token-empty";
+
+export type NativePushTokenResult = {
+    token: string | null;
+    reason?: NativePushTokenFailureReason;
+    errorMessage?: string;
+};
+
 const isExpoGo = Constants.executionEnvironment === "storeClient";
 
 let notificationsModulePromise: Promise<NotificationsModule | null> | null = null;
@@ -44,6 +56,65 @@ export const setupPushNotificationChannel = async () => {
     });
 };
 
+const wait = (ms: number) => new Promise((resolve) => {
+    setTimeout(resolve, ms);
+});
+
+const normalizeTokenData = (value: unknown): string | null => {
+    if (typeof value === "string") {
+        const trimmed = value.trim();
+        return trimmed.length > 0 ? trimmed : null;
+    }
+
+    return null;
+};
+
+const getErrorMessage = (error: unknown): string => {
+    if (error instanceof Error) {
+        return error.message;
+    }
+
+    return String(error ?? "Unknown error");
+};
+
+const isFirebaseConfigError = (message: string): boolean => {
+    const normalized = message.toLowerCase();
+
+    return (
+        normalized.includes("firebaseapp") ||
+        normalized.includes("default firebaseapp") ||
+        normalized.includes("default app") ||
+        normalized.includes("google-services") ||
+        normalized.includes("fcm")
+    );
+};
+
+const getAndroidFirebaseConfigState = (): "configured" | "missing" | "unknown" => {
+    if (Platform.OS !== "android") {
+        return "configured";
+    }
+
+    const googleServicesFile =
+        (Constants.expoConfig as { android?: { googleServicesFile?: string } } | null)?.android
+            ?.googleServicesFile;
+
+    if (typeof googleServicesFile !== "string") {
+        return "unknown";
+    }
+
+    return googleServicesFile.trim().length > 0 ? "configured" : "missing";
+};
+
+export const hasPushPermission = async (): Promise<boolean> => {
+    const Notifications = await getNotificationsModule();
+    if (!Notifications) {
+        return false;
+    }
+
+    const permission = await Notifications.getPermissionsAsync();
+    return permission.granted;
+};
+
 export const requestPushPermission = async () => {
     const Notifications = await getNotificationsModule();
     if (!Notifications) {
@@ -60,23 +131,68 @@ export const requestPushPermission = async () => {
     return requested.granted;
 };
 
-export const getNativePushToken = async (): Promise<string | null> => {
+export const getNativePushTokenDetailed = async (
+    retries = 2,
+    retryDelayMs = 600,
+): Promise<NativePushTokenResult> => {
     try {
         const Notifications = await getNotificationsModule();
         if (!Notifications) {
-            return null;
+            return {
+                token: null,
+                reason: "unsupported",
+                errorMessage: "expo-notifications module is not available",
+            };
         }
 
-        const tokenData = await Notifications.getDevicePushTokenAsync();
-        const token = tokenData?.data;
-
-        if (typeof token === "string" && token.length > 0) {
-            return token;
+        if (getAndroidFirebaseConfigState() === "missing") {
+            return {
+                token: null,
+                reason: "firebase-not-configured",
+                errorMessage: "android.googleServicesFile is missing in app config",
+            };
         }
 
-        return null;
+        for (let attempt = 0; attempt <= retries; attempt += 1) {
+            const tokenData = await Notifications.getDevicePushTokenAsync();
+            const token = normalizeTokenData(tokenData?.data);
+
+            if (token) {
+                return { token };
+            }
+
+            if (attempt < retries) {
+                await wait(retryDelayMs);
+            }
+        }
+
+        return {
+            token: null,
+            reason: "token-empty",
+            errorMessage: "Native push token was empty",
+        };
     } catch (error) {
-        console.error("Cannot get native push token", error);
-        return null;
+        const errorMessage = getErrorMessage(error);
+
+        return {
+            token: null,
+            reason: isFirebaseConfigError(errorMessage)
+                ? "firebase-not-configured"
+                : "native-error",
+            errorMessage,
+        };
     }
+};
+
+export const getNativePushToken = async (
+    retries = 2,
+    retryDelayMs = 600,
+): Promise<string | null> => {
+    const result = await getNativePushTokenDetailed(retries, retryDelayMs);
+
+    if (!result.token && result.errorMessage) {
+        console.error("Cannot get native push token", result.errorMessage);
+    }
+
+    return result.token;
 };
