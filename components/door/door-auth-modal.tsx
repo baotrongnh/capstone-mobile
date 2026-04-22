@@ -8,6 +8,7 @@ type DoorAuthModalProps = {
      visible: boolean
      doorDevices: DoorDeviceOption[]
      doorOnlineMap?: Record<string, boolean>
+     doorLockedMap?: Record<string, boolean>
      selectedDoorId: string
      pin: string
      error?: string
@@ -24,6 +25,7 @@ export default function DoorAuthModal({
      visible,
      doorDevices,
      doorOnlineMap = {},
+     doorLockedMap = {},
      selectedDoorId,
      pin,
      error,
@@ -79,15 +81,25 @@ export default function DoorAuthModal({
                          {doorDevices.map((item) => {
                               const isSelected = item.id === selectedDoorId
                               const isDoorOnline = doorOnlineMap[item.espId] === true
+                              const isDoorLocked = doorLockedMap[item.espId] === true
+                              const isDoorDisabled = !isDoorOnline || isDoorLocked
+
+                              let optionLabel = item.label
+                              if (isDoorLocked) {
+                                   optionLabel = `${item.label} (Bị khóa)`
+                              } else if (!isDoorOnline) {
+                                   optionLabel = `${item.label} (Offline)`
+                              }
+
                               return (
                                    <Pressable
                                         key={item.id}
                                         onPress={() => onSelectDoor(item.id)}
-                                        disabled={!isDoorOnline}
+                                        disabled={isDoorDisabled}
                                         style={[
                                              styles.doorOption,
                                              isSelected && styles.doorOptionActive,
-                                             !isDoorOnline && styles.doorOptionDisabled,
+                                             isDoorDisabled && styles.doorOptionDisabled,
                                         ]}
                                    >
                                         <Text
@@ -95,10 +107,10 @@ export default function DoorAuthModal({
                                              style={[
                                                   styles.doorOptionText,
                                                   isSelected && styles.doorOptionTextActive,
-                                                  !isDoorOnline && styles.doorOptionTextDisabled,
+                                                  isDoorDisabled && styles.doorOptionTextDisabled,
                                              ]}
                                         >
-                                             {isDoorOnline ? item.label : `${item.label} (Offline)`}
+                                             {optionLabel}
                                         </Text>
                                    </Pressable>
                               )
