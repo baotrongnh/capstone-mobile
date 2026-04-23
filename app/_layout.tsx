@@ -78,15 +78,15 @@ export default function RootLayout() {
       }
 
       Alert.alert(
-        "ChÆ°a cáº¥p quyá»n thÃ'ng bÃ¡o",
-        "Báº¡n Ä‘Ã£ tá»« chá»‘i thÃ'ng bÃ¡o. Báº¡n cÃ³ thá»ƒ báº­t láº¡i quyá»n nÃ y trong CÃ i Ä‘áº·t thiáº¿t bá»‹.",
+        "Chưa cấp quyền thông báo",
+        "Bạn đã từ chối thông báo. Bạn có thể bật lại quyền này trong Cài đặt thiết bị.",
         [
           {
-            text: "Äá»ƒ sau",
+            text: "Để sau",
             style: "cancel",
           },
           {
-            text: "Má»Ÿ CÃ i Ä‘áº·t",
+            text: "Mở Cài đặt",
             onPress: () => {
               void Linking.openSettings();
             },
