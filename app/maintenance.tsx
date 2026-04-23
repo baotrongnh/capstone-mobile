@@ -160,8 +160,8 @@ export default function MaintenanceScreen() {
         ListHeaderComponent={
           <View
             style={{
-              flexDirection: "row",
-              justifyContent: "flex-end",
+              width: "100%",
+              alignItems: "stretch",
               paddingHorizontal: 16,
               marginBottom: 12,
             }}
@@ -281,6 +281,7 @@ const styles = StyleSheet.create({
   },
   createButton: {
     flexDirection: "row",
+    width: "100%",
     paddingHorizontal: 20,
     paddingVertical: 14,
     backgroundColor: Colors.primary,
