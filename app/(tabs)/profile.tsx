@@ -7,6 +7,7 @@ import { getBottomTabContentPadding } from "@/utils/bottomTab";
 import { uploadImageFromUri } from "@/utils/uploadFile";
 import { toUserText } from "@/utils/user";
 import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Alert, BackHandler, RefreshControl, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -20,6 +21,7 @@ import {
 } from "../../components/profile";
 
 export default function ProfileScreenPage() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const contentBottomPadding = getBottomTabContentPadding(insets.bottom);
   const user = useAuthStore((state) => state.user);
@@ -114,6 +116,8 @@ export default function ProfileScreenPage() {
       ]);
     } else if (screen === "support") {
       Alert.alert("Thông báo", "Tính năng này sẽ được cập nhật sớm.");
+    } else if (screen === "debug") {
+      router.push("/debug");
     } else {
       setCurrentScreen(screen);
     }

@@ -86,6 +86,8 @@ export default function RootLayout() {
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="login" options={{ headerShown: false }} />
             <Stack.Screen name="wifi-setup" options={{ headerShown: false }} />
+            <Stack.Screen name="door-history" options={{ headerShown: false }} />
+            <Stack.Screen name="debug" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="notifications" options={{ headerShown: false }} />
             <Stack.Screen name="more-services" options={{ headerShown: false }} />

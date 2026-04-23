@@ -10,12 +10,12 @@ import {
      useUpdateIotBoardDevice,
 } from "@/hooks/query/useDevices"
 import { useUserApartment } from "@/hooks/query/useUserApartment"
-import { IoTControlVariables } from "@/lib/services/iot.service"
+import { IoTControlVariables, type IotBoardItem } from "@/lib/services/iot.service"
 import { storage } from "@/stores/storage"
 import type { UserApartmentItem } from "@/types/userApartment"
 import { MaterialCommunityIcons } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
-import React, { useEffect, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native"
 
 const APARTMENT_STORAGE_KEY = "selectedApartmentId"
@@ -44,9 +44,9 @@ export default function ApartmentControlScreen() {
      } = useIotBoards(selectedApartmentId || undefined)
 
      const myApartments = apartmentData?.data as UserApartmentItem[] | undefined
-     const boards = boardsData?.data ?? []
+     const boards = useMemo(() => boardsData?.data ?? [], [boardsData?.data])
 
-     function onSelectApartment(apartmentId: string) {
+     const saveSelectedApartment = useCallback((apartmentId: string) => {
           setSelectedApartmentId(apartmentId)
 
           if (apartmentId) {
@@ -55,7 +55,27 @@ export default function ApartmentControlScreen() {
           }
 
           void storage.removeItem(APARTMENT_STORAGE_KEY)
+     }, [])
+
+     function onSelectApartment(apartmentId: string) {
+          saveSelectedApartment(apartmentId)
      }
+
+     const syncBoardHealth = useCallback(async (targetBoards: IotBoardItem[]) => {
+          if (!targetBoards.length) {
+               setBoardOnlineMap({})
+               return
+          }
+
+          const healthEntries = await Promise.all(
+               targetBoards.map(async (board) => {
+                    const response = await checkDeviceHealthMutation({ espId: board.id }).catch(() => null)
+                    return [board.id, Boolean(response?.data?.online)] as const
+               }),
+          )
+
+          setBoardOnlineMap(Object.fromEntries(healthEntries))
+     }, [checkDeviceHealthMutation])
 
      async function onRefresh() {
           if (!selectedApartmentId) return
@@ -63,21 +83,7 @@ export default function ApartmentControlScreen() {
           setIsRefreshing(true)
           try {
                const nextBoardsResponse = await refetchBoards()
-               const targetBoards = nextBoardsResponse.data?.data ?? []
-
-               if (!targetBoards.length) {
-                    setBoardOnlineMap({})
-                    return
-               }
-
-               const healthEntries = await Promise.all(
-                    targetBoards.map(async (board) => {
-                         const response = await checkDeviceHealthMutation({ espId: board.id }).catch(() => null)
-                         return [board.id, Boolean(response?.data?.online)] as const
-                    }),
-               )
-
-               setBoardOnlineMap(Object.fromEntries(healthEntries))
+               await syncBoardHealth(nextBoardsResponse.data?.data ?? [])
           } finally {
                setIsRefreshing(false)
           }
@@ -112,8 +118,7 @@ export default function ApartmentControlScreen() {
 
           if (!apartments.length) {
                if (selectedApartmentId) {
-                    setSelectedApartmentId("")
-                    void storage.removeItem(APARTMENT_STORAGE_KEY)
+                    saveSelectedApartment("")
                }
                return
           }
@@ -121,40 +126,24 @@ export default function ApartmentControlScreen() {
           const hasSelection = apartments.some((item) => String(item.apartmentId) === selectedApartmentId)
           if (hasSelection) return
 
-          const nextApartmentId = String(apartments[0].apartmentId)
-          setSelectedApartmentId(nextApartmentId)
-          void storage.setItem(APARTMENT_STORAGE_KEY, nextApartmentId)
-     }, [isApartmentLoading, isHydratedStorage, myApartments, selectedApartmentId])
+          saveSelectedApartment(String(apartments[0].apartmentId))
+     }, [isApartmentLoading, isHydratedStorage, myApartments, saveSelectedApartment, selectedApartmentId])
 
      useEffect(() => {
           let cancelled = false
 
-          async function syncBoardHealth() {
-               const targetBoards = boardsData?.data ?? []
-               if (!targetBoards.length) {
-                    if (!cancelled) {
-                         setBoardOnlineMap({})
-                    }
-                    return
-               }
+          async function loadBoardHealth() {
+               await syncBoardHealth(boards)
 
-               const healthEntries = await Promise.all(
-                    targetBoards.map(async (board) => {
-                         const response = await checkDeviceHealthMutation({ espId: board.id }).catch(() => null)
-                         return [board.id, Boolean(response?.data?.online)] as const
-                    }),
-               )
                if (cancelled) return
-
-               setBoardOnlineMap(Object.fromEntries(healthEntries))
           }
 
-          void syncBoardHealth()
+          void loadBoardHealth()
 
           return () => {
                cancelled = true
           }
-     }, [boardsData?.data, checkDeviceHealthMutation])
+     }, [boards, syncBoardHealth])
 
      const actions = {
           toggleDevice: async (data: IoTControlVariables) => {
@@ -256,6 +245,7 @@ export default function ApartmentControlScreen() {
 
                     <View style={styles.sectionBlock}>
                          <Text style={styles.sectionTitle}>Thiết lập thiết bị</Text>
+
                          <View style={styles.setupRow}>
                               <Pressable
                                    onPress={() => router.navigate("/wifi-setup")}
@@ -294,7 +284,13 @@ export default function ApartmentControlScreen() {
                                    <Text style={styles.loadingInlineText}>Đang tải mạch và thiết bị...</Text>
                               </View>
                          ) : (
-                              <DeviceGrid boards={boards} boardOnlineMap={boardOnlineMap} pending={pending} actions={actions} />
+                              <DeviceGrid
+                                   boards={boards}
+                                   boardOnlineMap={boardOnlineMap}
+                                   pending={pending}
+                                   actions={actions}
+                                   onViewDoorHistory={() => router.push("/door-history")}
+                              />
                          )}
                     </View>
                </ScrollView>
