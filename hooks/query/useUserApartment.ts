@@ -31,6 +31,10 @@ export const useUpdateDoorPin = () => {
     return useMutation({
         mutationFn: updateDoorPin,
         onSuccess: (res) => {
+            if (!res?.data?.success) {
+                return
+            }
+
             queryClient.invalidateQueries({ queryKey: ['user-apartments'] })
             queryClient.invalidateQueries({ queryKey: ['iot-boards'] })
             console.log(res)

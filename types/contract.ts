@@ -2,7 +2,7 @@ import type { paths, components } from "@/types/api";
 
 export type ContractListResponse =
   paths["/api/v1/contracts"]["get"]["responses"]["200"]["content"]["application/json"];
-export type ContractItem = NonNullable<ContractListResponse["data"]>[number];
+export type ContractItem = NonNullable<ContractListResponse["data"]>["items"][number];
 export type ContractList = ContractItem[];
 
 export interface Address {

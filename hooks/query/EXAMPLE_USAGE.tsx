@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Ví dụ sử dụng trong Component
 
 'use client'

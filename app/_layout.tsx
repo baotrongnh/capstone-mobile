@@ -2,8 +2,13 @@ import AuthProvider from "@/components/providers/auth-provider";
 import ReactQueryProvider from "@/components/providers/react-query-provider";
 import {
   getNotificationsModule,
-  isPushNotificationSupported,
+  registerPushNotificationListeners,
+  setupPushNotificationChannel,
 } from "@/utils/pushNotification";
+import {
+  isPushEnabledLocally,
+  registerPushToken,
+} from "@/utils/pushNotificationRegistration";
 import { Stack } from "expo-router";
 import React from "react";
 import { Alert, Linking } from "react-native";
@@ -12,15 +17,12 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 export default function RootLayout() {
   React.useEffect(() => {
     let mounted = true;
+    let cleanupListeners: (() => void) | undefined;
 
     const configureNotificationHandler = async () => {
-      if (!isPushNotificationSupported()) {
-        return;
-      }
-
       const Notifications = await getNotificationsModule();
 
-      if (!mounted || !Notifications) {
+      if (!mounted || !Notifications || !Notifications.setNotificationHandler) {
         return;
       }
 
@@ -34,14 +36,33 @@ export default function RootLayout() {
       });
     };
 
-    const requestNotificationPermissionOnLaunch = async () => {
-      if (!isPushNotificationSupported()) {
-        return;
-      }
+    const configurePushRuntime = async () => {
+      await setupPushNotificationChannel();
 
+      return registerPushNotificationListeners({
+        onTokenRefresh: async (token) => {
+          if (!(await isPushEnabledLocally())) {
+            return;
+          }
+
+          try {
+            await registerPushToken(token);
+          } catch (error) {
+            console.error("Cannot sync refreshed FCM token", error);
+          }
+        },
+      });
+    };
+
+    const requestNotificationPermissionOnLaunch = async () => {
       const Notifications = await getNotificationsModule();
 
-      if (!mounted || !Notifications) {
+      if (
+        !mounted
+        || !Notifications
+        || !Notifications.getPermissionsAsync
+        || !Notifications.requestPermissionsAsync
+      ) {
         return;
       }
 
@@ -76,9 +97,13 @@ export default function RootLayout() {
 
     void configureNotificationHandler();
     void requestNotificationPermissionOnLaunch();
+    void configurePushRuntime().then((cleanup) => {
+      cleanupListeners = cleanup;
+    });
 
     return () => {
       mounted = false;
+      cleanupListeners?.();
     };
   }, []);
 
@@ -95,7 +120,7 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="notifications" options={{ headerShown: false }} />
             <Stack.Screen name="more-services" options={{ headerShown: false }} />
-            <Stack.Screen name='invoices' options={{ headerShown: false }} />
+            <Stack.Screen name="invoices" options={{ headerShown: false }} />
             <Stack.Screen name="invoices/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="payment/success" options={{ headerShown: false }} />
             <Stack.Screen name="payment/fail" options={{ headerShown: false }} />

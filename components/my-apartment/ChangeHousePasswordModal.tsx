@@ -17,6 +17,7 @@ export default function ChangeHousePasswordModal({
     newHousePassword,
     confirmNewHousePassword,
     isUpdating,
+    isFirstPassSetup = false,
     helperText,
     passwordLength = 6,
     onChangeOldPassword,
@@ -46,31 +47,39 @@ export default function ChangeHousePasswordModal({
         >
             <View style={styles.modalOverlay}>
                 <View style={styles.modalCard}>
-                    <Text style={styles.modalTitle}>Đổi mật khẩu cửa</Text>
-                    <Text style={styles.modalSubtitle}>{helperText || "Nhập mật khẩu cũ và mật khẩu mới gồm 6 chữ số"}</Text>
+                    <Text style={styles.modalTitle}>
+                        {isFirstPassSetup ? "Thiết lập mật khẩu cửa lần đầu" : "Đổi mật khẩu cửa"}
+                    </Text>
+                    <Text style={styles.modalSubtitle}>
+                        {helperText || (isFirstPassSetup
+                            ? "Vì chính sách bảo mật, vui lòng thiết lập mật khẩu cửa lần đầu để sử dụng cửa. Mật khẩu mới cần gồm 6 chữ số."
+                            : "Nhập mật khẩu hiện tại và mật khẩu mới gồm 6 chữ số")}
+                    </Text>
 
-                    <View style={styles.modalInputWrap}>
-                        <TextInput
-                            value={oldHousePassword}
-                            onChangeText={(text) => onChangeOldPassword(text.replace(/\D/g, "").slice(0, passwordLength))}
-                            placeholder="Mật khẩu hiện tại"
-                            placeholderTextColor="#94a3b8"
-                            keyboardType="number-pad"
-                            secureTextEntry={!showOldPassword}
-                            maxLength={passwordLength}
-                            style={styles.modalInput}
-                        />
-                        <Pressable
-                            style={styles.inputActionButton}
-                            onPress={() => setShowOldPassword((prev) => !prev)}
-                        >
-                            <MaterialCommunityIcons
-                                name={showOldPassword ? "eye-off-outline" : "eye-outline"}
-                                size={18}
-                                color="#475569"
+                    {!isFirstPassSetup ? (
+                        <View style={styles.modalInputWrap}>
+                            <TextInput
+                                value={oldHousePassword}
+                                onChangeText={(text) => onChangeOldPassword(text.replace(/\D/g, "").slice(0, passwordLength))}
+                                placeholder="Mật khẩu hiện tại"
+                                placeholderTextColor="#94a3b8"
+                                keyboardType="number-pad"
+                                secureTextEntry={!showOldPassword}
+                                maxLength={passwordLength}
+                                style={styles.modalInput}
                             />
-                        </Pressable>
-                    </View>
+                            <Pressable
+                                style={styles.inputActionButton}
+                                onPress={() => setShowOldPassword((prev) => !prev)}
+                            >
+                                <MaterialCommunityIcons
+                                    name={showOldPassword ? "eye-off-outline" : "eye-outline"}
+                                    size={18}
+                                    color="#475569"
+                                />
+                            </Pressable>
+                        </View>
+                    ) : null}
 
                     <View style={styles.modalInputWrap}>
                         <TextInput
@@ -119,13 +128,15 @@ export default function ChangeHousePasswordModal({
                     </View>
 
                     <View style={styles.modalActions}>
-                        <Pressable
-                            onPress={onClose}
-                            disabled={isUpdating}
-                            style={[styles.modalButton, styles.modalCancelButton]}
-                        >
-                            <Text style={styles.modalCancelButtonText}>Hủy</Text>
-                        </Pressable>
+                        {!isFirstPassSetup ? (
+                            <Pressable
+                                onPress={onClose}
+                                disabled={isUpdating}
+                                style={[styles.modalButton, styles.modalCancelButton]}
+                            >
+                                <Text style={styles.modalCancelButtonText}>Hủy</Text>
+                            </Pressable>
+                        ) : null}
                         <Pressable
                             onPress={onSubmit}
                             disabled={isUpdating}
@@ -134,7 +145,9 @@ export default function ChangeHousePasswordModal({
                             {isUpdating ? (
                                 <ActivityIndicator size="small" color="#ffffff" />
                             ) : (
-                                <Text style={styles.modalSubmitButtonText}>Lưu</Text>
+                                <Text style={styles.modalSubmitButtonText}>
+                                    {isFirstPassSetup ? "Thiết lập mật khẩu" : "Lưu"}
+                                </Text>
                             )}
                         </Pressable>
                     </View>
