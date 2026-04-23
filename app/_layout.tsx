@@ -2,7 +2,6 @@ import AuthProvider from "@/components/providers/auth-provider";
 import ReactQueryProvider from "@/components/providers/react-query-provider";
 import {
   getNotificationsModule,
-  isPushNotificationSupported,
 } from "@/utils/pushNotification";
 import { Stack } from "expo-router";
 import React from "react";
@@ -14,13 +13,9 @@ export default function RootLayout() {
     let mounted = true;
 
     const configureNotificationHandler = async () => {
-      if (!isPushNotificationSupported()) {
-        return;
-      }
-
       const Notifications = await getNotificationsModule();
 
-      if (!mounted || !Notifications) {
+      if (!mounted || !Notifications || !Notifications.setNotificationHandler) {
         return;
       }
 
@@ -35,13 +30,14 @@ export default function RootLayout() {
     };
 
     const requestNotificationPermissionOnLaunch = async () => {
-      if (!isPushNotificationSupported()) {
-        return;
-      }
-
       const Notifications = await getNotificationsModule();
 
-      if (!mounted || !Notifications) {
+      if (
+        !mounted
+        || !Notifications
+        || !Notifications.getPermissionsAsync
+        || !Notifications.requestPermissionsAsync
+      ) {
         return;
       }
 

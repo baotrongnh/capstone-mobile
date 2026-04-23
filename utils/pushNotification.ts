@@ -3,6 +3,15 @@ import { Platform } from "react-native";
 
 type NotificationsModule = typeof import("expo-notifications");
 
+type NotificationsApi = {
+    setNotificationHandler?: NotificationsModule["setNotificationHandler"];
+    setNotificationChannelAsync?: NotificationsModule["setNotificationChannelAsync"];
+    getPermissionsAsync?: NotificationsModule["getPermissionsAsync"];
+    requestPermissionsAsync?: NotificationsModule["requestPermissionsAsync"];
+    getDevicePushTokenAsync?: NotificationsModule["getDevicePushTokenAsync"];
+    AndroidImportance?: NotificationsModule["AndroidImportance"];
+};
+
 export type NativePushTokenFailureReason =
     | "unsupported"
     | "firebase-not-configured"
@@ -15,13 +24,30 @@ export type NativePushTokenResult = {
     errorMessage?: string;
 };
 
-const isExpoGo = Constants.executionEnvironment === "storeClient";
+const isExpoGoEnvironment = () => {
+    const appOwnership = (Constants as { appOwnership?: string | null }).appOwnership;
+
+    return (
+        Constants.executionEnvironment === "storeClient"
+        || appOwnership === "expo"
+    );
+};
 
 let notificationsModulePromise: Promise<NotificationsModule | null> | null = null;
 
-export const isPushNotificationSupported = () => !isExpoGo;
+export const isPushNotificationSupported = () => !isExpoGoEnvironment();
 
-export const getNotificationsModule = async (): Promise<NotificationsModule | null> => {
+const toNotificationsApi = (module: NotificationsModule): NotificationsApi => {
+    const candidate = module as NotificationsModule & { default?: NotificationsApi };
+
+    if (candidate?.default && typeof candidate.default === "object") {
+        return candidate.default;
+    }
+
+    return candidate;
+};
+
+export const getNotificationsModule = async (): Promise<NotificationsApi | null> => {
     if (!isPushNotificationSupported()) {
         return null;
     }
@@ -35,7 +61,12 @@ export const getNotificationsModule = async (): Promise<NotificationsModule | nu
             });
     }
 
-    return notificationsModulePromise;
+    const module = await notificationsModulePromise;
+    if (!module) {
+        return null;
+    }
+
+    return toNotificationsApi(module);
 };
 
 export const setupPushNotificationChannel = async () => {
@@ -44,7 +75,7 @@ export const setupPushNotificationChannel = async () => {
     }
 
     const Notifications = await getNotificationsModule();
-    if (!Notifications) {
+    if (!Notifications || !Notifications.setNotificationChannelAsync || !Notifications.AndroidImportance) {
         return;
     }
 
@@ -89,6 +120,18 @@ const isFirebaseConfigError = (message: string): boolean => {
     );
 };
 
+const isUnsupportedEnvironmentError = (message: string): boolean => {
+    const normalized = message.toLowerCase();
+
+    return (
+        normalized.includes("expo go")
+        || normalized.includes("development build")
+        || normalized.includes("storeclient")
+        || normalized.includes("store client")
+        || normalized.includes("not supported")
+    );
+};
+
 const getAndroidFirebaseConfigState = (): "configured" | "missing" | "unknown" => {
     if (Platform.OS !== "android") {
         return "configured";
@@ -107,7 +150,7 @@ const getAndroidFirebaseConfigState = (): "configured" | "missing" | "unknown" =
 
 export const hasPushPermission = async (): Promise<boolean> => {
     const Notifications = await getNotificationsModule();
-    if (!Notifications) {
+    if (!Notifications || !Notifications.getPermissionsAsync) {
         return false;
     }
 
@@ -117,7 +160,7 @@ export const hasPushPermission = async (): Promise<boolean> => {
 
 export const requestPushPermission = async () => {
     const Notifications = await getNotificationsModule();
-    if (!Notifications) {
+    if (!Notifications || !Notifications.getPermissionsAsync || !Notifications.requestPermissionsAsync) {
         return false;
     }
 
@@ -137,7 +180,7 @@ export const getNativePushTokenDetailed = async (
 ): Promise<NativePushTokenResult> => {
     try {
         const Notifications = await getNotificationsModule();
-        if (!Notifications) {
+        if (!Notifications || !Notifications.getDevicePushTokenAsync) {
             return {
                 token: null,
                 reason: "unsupported",
@@ -176,9 +219,11 @@ export const getNativePushTokenDetailed = async (
 
         return {
             token: null,
-            reason: isFirebaseConfigError(errorMessage)
-                ? "firebase-not-configured"
-                : "native-error",
+            reason: isUnsupportedEnvironmentError(errorMessage)
+                ? "unsupported"
+                : isFirebaseConfigError(errorMessage)
+                    ? "firebase-not-configured"
+                    : "native-error",
             errorMessage,
         };
     }
