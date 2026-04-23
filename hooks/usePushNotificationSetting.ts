@@ -17,22 +17,22 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert } from "react-native";
 
 const ENABLED_VALUE = "1";
-const PUSH_PERMISSION_DENIED_MESSAGE = "Vui lÃ²ng cáº¥p quyá»n thÃ'ng bÃ¡o trong cÃ i Ä‘áº·t thiáº¿t bá»‹ Ä‘á»ƒ báº­t thÃ'ng bÃ¡o Ä‘áº©y.";
+const PUSH_PERMISSION_DENIED_MESSAGE = "Vui lòng cấp quyền thông báo trong cài đặt thiết bị để bật thông báo đẩy.";
 
 const getTokenFailureMessage = (reason?: NativePushTokenFailureReason) => {
     if (reason === "firebase-not-configured") {
-        return "KhÃ'ng láº¥y Ä‘Æ°á»£c token thiáº¿t bá»‹ do app Android chÆ°a cÃ³ cáº¥u hÃ¬nh Firebase (google-services.json).";
+        return "Không lấy được token thiết bị do app Android chưa có cấu hình Firebase (google-services.json).";
     }
 
     if (reason === "play-services-unavailable") {
-        return "Google Play services chÆ°a sáºµn sÃ ng trÃªn thiáº¿t bá»‹ nÃªn khÃ'ng thá»ƒ nháº­n FCM token.";
+        return "Google Play services chưa sẵn sàng trên thiết bị nên không thể nhận FCM token.";
     }
 
     if (reason === "unsupported") {
-        return "MÃ'i trÆ°á»ng hiá»‡n táº¡i chÆ°a há»— trá»£ láº¥y token thÃ'ng bÃ¡o Ä‘áº©y. Náº¿u Ä‘ang dÃ¹ng Expo Go, hÃ£y má»Ÿ app báº±ng development build.";
+        return "Môi trường hiện tại chưa hỗ trợ lấy token thông báo đẩy. Nếu đang dùng Expo Go, hãy mở app bằng development build.";
     }
 
-    return "KhÃ'ng láº¥y Ä‘Æ°á»£c token thiáº¿t bá»‹. HÃ£y kiá»ƒm tra máº¡ng vÃ  thá»­ láº¡i sau vÃ i giÃ¢y.";
+    return "Không lấy được token thiết bị. Hãy kiểm tra mạng và thử lại sau vài giây.";
 };
 
 export const usePushNotificationSetting = () => {
@@ -67,7 +67,7 @@ export const usePushNotificationSetting = () => {
 
         cachedTokenRef.current = nextToken;
         if (!(await persistCacheState(true, nextToken)) && mountedRef.current) {
-            setErrorMessage("ÄÃ£ báº­t thÃ'ng bÃ¡o Ä‘áº©y nhÆ°ng khÃ'ng thá»ƒ lÆ°u cÃ i Ä‘áº·t cá»¥c bá»™. Vui lÃ²ng má»Ÿ láº¡i mÃ n hÃ¬nh Ä‘á»ƒ Ä‘á»“ng bá»™.");
+            setErrorMessage("Đã bật thông báo đẩy nhưng không thể lưu cài đặt cục bộ. Vui lòng mở lại màn hình để đồng bộ.");
         }
 
         if (mountedRef.current) {
@@ -155,7 +155,7 @@ export const usePushNotificationSetting = () => {
             }
 
             Alert.alert(
-                "ChÆ°a cáº¥p quyá»n thÃ'ng bÃ¡o",
+                "Chưa cấp quyền thông báo",
                 PUSH_PERMISSION_DENIED_MESSAGE,
             );
             return false;
@@ -169,7 +169,7 @@ export const usePushNotificationSetting = () => {
             }
 
             Alert.alert(
-                "KhÃ'ng thá»ƒ báº­t thÃ'ng bÃ¡o Ä‘áº©y",
+                "Không thể bật thông báo đẩy",
                 getTokenFailureMessage(tokenResult.reason),
             );
             return false;
@@ -190,7 +190,7 @@ export const usePushNotificationSetting = () => {
         } catch (error) {
             console.error("Cannot remove FCM token", error);
             if (mountedRef.current) {
-                setErrorMessage("KhÃ'ng thá»ƒ táº¯t thÃ'ng bÃ¡o Ä‘áº©y lÃºc nÃ y. Vui lÃ²ng thá»­ láº¡i khi cÃ³ káº¿t ná»‘i máº¡ng á»•n Ä‘á»‹nh.");
+                setErrorMessage("Không thể tắt thông báo đẩy lúc này. Vui lòng thử lại khi có kết nối mạng ổn định.");
             }
 
             return false;
@@ -202,7 +202,7 @@ export const usePushNotificationSetting = () => {
         if (mountedRef.current) {
             setIsEnabled(false);
             if (!cachedStateSaved) {
-                setErrorMessage("ÄÃ£ táº¯t thÃ'ng bÃ¡o Ä‘áº©y nhÆ°ng khÃ'ng thá»ƒ lÆ°u tráº¡ng thÃ¡i cá»¥c bá»™.");
+                setErrorMessage("Đã tắt thông báo đẩy nhưng không thể lưu trạng thái cục bộ.");
             } else {
                 setErrorMessage(null);
             }
@@ -229,8 +229,8 @@ export const usePushNotificationSetting = () => {
         } catch (error) {
             console.error("Update push notification setting failed", error);
             Alert.alert(
-                "KhÃ'ng thá»ƒ cáº­p nháº­t",
-                "CÃ³ lá»—i xáº£y ra khi cáº­p nháº­t cÃ i Ä‘áº·t thÃ'ng bÃ¡o Ä‘áº©y. Vui lÃ²ng thá»­ láº¡i.",
+                "Không thể cập nhật",
+                "Có lỗi xảy ra khi cập nhật cài đặt thông báo đẩy. Vui lòng thử lại.",
             );
             return false;
         } finally {
