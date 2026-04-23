@@ -1189,7 +1189,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Update smart door PIN for tenant flow with old PIN verification and board acknowledgement */
+        /** Update smart door PIN for tenant flow with board acknowledgement; old PIN is only required after the first setup */
         patch: operations["IoTController_updateDoorPin"];
         trace?: never;
     };
@@ -1860,7 +1860,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** User updates own house password */
+        /** Legacy endpoint for updating the cached local house password field */
         patch: operations["UserApartmentsController_updateMyHousePassword"];
         trace?: never;
     };
@@ -3164,29 +3164,6 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
-        RoomDto: {
-            id: string;
-            /** @example R01 */
-            roomNumber: string;
-            /** @example bedroom */
-            roomType: string;
-            /** @example 20.00 */
-            area?: string | null;
-            /** @example true */
-            hasWindow: boolean;
-            /** @example true */
-            hasAirConditioning: boolean;
-            /** @example false */
-            hasPrivateBathroom: boolean;
-            /** @example 1 */
-            maxOccupancy: number;
-            /** @example 5000000.00 */
-            rentPrice?: string | null;
-            /** @example available */
-            status: string;
-            description?: string | null;
-            images?: string[] | null;
-        };
         OwnerSummaryDto: {
             /** @example e33f798c-7978-4a86-b243-b3ac43e020ba */
             id: string;
@@ -3366,7 +3343,6 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
-            rooms: components["schemas"]["RoomDto"][];
             owner?: components["schemas"]["OwnerSummaryDto"];
             /** @example [] */
             iotDevices: Record<string, never>[];
@@ -4952,10 +4928,10 @@ export interface components {
         };
         UpdateDoorPinDto: {
             /**
-             * @description Current 6-digit door PIN
+             * @description Current 6-digit door PIN. Optional on first-time setup when the apartment door has no active PIN yet.
              * @example 258036
              */
-            oldPin: string;
+            oldPin?: string;
             /**
              * @description New 6-digit door PIN
              * @example 290304
@@ -6214,7 +6190,11 @@ export interface components {
             moveInDate?: string | null;
             /** Format: date-time */
             moveOutDate?: string | null;
-            apartmentDoorPassword?: string | null;
+            /**
+             * @description True when the apartment door PIN has not been initialized yet and the tenant must set it on first use.
+             * @example true
+             */
+            isFirstPass: boolean;
             buildingGateCode?: string | null;
             smartLockPin?: string | null;
             mailboxCode?: string | null;
@@ -6465,7 +6445,11 @@ export interface components {
             moveInDate?: string | null;
             /** Format: date-time */
             moveOutDate?: string | null;
-            apartmentDoorPassword?: string | null;
+            /**
+             * @description True when the apartment door PIN has not been initialized yet and the tenant must set it on first use.
+             * @example true
+             */
+            isFirstPass: boolean;
             buildingGateCode?: string | null;
             smartLockPin?: string | null;
             mailboxCode?: string | null;
@@ -6495,7 +6479,11 @@ export interface components {
             moveInDate?: string | null;
             /** Format: date-time */
             moveOutDate?: string | null;
-            apartmentDoorPassword?: string | null;
+            /**
+             * @description True when the apartment door PIN has not been initialized yet and the tenant must set it on first use.
+             * @example true
+             */
+            isFirstPass: boolean;
             buildingGateCode?: string | null;
             smartLockPin?: string | null;
             mailboxCode?: string | null;
