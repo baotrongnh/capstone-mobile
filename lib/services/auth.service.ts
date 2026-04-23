@@ -1,4 +1,4 @@
-import { LoginDTO, LoginPayload, LoginRes, LogoutDTO, LogoutRes, RefreshTokenDto, RefreshTokenRes } from "@/types/auth";
+import { LoginDTO, LoginPayload, LogoutDTO, LogoutRes, RefreshTokenDto, RefreshTokenRes } from "@/types/auth";
 import { apiClient } from "../apis/client";
 import { endpoints } from "../apis/endpoints";
 
@@ -20,7 +20,7 @@ export const authServices = {
         return typeof data.data === 'string' ? data.data : data.data?.url
     },
 
-    googleLogin: async (accessToken: string): Promise<LoginRes> => {
+    googleLogin: async (accessToken: string): Promise<LoginPayload> => {
         const { data } = await apiClient.post(`${endpoints.auth}/google`, { accessToken })
         return data.data
     },

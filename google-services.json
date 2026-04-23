@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "187481301936",
+    "project_id": "homeiq-mobile",
+    "storage_bucket": "homeiq-mobile.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:187481301936:android:741f7ddf744e96e9976c75",
+        "android_client_info": {
+          "package_name": "com.homeiq"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDwIGU1lc28Op2-tno1PJ6iKHr2bP5PQvU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
