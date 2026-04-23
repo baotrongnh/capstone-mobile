@@ -2,7 +2,13 @@ import AuthProvider from "@/components/providers/auth-provider";
 import ReactQueryProvider from "@/components/providers/react-query-provider";
 import {
   getNotificationsModule,
+  registerPushNotificationListeners,
+  setupPushNotificationChannel,
 } from "@/utils/pushNotification";
+import {
+  isPushEnabledLocally,
+  registerPushToken,
+} from "@/utils/pushNotificationRegistration";
 import { Stack } from "expo-router";
 import React from "react";
 import { Alert, Linking } from "react-native";
@@ -11,6 +17,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 export default function RootLayout() {
   React.useEffect(() => {
     let mounted = true;
+    let cleanupListeners: (() => void) | undefined;
 
     const configureNotificationHandler = async () => {
       const Notifications = await getNotificationsModule();
@@ -26,6 +33,24 @@ export default function RootLayout() {
           shouldPlaySound: true,
           shouldSetBadge: false,
         }),
+      });
+    };
+
+    const configurePushRuntime = async () => {
+      await setupPushNotificationChannel();
+
+      return registerPushNotificationListeners({
+        onTokenRefresh: async (token) => {
+          if (!(await isPushEnabledLocally())) {
+            return;
+          }
+
+          try {
+            await registerPushToken(token);
+          } catch (error) {
+            console.error("Cannot sync refreshed FCM token", error);
+          }
+        },
       });
     };
 
@@ -53,15 +78,15 @@ export default function RootLayout() {
       }
 
       Alert.alert(
-        "Chưa cấp quyền thông báo",
-        "Bạn đã từ chối thông báo. Bạn có thể bật lại quyền này trong Cài đặt thiết bị.",
+        "ChÆ°a cáº¥p quyá»n thÃ'ng bÃ¡o",
+        "Báº¡n Ä‘Ã£ tá»« chá»‘i thÃ'ng bÃ¡o. Báº¡n cÃ³ thá»ƒ báº­t láº¡i quyá»n nÃ y trong CÃ i Ä‘áº·t thiáº¿t bá»‹.",
         [
           {
-            text: "Để sau",
+            text: "Äá»ƒ sau",
             style: "cancel",
           },
           {
-            text: "Mở Cài đặt",
+            text: "Má»Ÿ CÃ i Ä‘áº·t",
             onPress: () => {
               void Linking.openSettings();
             },
@@ -72,9 +97,13 @@ export default function RootLayout() {
 
     void configureNotificationHandler();
     void requestNotificationPermissionOnLaunch();
+    void configurePushRuntime().then((cleanup) => {
+      cleanupListeners = cleanup;
+    });
 
     return () => {
       mounted = false;
+      cleanupListeners?.();
     };
   }, []);
 
@@ -91,7 +120,7 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="notifications" options={{ headerShown: false }} />
             <Stack.Screen name="more-services" options={{ headerShown: false }} />
-            <Stack.Screen name='invoices' options={{ headerShown: false }} />
+            <Stack.Screen name="invoices" options={{ headerShown: false }} />
             <Stack.Screen name="invoices/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="payment/success" options={{ headerShown: false }} />
             <Stack.Screen name="payment/fail" options={{ headerShown: false }} />

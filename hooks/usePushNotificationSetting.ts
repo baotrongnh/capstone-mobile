@@ -1,8 +1,4 @@
-import {
-    PUSH_NOTIFICATION_ENABLED_KEY,
-    PUSH_NOTIFICATION_TOKEN_KEY,
-} from "@/constants/notification";
-import { notificationService } from "@/lib/services/notification.service";
+import { PUSH_NOTIFICATION_ENABLED_KEY } from "@/constants/notification";
 import { storage } from "@/stores/storage";
 import {
     getNativePushTokenDetailed,
@@ -11,40 +7,32 @@ import {
     setupPushNotificationChannel,
 } from "../utils/pushNotification";
 import type { NativePushTokenFailureReason } from "../utils/pushNotification";
+import {
+    getStoredPushToken,
+    persistPushState,
+    registerPushToken,
+    unregisterStoredPushToken,
+} from "../utils/pushNotificationRegistration";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, Platform } from "react-native";
+import { Alert } from "react-native";
 
 const ENABLED_VALUE = "1";
-const DISABLED_VALUE = "0";
-const PUSH_PERMISSION_DENIED_MESSAGE = "Vui lòng cấp quyền thông báo trong cài đặt thiết bị để bật thông báo đẩy.";
-
-const toStoredToken = (value: string | null) => {
-    if (!value) {
-        return null;
-    }
-
-    const trimmed = value.trim();
-    return trimmed.length > 0 ? trimmed : null;
-};
-
-const getDeviceName = () => {
-    const version = typeof Platform.Version === "number"
-        ? `${Platform.Version}`
-        : Platform.Version;
-
-    return `mobile-${Platform.OS}-${version ?? "unknown"}`;
-};
+const PUSH_PERMISSION_DENIED_MESSAGE = "Vui lÃ²ng cáº¥p quyá»n thÃ'ng bÃ¡o trong cÃ i Ä‘áº·t thiáº¿t bá»‹ Ä‘á»ƒ báº­t thÃ'ng bÃ¡o Ä‘áº©y.";
 
 const getTokenFailureMessage = (reason?: NativePushTokenFailureReason) => {
     if (reason === "firebase-not-configured") {
-        return "Không lấy được token thiết bị do app Android chưa có cấu hình Firebase (google-services.json).";
+        return "KhÃ'ng láº¥y Ä‘Æ°á»£c token thiáº¿t bá»‹ do app Android chÆ°a cÃ³ cáº¥u hÃ¬nh Firebase (google-services.json).";
+    }
+
+    if (reason === "play-services-unavailable") {
+        return "Google Play services chÆ°a sáºµn sÃ ng trÃªn thiáº¿t bá»‹ nÃªn khÃ'ng thá»ƒ nháº­n FCM token.";
     }
 
     if (reason === "unsupported") {
-        return "Môi trường hiện tại chưa hỗ trợ lấy token thông báo đẩy. Nếu đang dùng Expo Go, hãy mở app bằng development build.";
+        return "MÃ'i trÆ°á»ng hiá»‡n táº¡i chÆ°a há»— trá»£ láº¥y token thÃ'ng bÃ¡o Ä‘áº©y. Náº¿u Ä‘ang dÃ¹ng Expo Go, hÃ£y má»Ÿ app báº±ng development build.";
     }
 
-    return "Không lấy được token thiết bị. Hãy kiểm tra mạng và thử lại sau vài giây.";
+    return "KhÃ'ng láº¥y Ä‘Æ°á»£c token thiáº¿t bá»‹. HÃ£y kiá»ƒm tra máº¡ng vÃ  thá»­ láº¡i sau vÃ i giÃ¢y.";
 };
 
 export const usePushNotificationSetting = () => {
@@ -56,22 +44,15 @@ export const usePushNotificationSetting = () => {
     const updateLockRef = useRef(false);
     const cachedTokenRef = useRef<string | null>(null);
 
-    const persistEnabledState = useCallback(async (enabled: boolean, token = "") => {
-        await storage.multiSet([
-            [PUSH_NOTIFICATION_ENABLED_KEY, enabled ? ENABLED_VALUE : DISABLED_VALUE],
-            [PUSH_NOTIFICATION_TOKEN_KEY, token],
-        ]);
-    }, []);
-
     const persistCacheState = useCallback(async (enabled: boolean, token = "") => {
         try {
-            await persistEnabledState(enabled, token);
+            await persistPushState(enabled, token);
             return true;
         } catch (error) {
             console.error("Cannot persist push notification setting", error);
             return false;
         }
-    }, [persistEnabledState]);
+    }, []);
 
     const syncPushToken = useCallback(async () => {
         await setupPushNotificationChannel();
@@ -82,24 +63,11 @@ export const usePushNotificationSetting = () => {
         }
 
         const nextToken = tokenResult.token;
-        const previousToken = cachedTokenRef.current ?? toStoredToken(await storage.getItem(PUSH_NOTIFICATION_TOKEN_KEY));
-
-        if (previousToken && previousToken !== nextToken) {
-            try {
-                await notificationService.removeFcmToken(previousToken);
-            } catch (error) {
-                console.error("Cannot remove previous FCM token before re-registering", error);
-            }
-        }
-
-        await notificationService.registerFcmToken({
-            token: nextToken,
-            device: getDeviceName(),
-        });
+        await registerPushToken(nextToken);
 
         cachedTokenRef.current = nextToken;
         if (!(await persistCacheState(true, nextToken)) && mountedRef.current) {
-            setErrorMessage("Đã bật thông báo đẩy nhưng không thể lưu cài đặt cục bộ. Vui lòng mở lại màn hình để đồng bộ.");
+            setErrorMessage("ÄÃ£ báº­t thÃ'ng bÃ¡o Ä‘áº©y nhÆ°ng khÃ'ng thá»ƒ lÆ°u cÃ i Ä‘áº·t cá»¥c bá»™. Vui lÃ²ng má»Ÿ láº¡i mÃ n hÃ¬nh Ä‘á»ƒ Ä‘á»“ng bá»™.");
         }
 
         if (mountedRef.current) {
@@ -124,7 +92,7 @@ export const usePushNotificationSetting = () => {
             }
 
             const saved = await storage.getItem(PUSH_NOTIFICATION_ENABLED_KEY);
-            const savedToken = toStoredToken(await storage.getItem(PUSH_NOTIFICATION_TOKEN_KEY));
+            const savedToken = await getStoredPushToken();
             const hasSavedEnabled = saved === ENABLED_VALUE;
 
             cachedTokenRef.current = savedToken;
@@ -187,7 +155,7 @@ export const usePushNotificationSetting = () => {
             }
 
             Alert.alert(
-                "Chưa cấp quyền thông báo",
+                "ChÆ°a cáº¥p quyá»n thÃ'ng bÃ¡o",
                 PUSH_PERMISSION_DENIED_MESSAGE,
             );
             return false;
@@ -201,7 +169,7 @@ export const usePushNotificationSetting = () => {
             }
 
             Alert.alert(
-                "Không thể bật thông báo đẩy",
+                "KhÃ'ng thá»ƒ báº­t thÃ'ng bÃ¡o Ä‘áº©y",
                 getTokenFailureMessage(tokenResult.reason),
             );
             return false;
@@ -215,19 +183,17 @@ export const usePushNotificationSetting = () => {
     }, [syncPushToken]);
 
     const disablePushNotifications = useCallback(async () => {
-        const token = cachedTokenRef.current ?? toStoredToken(await storage.getItem(PUSH_NOTIFICATION_TOKEN_KEY));
+        const token = cachedTokenRef.current ?? await getStoredPushToken();
 
-        if (token) {
-            try {
-                await notificationService.removeFcmToken(token);
-            } catch (error) {
-                console.error("Cannot remove FCM token", error);
-                if (mountedRef.current) {
-                    setErrorMessage("Không thể tắt thông báo đẩy lúc này. Vui lòng thử lại khi có kết nối mạng ổn định.");
-                }
-
-                return false;
+        try {
+            await unregisterStoredPushToken(token ?? undefined);
+        } catch (error) {
+            console.error("Cannot remove FCM token", error);
+            if (mountedRef.current) {
+                setErrorMessage("KhÃ'ng thá»ƒ táº¯t thÃ'ng bÃ¡o Ä‘áº©y lÃºc nÃ y. Vui lÃ²ng thá»­ láº¡i khi cÃ³ káº¿t ná»‘i máº¡ng á»•n Ä‘á»‹nh.");
             }
+
+            return false;
         }
 
         cachedTokenRef.current = null;
@@ -236,7 +202,7 @@ export const usePushNotificationSetting = () => {
         if (mountedRef.current) {
             setIsEnabled(false);
             if (!cachedStateSaved) {
-                setErrorMessage("Đã tắt thông báo đẩy nhưng không thể lưu trạng thái cục bộ.");
+                setErrorMessage("ÄÃ£ táº¯t thÃ'ng bÃ¡o Ä‘áº©y nhÆ°ng khÃ'ng thá»ƒ lÆ°u tráº¡ng thÃ¡i cá»¥c bá»™.");
             } else {
                 setErrorMessage(null);
             }
@@ -263,8 +229,8 @@ export const usePushNotificationSetting = () => {
         } catch (error) {
             console.error("Update push notification setting failed", error);
             Alert.alert(
-                "Không thể cập nhật",
-                "Có lỗi xảy ra khi cập nhật cài đặt thông báo đẩy. Vui lòng thử lại.",
+                "KhÃ'ng thá»ƒ cáº­p nháº­t",
+                "CÃ³ lá»—i xáº£y ra khi cáº­p nháº­t cÃ i Ä‘áº·t thÃ'ng bÃ¡o Ä‘áº©y. Vui lÃ²ng thá»­ láº¡i.",
             );
             return false;
         } finally {
