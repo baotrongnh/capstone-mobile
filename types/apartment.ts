@@ -38,6 +38,7 @@ export type ChangeHousePasswordModalProps = {
     newHousePassword: string
     confirmNewHousePassword: string
     isUpdating: boolean
+    isFirstPassSetup?: boolean
     helperText?: string
     passwordLength?: number
     onChangeOldPassword: (value: string) => void

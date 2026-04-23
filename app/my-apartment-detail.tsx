@@ -8,7 +8,7 @@ import { IOT_TOPIC_ICON_MAP } from "@/constants/myApartment"
 import { useIotBoardsByApartment, useUpdateDoorPin, useUserApartment, useUserApartmentDetail } from "@/hooks/query/useUserApartment"
 import { DoorPinTarget, UserApartmentDetailItem, UserApartmentItem } from "@/types/userApartment"
 import { buildApartmentIotDevices, resolveDoorPinTargetFromBoards } from "@/utils/iot"
-import { formatContractMemberStatus, formatContractMemberType, formatIotState } from "@/utils/myApartment"
+import { formatContractCategory, formatContractMemberStatus, formatContractMemberType, formatContractStatus, formatIotState, formatPaymentMethod } from "@/utils/myApartment"
 import {
     formatAddress,
     formatArea,
@@ -20,7 +20,6 @@ import {
     getApiErrorMessage,
     hasDisplayValue,
     isValidHousePassword,
-    maskSecret,
     toDisplayText,
 } from "@/utils/userApartment"
 import { useLocalSearchParams, useRouter } from "expo-router"
@@ -52,8 +51,8 @@ export default function MyApartmentDetail() {
         router.replace("/my-apartments")
     }, [router])
 
-    const [showDoorPassword, setShowDoorPassword] = useState(false)
     const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
+    const [hasCompletedFirstPassSetup, setHasCompletedFirstPassSetup] = useState(false)
     const [oldHousePassword, setOldHousePassword] = useState("")
     const [newHousePassword, setNewHousePassword] = useState("")
     const [confirmNewHousePassword, setConfirmNewHousePassword] = useState("")
@@ -106,10 +105,28 @@ export default function MyApartmentDetail() {
         [apartmentId, iotBoardsData?.data],
     )
 
+    const isLoading = userApartmentId ? isDetailLoading : isMyLoading
+    const isRefetching = userApartmentId ? isDetailRefetching : isMyRefetching
+    const refetch = userApartmentId ? refetchDetail : refetchMy
+    const error = userApartmentId ? detailError : myError
+
+    const apartment = userApartment?.apartment
+    const rentalContract = userApartment?.rentalContract
+    const contractMembers = Array.isArray(rentalContract?.members) ? rentalContract.members : []
+    const statusMeta = getApartmentStatusMeta(apartment?.status)
+    const isFirstPassSetup = Boolean(userApartment?.isFirstPass)
+    const isModalForcedByFirstPass = isFirstPassSetup && !hasCompletedFirstPassSetup
+    const emergencyContactName = userApartment?.emergencyContactName ?? userApartment?.user?.emergencyContactName
+    const emergencyContactPhone = userApartment?.emergencyContactPhone ?? userApartment?.user?.emergencyContactPhone
+
     useEffect(() => {
         const onBackPress = () => {
-            if (showChangePasswordModal) {
+            if (showChangePasswordModal || isModalForcedByFirstPass) {
                 if (isUpdatingHousePassword) {
+                    return true
+                }
+
+                if (isModalForcedByFirstPass) {
                     return true
                 }
 
@@ -123,19 +140,7 @@ export default function MyApartmentDetail() {
 
         const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress)
         return () => subscription.remove()
-    }, [handleBack, isUpdatingHousePassword, showChangePasswordModal])
-
-    const isLoading = userApartmentId ? isDetailLoading : isMyLoading
-    const isRefetching = userApartmentId ? isDetailRefetching : isMyRefetching
-    const refetch = userApartmentId ? refetchDetail : refetchMy
-    const error = userApartmentId ? detailError : myError
-
-    const apartment = userApartment?.apartment
-    const rentalContract = userApartment?.rentalContract
-    const contractMembers = Array.isArray(rentalContract?.members) ? rentalContract.members : []
-    const statusMeta = getApartmentStatusMeta(apartment?.status)
-    const emergencyContactName = userApartment?.emergencyContactName ?? userApartment?.user?.emergencyContactName
-    const emergencyContactPhone = userApartment?.emergencyContactPhone ?? userApartment?.user?.emergencyContactPhone
+    }, [handleBack, isModalForcedByFirstPass, isUpdatingHousePassword, showChangePasswordModal])
     const videoTourUrl = useMemo(() => {
         if (typeof apartment?.videoTourUrl !== "string") {
             return null
@@ -193,13 +198,13 @@ export default function MyApartmentDetail() {
 
     const displayedAddress = formatAddress(apartment?.streetAddress, apartment?.wardCode, apartment?.provinceCode)
 
-    const shouldShowDoorPassword = hasDisplayValue(userApartment?.apartmentDoorPassword) || Boolean(doorPinTarget)
+    const contractDuration = useMemo(() => {
+        if (!rentalContract) {
+            return "--"
+        }
 
-    const displayedDoorPassword = hasDisplayValue(userApartment?.apartmentDoorPassword)
-        ? showDoorPassword
-            ? toDisplayText(userApartment?.apartmentDoorPassword)
-            : maskSecret(userApartment?.apartmentDoorPassword)
-        : "--"
+        return `${formatDate(rentalContract.startDate)} - ${formatDate(rentalContract.endDate)}`
+    }, [rentalContract])
 
     const rentalRows = useMemo(() => {
         const rows: { label: string; value: string }[] = [
@@ -216,13 +221,22 @@ export default function MyApartmentDetail() {
             })
         }
 
+        if (rentalContract) {
+            rows.push({ label: "Thời hạn hợp đồng", value: contractDuration })
+            rows.push({ label: "Trạng thái hợp đồng", value: formatContractStatus(rentalContract.status) })
+            rows.push({ label: "Phương thức thanh toán", value: formatPaymentMethod(rentalContract.paymentMethod) })
+            rows.push({ label: "Loại hợp đồng", value: formatContractCategory(rentalContract.category) })
+        }
+
         return rows
     }, [
+        contractDuration,
         userApartment?.isPrimaryTenant,
         userApartment?.moveInDate,
         userApartment?.moveOutDate,
         userApartment?.rentalContract?.contractNumber,
         userApartment?.status,
+        rentalContract,
     ])
 
     const apartmentRows = useMemo(() => {
@@ -233,7 +247,7 @@ export default function MyApartmentDetail() {
         ]
 
         if (hasDisplayValue(apartment?.floorNumber)) {
-            rows.push({ label: "Tầng", value: toDisplayText(apartment?.floorNumber) })
+            rows.splice(2, 0, { label: "Tầng", value: toDisplayText(apartment?.floorNumber) })
         }
 
         if (hasDisplayValue(apartment?.numberOfBedrooms)) {
@@ -279,58 +293,6 @@ export default function MyApartmentDetail() {
         displayedAddress,
     ])
 
-    const accessRows = useMemo(() => {
-        const rows: { label: string; value: string }[] = []
-
-        if (hasDisplayValue(userApartment?.buildingGateCode)) {
-            rows.push({ label: "Mã cổng tòa nhà", value: toDisplayText(userApartment?.buildingGateCode) })
-        }
-
-        if (hasDisplayValue(userApartment?.smartLockPin)) {
-            rows.push({ label: "Mã khóa thông minh", value: toDisplayText(userApartment?.smartLockPin) })
-        }
-
-        if (hasDisplayValue(userApartment?.mailboxCode)) {
-            rows.push({ label: "Mã hộp thư", value: toDisplayText(userApartment?.mailboxCode) })
-        }
-
-        if (hasDisplayValue(userApartment?.parkingAccessCode)) {
-            rows.push({ label: "Mã vào bãi xe", value: toDisplayText(userApartment?.parkingAccessCode) })
-        }
-
-        if (hasDisplayValue(userApartment?.wifiName)) {
-            rows.push({ label: "Wi-Fi", value: toDisplayText(userApartment?.wifiName) })
-        }
-
-        if (hasDisplayValue(userApartment?.wifiPassword)) {
-            rows.push({ label: "Mật khẩu Wi-Fi", value: toDisplayText(userApartment?.wifiPassword) })
-        }
-
-        if (hasDisplayValue(emergencyContactName)) {
-            rows.push({ label: "Liên hệ khẩn cấp", value: toDisplayText(emergencyContactName) })
-        }
-
-        if (hasDisplayValue(emergencyContactPhone)) {
-            rows.push({ label: "SĐT khẩn cấp", value: toDisplayText(emergencyContactPhone) })
-        }
-
-        if (hasDisplayValue(userApartment?.notes)) {
-            rows.push({ label: "Ghi chú", value: toDisplayText(userApartment?.notes) })
-        }
-
-        return rows
-    }, [
-        emergencyContactName,
-        emergencyContactPhone,
-        userApartment?.buildingGateCode,
-        userApartment?.mailboxCode,
-        userApartment?.notes,
-        userApartment?.parkingAccessCode,
-        userApartment?.smartLockPin,
-        userApartment?.wifiName,
-        userApartment?.wifiPassword,
-    ])
-
     const openChangePasswordModal = () => {
         setOldHousePassword("")
         setNewHousePassword("")
@@ -369,24 +331,36 @@ export default function MyApartmentDetail() {
             return
         }
 
-        if (!isValidHousePassword(oldHousePassword)) {
-            Alert.alert("Thông báo", "Mật khẩu hiện tại phải gồm 6 chữ số")
-            return
-        }
+        if (isFirstPassSetup) {
+            if (!isValidHousePassword(newHousePassword)) {
+                Alert.alert("Thông báo", "Mật khẩu mới phải gồm 6 chữ số")
+                return
+            }
 
-        if (!isValidHousePassword(newHousePassword)) {
-            Alert.alert("Thông báo", "Mật khẩu mới phải gồm 6 chữ số")
-            return
-        }
+            if (newHousePassword !== confirmNewHousePassword) {
+                Alert.alert("Thông báo", "Xác nhận mật khẩu chưa khớp")
+                return
+            }
+        } else {
+            if (!isValidHousePassword(oldHousePassword)) {
+                Alert.alert("Thông báo", "Mật khẩu hiện tại phải gồm 6 chữ số")
+                return
+            }
 
-        if (oldHousePassword === newHousePassword) {
-            Alert.alert("Thông báo", "Mật khẩu mới phải khác mật khẩu hiện tại")
-            return
-        }
+            if (!isValidHousePassword(newHousePassword)) {
+                Alert.alert("Thông báo", "Mật khẩu mới phải gồm 6 chữ số")
+                return
+            }
 
-        if (newHousePassword !== confirmNewHousePassword) {
-            Alert.alert("Thông báo", "Xác nhận mật khẩu chưa khớp")
-            return
+            if (oldHousePassword === newHousePassword) {
+                Alert.alert("Thông báo", "Mật khẩu mới phải khác mật khẩu hiện tại")
+                return
+            }
+
+            if (newHousePassword !== confirmNewHousePassword) {
+                Alert.alert("Thông báo", "Xác nhận mật khẩu chưa khớp")
+                return
+            }
         }
 
         try {
@@ -402,16 +376,24 @@ export default function MyApartmentDetail() {
                 return
             }
 
-            await updateDoorPin({
+            const response = await updateDoorPin({
                 boardId: target.boardId,
                 deviceId: target.deviceId,
                 payload: {
-                    oldPin: oldHousePassword,
                     newPin: newHousePassword,
+                    ...(isFirstPassSetup ? {} : { oldPin: oldHousePassword }),
                 },
             })
 
-            setShowDoorPassword(false)
+            if (!response?.data?.success) {
+                Alert.alert(
+                    "Lỗi",
+                    response?.data?.message || "Không thể đổi mật khẩu nhà lúc này",
+                )
+                return
+            }
+
+            setHasCompletedFirstPassSetup(true)
             setShowChangePasswordModal(false)
             setOldHousePassword("")
             setNewHousePassword("")
@@ -550,40 +532,35 @@ export default function MyApartmentDetail() {
                             </SectionCard>
                         ) : null}
 
-                        {(shouldShowDoorPassword || accessRows.length > 0) ? (
-                            <SectionCard title="Thông tin truy cập">
-                                {shouldShowDoorPassword ? (
-                                    <View style={styles.passwordRow}>
-                                        <View style={styles.passwordInfo}>
-                                            <Text style={styles.passwordLabel}>Mật khẩu cửa</Text>
-                                            <Text style={styles.passwordValue}>{displayedDoorPassword}</Text>
-                                        </View>
+                        <SectionCard title="Thông tin truy cập">
+                            <View style={styles.passwordRow}>
+                                <View style={styles.passwordInfo}>
+                                    <Text style={styles.passwordLabel}>Mật khẩu cửa</Text>
+                                    <Text style={styles.passwordHint}>
+                                        {isFirstPassSetup ? "Vui lòng thiết lập lần đầu để sử dụng cửa" : "Nhấn để đổi mật khẩu cửa"}
+                                    </Text>
+                                </View>
 
-                                        <View style={styles.passwordActions}>
-                                            <Pressable
-                                                style={styles.iconActionButton}
-                                                onPress={() => setShowDoorPassword((prev) => !prev)}
-                                                hitSlop={8}
-                                            >
-                                                <MaterialCommunityIcons
-                                                    name={showDoorPassword ? "eye-off-outline" : "eye-outline"}
-                                                    size={18}
-                                                    color="#1e40af"
-                                                />
-                                            </Pressable>
-                                            <Pressable style={styles.changePasswordButton} onPress={openChangePasswordModal}>
-                                                <MaterialCommunityIcons name="lock-reset" size={16} color="#1e40af" />
-                                                <Text style={styles.changePasswordButtonText}>Đổi mật khẩu nhà</Text>
-                                            </Pressable>
-                                        </View>
-                                    </View>
-                                ) : null}
+                                <Pressable style={styles.changePasswordButton} onPress={openChangePasswordModal}>
+                                    <MaterialCommunityIcons name="lock-reset" size={16} color="#1e40af" />
+                                    <Text style={styles.changePasswordButtonText}>
+                                        {isFirstPassSetup ? "Thiết lập mật khẩu nhà" : "Đổi mật khẩu nhà"}
+                                    </Text>
+                                </Pressable>
+                            </View>
 
-                                {accessRows.map((row) => (
-                                    <DetailRow key={row.label} label={row.label} value={row.value} />
-                                ))}
-                            </SectionCard>
-                        ) : null}
+                            {hasDisplayValue(emergencyContactName) ? (
+                                <DetailRow key="emergencyContactName" label="Liên hệ khẩn cấp" value={toDisplayText(emergencyContactName)} />
+                            ) : null}
+
+                            {hasDisplayValue(emergencyContactPhone) ? (
+                                <DetailRow key="emergencyContactPhone" label="SĐT khẩn cấp" value={toDisplayText(emergencyContactPhone)} />
+                            ) : null}
+
+                            {hasDisplayValue(userApartment?.notes) ? (
+                                <DetailRow key="notes" label="Ghi chú" value={toDisplayText(userApartment?.notes)} />
+                            ) : null}
+                        </SectionCard>
 
                         {amenities.length > 0 ? (
                             <SectionCard title="Tiện ích">
@@ -630,11 +607,13 @@ export default function MyApartmentDetail() {
             </ScrollView>
 
             <ChangeHousePasswordModal
-                visible={showChangePasswordModal}
+                visible={isModalForcedByFirstPass || showChangePasswordModal}
                 oldHousePassword={oldHousePassword}
                 newHousePassword={newHousePassword}
                 confirmNewHousePassword={confirmNewHousePassword}
                 isUpdating={isUpdatingHousePassword}
+                isFirstPassSetup={isFirstPassSetup}
+                helperText={isFirstPassSetup ? "Vì chính sách bảo mật, vui lòng thiết lập mật khẩu cửa lần đầu để sử dụng cửa." : undefined}
                 onChangeOldPassword={setOldHousePassword}
                 onChangeNewPassword={setNewHousePassword}
                 onChangeConfirmPassword={setConfirmNewHousePassword}
@@ -813,6 +792,11 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: "#64748b",
         fontWeight: "600",
+    },
+    passwordHint: {
+        fontSize: 12,
+        color: "#94a3b8",
+        fontWeight: "500",
     },
     passwordValue: {
         fontSize: 15,

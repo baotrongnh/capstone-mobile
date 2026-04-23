@@ -15,7 +15,7 @@ interface PushNotificationsProps {
 }
 
 export default function PushNotifications({ onBack }: PushNotificationsProps) {
-  const { isEnabled, isLoading, isUpdating, setPushEnabled } = usePushNotificationSetting();
+  const { isEnabled, isLoading, isUpdating, errorMessage, setPushEnabled } = usePushNotificationSetting();
 
   const handleToggle = useCallback(() => {
     void setPushEnabled(!isEnabled);
@@ -42,13 +42,16 @@ export default function PushNotifications({ onBack }: PushNotificationsProps) {
               <Text style={styles.loadingText}>Đang tải cài đặt...</Text>
             </View>
           ) : (
-            <PushNotificationToggle
-              enabled={isEnabled}
-              loading={isUpdating}
-              onToggle={handleToggle}
-              title="Bật thông báo đẩy"
-              description="Nhận thông báo ngay khi có hoạt động mới liên quan đến tài khoản của bạn."
-            />
+            <>
+              <PushNotificationToggle
+                enabled={isEnabled}
+                loading={isUpdating}
+                onToggle={handleToggle}
+                title="Bật thông báo đẩy"
+                description="Nhận thông báo ngay khi có hoạt động mới liên quan đến tài khoản của bạn."
+              />
+              {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+            </>
           )}
         </View>
       </ScrollContainer>
@@ -111,5 +114,11 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 13,
     color: "#64748b",
+  },
+  errorText: {
+    marginTop: 10,
+    fontSize: 12,
+    lineHeight: 18,
+    color: "#b91c1c",
   },
 });

@@ -15,7 +15,7 @@ interface SettingsProps {
 }
 
 export default function Settings({ onBack }: SettingsProps) {
-    const { isEnabled, isLoading, isUpdating, setPushEnabled } = usePushNotificationSetting();
+    const { isEnabled, isLoading, isUpdating, errorMessage, setPushEnabled } = usePushNotificationSetting();
 
     const handleToggle = useCallback(() => {
         void setPushEnabled(!isEnabled);
@@ -43,13 +43,16 @@ export default function Settings({ onBack }: SettingsProps) {
                             <Text style={styles.loadingText}>Đang tải cài đặt...</Text>
                         </View>
                     ) : (
-                        <PushNotificationToggle
-                            enabled={isEnabled}
-                            loading={isUpdating}
-                            onToggle={handleToggle}
-                            title="Bật thông báo đẩy"
-                            description="Bật để nhận tin nhắn mới, nhắc nhở thanh toán và các cập nhật quan trọng."
-                        />
+                        <>
+                            <PushNotificationToggle
+                                enabled={isEnabled}
+                                loading={isUpdating}
+                                onToggle={handleToggle}
+                                title="Bật thông báo đẩy"
+                                description="Bật để nhận tin nhắn mới, nhắc nhở thanh toán và các cập nhật quan trọng."
+                            />
+                            {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+                        </>
                     )}
                 </View>
 
@@ -123,6 +126,12 @@ const styles = StyleSheet.create({
     loadingText: {
         fontSize: 13,
         color: "#64748b",
+    },
+    errorText: {
+        marginTop: 10,
+        fontSize: 12,
+        lineHeight: 18,
+        color: "#b91c1c",
     },
     languageValue: {
         marginTop: 8,
