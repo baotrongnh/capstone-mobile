@@ -1,12 +1,19 @@
+import { PUSH_NOTIFICATION_ENABLED_KEY } from "@/constants/notification";
 import AuthProvider from "@/components/providers/auth-provider";
 import ReactQueryProvider from "@/components/providers/react-query-provider";
+import { useAuthStore } from "@/stores/auth.store";
+import { storage } from "@/stores/storage";
 import {
+  getNativePushTokenDetailed,
   getNotificationsModule,
+  hasPushPermission,
   registerPushNotificationListeners,
   setupPushNotificationChannel,
 } from "@/utils/pushNotification";
 import {
+  getStoredPushToken,
   isPushEnabledLocally,
+  persistPushState,
   registerPushToken,
 } from "@/utils/pushNotificationRegistration";
 import { Stack } from "expo-router";
@@ -15,9 +22,29 @@ import { Alert, Linking } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function RootLayout() {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isHydrated = useAuthStore((state) => state.isHydrated);
+
   React.useEffect(() => {
     let mounted = true;
     let cleanupListeners: (() => void) | undefined;
+
+    const persistGrantedPermissionState = async () => {
+      const savedPreference = await storage.getItem(PUSH_NOTIFICATION_ENABLED_KEY);
+
+      // Respect an explicit in-app opt-out. Otherwise, system permission means push should be on.
+      if (savedPreference === "0") {
+        return;
+      }
+
+      const tokenResult = await getNativePushTokenDetailed();
+      if (!tokenResult.token) {
+        console.warn("Cannot persist granted push permission state", tokenResult.reason, tokenResult.errorMessage);
+        return;
+      }
+
+      await persistPushState(true, tokenResult.token);
+    };
 
     const configureNotificationHandler = async () => {
       const Notifications = await getNotificationsModule();
@@ -68,12 +95,17 @@ export default function RootLayout() {
 
       const currentPermission = await Notifications.getPermissionsAsync();
       if (currentPermission.granted) {
+        await persistGrantedPermissionState();
         return;
       }
 
       const requestedPermission = await Notifications.requestPermissionsAsync();
+      if (!mounted) {
+        return;
+      }
 
-      if (!mounted || requestedPermission.granted) {
+      if (requestedPermission.granted) {
+        await persistGrantedPermissionState();
         return;
       }
 
@@ -106,6 +138,53 @@ export default function RootLayout() {
       cleanupListeners?.();
     };
   }, []);
+
+  React.useEffect(() => {
+    let cancelled = false;
+
+    const syncPushTokenForAuthenticatedUser = async () => {
+      if (!isHydrated || !isAuthenticated) {
+        return;
+      }
+
+      if (!(await hasPushPermission())) {
+        return;
+      }
+
+      const savedPreference = await storage.getItem(PUSH_NOTIFICATION_ENABLED_KEY);
+      if (savedPreference === "0") {
+        return;
+      }
+
+      let token = await getStoredPushToken();
+
+      if (!token) {
+        const tokenResult = await getNativePushTokenDetailed();
+        token = tokenResult.token;
+
+        if (!token) {
+          console.warn("Cannot sync push token after authentication", tokenResult.reason, tokenResult.errorMessage);
+          return;
+        }
+      }
+
+      if (cancelled) {
+        return;
+      }
+
+      try {
+        await registerPushToken(token);
+      } catch (error) {
+        console.error("Cannot register FCM token for authenticated user", error);
+      }
+    };
+
+    void syncPushTokenForAuthenticatedUser();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, isHydrated]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

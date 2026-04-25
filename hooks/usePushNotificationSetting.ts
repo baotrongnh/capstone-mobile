@@ -1,5 +1,7 @@
 import { PUSH_NOTIFICATION_ENABLED_KEY } from "@/constants/notification";
 import { storage } from "@/stores/storage";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Alert } from "react-native";
 import {
     getNativePushTokenDetailed,
     hasPushPermission,
@@ -13,10 +15,7 @@ import {
     registerPushToken,
     unregisterStoredPushToken,
 } from "../utils/pushNotificationRegistration";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert } from "react-native";
 
-const ENABLED_VALUE = "1";
 const PUSH_PERMISSION_DENIED_MESSAGE = "Vui lòng cấp quyền thông báo trong cài đặt thiết bị để bật thông báo đẩy.";
 
 const getTokenFailureMessage = (reason?: NativePushTokenFailureReason) => {
@@ -80,6 +79,9 @@ export const usePushNotificationSetting = () => {
     const hydrate = useCallback(async () => {
         try {
             const granted = await hasPushPermission();
+            const savedPreference = await storage.getItem(PUSH_NOTIFICATION_ENABLED_KEY);
+            const isExplicitlyDisabled = savedPreference === "0";
+
             if (!granted) {
                 await persistCacheState(false, "");
                 cachedTokenRef.current = null;
@@ -91,33 +93,25 @@ export const usePushNotificationSetting = () => {
                 return;
             }
 
-            const saved = await storage.getItem(PUSH_NOTIFICATION_ENABLED_KEY);
             const savedToken = await getStoredPushToken();
-            const hasSavedEnabled = saved === ENABLED_VALUE;
-
             cachedTokenRef.current = savedToken;
 
-            if (hasSavedEnabled) {
+            // If system permission is granted and the user never opted out in-app,
+            // treat push as enabled and make sure we have a valid token.
+            if (!isExplicitlyDisabled) {
                 try {
                     const tokenResult = await syncPushToken();
-                    if (!tokenResult.token) {
+                    if (!tokenResult.token && mountedRef.current) {
                         console.warn("Cannot sync push notification state", tokenResult.reason, tokenResult.errorMessage);
-                        await persistCacheState(false, "");
-                        cachedTokenRef.current = null;
-
-                        if (mountedRef.current) {
-                            setIsEnabled(false);
-                            setErrorMessage(null);
-                        }
+                        setIsEnabled(false);
+                        setErrorMessage(getTokenFailureMessage(tokenResult.reason));
                     }
                 } catch (error) {
                     console.error("Cannot sync push notification state", error);
-                    await persistCacheState(false, "");
-                    cachedTokenRef.current = null;
 
                     if (mountedRef.current) {
                         setIsEnabled(false);
-                        setErrorMessage(null);
+                        setErrorMessage("Không thể đồng bộ thông báo đẩy lúc này. Vui lòng thử lại sau.");
                     }
                 }
 
