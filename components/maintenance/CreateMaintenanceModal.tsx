@@ -16,18 +16,20 @@ import {
 } from "react-native";
 import SelectDropdown from "./SelectDropdown";
 import { useCreateMaintenanceRequest } from "@/hooks/query/useMaintenance";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
-// Bảng màu hiện đại (Modern Indigo Theme)
 const Colors = {
-  primary: "#4F46E5", // Indigo
-  primaryLight: "#EEF2FF",
-  background: "#F9FAFB",
+  primary: "#4D6FE8",
+  primaryLight: "#E8EEFF",
+  background: "#F1F5F9",
   surface: "#FFFFFF",
-  inputBg: "#F3F4F6",
-  text: "#111827",
-  textMuted: "#6B7280",
-  border: "#E5E7EB",
+  inputBg: "#FFFFFF",
+  text: "#1F2937",
+  textMuted: "#94A3B8",
+  border: "#D9E1EA",
   error: "#EF4444",
 };
 
@@ -71,6 +73,8 @@ export default function ModalCreateMaintenance({
   onClose,
   onSubmit,
 }: CreateMaintenanceModalProps) {
+  const insets = useSafeAreaInsets();
+
   // 1. Gom tất cả data vào 1 state form duy nhất
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);
 
@@ -246,11 +250,17 @@ export default function ModalCreateMaintenance({
   );
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={handleClose}>
-      <SafeAreaView style={styles.container}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      onRequestClose={handleClose}
+      presentationStyle="fullScreen"
+      statusBarTranslucent
+    >
+      <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+          keyboardVerticalOffset={Platform.OS === "ios" ? insets.top + 8 : 0}
           enabled={true}
           style={styles.container}
         >
@@ -274,6 +284,7 @@ export default function ModalCreateMaintenance({
           {/* Form Content */}
           <ScrollView
             style={styles.content}
+            contentContainerStyle={styles.contentContainer}
             showsVerticalScrollIndicator={false}
           >
             <FormInput
@@ -402,34 +413,37 @@ export default function ModalCreateMaintenance({
               </ScrollView>
             </View>
 
-            <View style={{ height: 30 }} />
-          </ScrollView>
-
-          {/* Footer Submit Button */}
-          <View style={styles.footer}>
-            <Pressable
-              style={({ pressed }) => [
-                styles.submitBtn,
-                pressed && styles.submitBtnPressed,
+            <View
+              style={[
+                styles.submitSection,
+                { paddingBottom: Math.max(insets.bottom, 12) + 12 },
               ]}
-              onPress={handleSubmit}
             >
-              <MaterialCommunityIcons
-                name="send"
-                size={20}
-                color={Colors.surface}
-                style={{ marginRight: 8 }}
-              />
-              <Text style={styles.submitBtnText}>Gửi Yêu Cầu</Text>
-            </Pressable>
-          </View>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.submitBtn,
+                  pressed && styles.submitBtnPressed,
+                ]}
+                onPress={handleSubmit}
+              >
+                <MaterialCommunityIcons
+                  name="send"
+                  size={20}
+                  color={Colors.surface}
+                  style={{ marginRight: 8 }}
+                />
+                <Text style={styles.submitBtnText}>Gửi Yêu Cầu</Text>
+              </Pressable>
+            </View>
+
+            <View style={{ height: 24 }} />
+          </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </Modal>
   );
 }
 
-// Bê nguyên Stylesheet cũ xuống dưới (không có gì thay đổi)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -437,68 +451,77 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
     backgroundColor: Colors.surface,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-    zIndex: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#EAEFF5",
   },
   iconButton: {
-    padding: 8,
-    marginLeft: -8,
+    position: "absolute",
+    right: 18,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: "700",
     color: Colors.text,
+    letterSpacing: -0.3,
   },
   content: {
-    padding: 20,
+    flex: 1,
+  },
+  contentContainer: {
+    paddingHorizontal: 22,
+    paddingTop: 20,
+    paddingBottom: 4,
   },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
   },
   inputGroup: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   label: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "600",
-    color: "#374151",
-    marginBottom: 8,
+    color: Colors.text,
+    marginBottom: 10,
     marginLeft: 2,
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Colors.inputBg,
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: "transparent",
+    borderColor: Colors.border,
+    minHeight: 54,
     paddingHorizontal: 14,
   },
   textAreaContainer: {
     alignItems: "flex-start",
+    minHeight: 118,
   },
   inputIcon: {
     marginRight: 10,
   },
   input: {
     flex: 1,
-    paddingVertical: 14,
-    fontSize: 15,
+    paddingVertical: 12,
+    fontSize: 16,
     color: Colors.text,
   },
   textArea: {
-    height: 110,
-    paddingTop: 14,
+    height: 106,
+    paddingTop: 12,
   },
   imageScroll: {
     flexDirection: "row",
@@ -506,29 +529,29 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   uploadButton: {
-    width: 90,
-    height: 90,
-    borderWidth: 1.5,
-    borderColor: Colors.primaryLight,
+    width: 108,
+    height: 92,
+    borderWidth: 1,
+    borderColor: "#E7EEFA",
     borderStyle: "dashed",
-    borderRadius: 16,
+    borderRadius: 14,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: Colors.surface,
     marginRight: 12,
   },
   uploadIconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     backgroundColor: Colors.primaryLight,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 6,
+    marginBottom: 8,
   },
   uploadText: {
-    fontSize: 12,
-    fontWeight: "500",
+    fontSize: 15,
+    fontWeight: "600",
     color: Colors.primary,
   },
   imagePreviewContainer: {
@@ -536,9 +559,9 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   imagePreview: {
-    width: 90,
-    height: 90,
-    borderRadius: 16,
+    width: 108,
+    height: 92,
+    borderRadius: 14,
   },
   removeIcon: {
     position: "absolute",
@@ -556,22 +579,20 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     zIndex: -1,
   },
-  footer: {
-    padding: 20,
-    paddingBottom: Platform.OS === "ios" ? 20 : 24,
-    backgroundColor: Colors.background,
+  submitSection: {
+    paddingTop: 12,
   },
   submitBtn: {
     flexDirection: "row",
     backgroundColor: Colors.primary,
-    paddingVertical: 16,
-    borderRadius: 14,
+    paddingVertical: 17,
+    borderRadius: 13,
     justifyContent: "center",
     alignItems: "center",
     shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.22,
+    shadowRadius: 7,
     elevation: 5,
   },
   submitBtnPressed: {
@@ -580,7 +601,7 @@ const styles = StyleSheet.create({
   },
   submitBtnText: {
     color: Colors.surface,
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "700",
   },
 });
