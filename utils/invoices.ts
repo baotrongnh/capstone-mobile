@@ -13,15 +13,32 @@ const STATUS_LABELS: Record<string, string> = {
 
 const INVOICE_TYPE_LABELS: Record<string, string> = {
     rent: 'Tiền thuê',
+    rental: 'Tiền thuê',
     electricity: 'Điện',
     water: 'Nước',
+    internet: 'Internet',
+    wifi: 'Internet',
+    gas: 'Gas',
+    parking: 'Giữ xe',
+    management: 'Phí quản lý',
+    management_fee: 'Phí quản lý',
     maintenance: 'Bảo trì',
+    cleaning: 'Vệ sinh',
     deposit: 'Đặt cọc',
+    security_deposit: 'Đặt cọc bảo đảm',
     contractDeposit: 'Đặt cọc hợp đồng',
     contract_deposit: 'Đặt cọc hợp đồng',
+    contractdeposit: 'Đặt cọc hợp đồng',
     utility: 'Tiện ích',
+    utility_fee: 'Phí tiện ích',
     service: 'Dịch vụ',
+    service_fee: 'Phí dịch vụ',
     penalty: 'Phạt',
+    late_fee: 'Phí trả chậm',
+    latefee: 'Phí trả chậm',
+    invoice: 'Hóa đơn',
+    partner_monthly_payout: 'Đối soát đối tác theo tháng',
+    contract_deposit_payout: 'Đối soát đặt cọc hợp đồng',
     other: 'Khác',
 }
 
@@ -69,7 +86,9 @@ export const normalizeInvoiceText = (value: unknown) => {
 
 export const formatInvoiceType = (value?: string | null) => {
     if (!value) return '--'
-    return INVOICE_TYPE_LABELS[value] || value
+
+    const normalizedKey = value.trim().toLowerCase()
+    return INVOICE_TYPE_LABELS[normalizedKey] || INVOICE_TYPE_LABELS[value] || value
 }
 
 export const formatPaymentMethod = (value?: string | null) => {

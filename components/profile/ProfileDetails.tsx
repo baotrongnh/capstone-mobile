@@ -46,11 +46,13 @@ export default function ProfileDetails({
   const identity = user?.identity;
   const isVerified = Boolean(identity?.isVerified ?? user?.isVerified);
   const [isEditing, setIsEditing] = useState(false);
+  const [isIdentityVisible, setIsIdentityVisible] = useState(false);
   const [values, setValues] = useState<UserProfileEditableValues>(() => getUserEditableValues(user));
 
   useEffect(() => {
     setValues(getUserEditableValues(user));
     setIsEditing(false);
+    setIsIdentityVisible(false);
   }, [user]);
 
   const identityFields: UserIdentityField[] = getUserIdentityFields(user);
@@ -217,26 +219,40 @@ export default function ProfileDetails({
                 Trạng thái xác minh danh tính tài khoản
               </Text>
             </View>
-            <View
-              style={[
-                styles.verifyBadge,
-                isVerified ? styles.verifyBadgeSuccess : styles.verifyBadgePending,
-              ]}
-            >
-              <Text
+            <View style={styles.verifyActions}>
+              <Pressable
+                style={styles.eyeButton}
+                onPress={() => setIsIdentityVisible((prev) => !prev)}
+                accessibilityRole="button"
+                accessibilityLabel={isIdentityVisible ? "Ẩn thông tin CCCD" : "Hiện thông tin CCCD"}
+              >
+                <Ionicons
+                  name={isIdentityVisible ? "eye-off-outline" : "eye-outline"}
+                  size={18}
+                  color="#334155"
+                />
+              </Pressable>
+              <View
                 style={[
-                  styles.verifyBadgeText,
-                  isVerified
-                    ? styles.verifyBadgeTextSuccess
-                    : styles.verifyBadgeTextPending,
+                  styles.verifyBadge,
+                  isVerified ? styles.verifyBadgeSuccess : styles.verifyBadgePending,
                 ]}
               >
-                {isVerified ? "Đã xác minh" : "Chưa xác minh"}
-              </Text>
+                <Text
+                  style={[
+                    styles.verifyBadgeText,
+                    isVerified
+                      ? styles.verifyBadgeTextSuccess
+                      : styles.verifyBadgeTextPending,
+                  ]}
+                >
+                  {isVerified ? "Đã xác minh" : "Chưa xác minh"}
+                </Text>
+              </View>
             </View>
           </View>
 
-          {hasIdentityInfo ? (
+          {hasIdentityInfo && isIdentityVisible ? (
             <View style={styles.identityCard}>
               <Text style={styles.cardTitle}>Thông tin định danh</Text>
               {identityFields.map(({ key, label, value }) => {
@@ -423,6 +439,21 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontSize: 12,
     color: "#6b7280",
+  },
+  verifyActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  eyeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#d1d5db",
+    backgroundColor: "#ffffff",
+    alignItems: "center",
+    justifyContent: "center",
   },
   verifyBadge: {
     paddingHorizontal: 10,
