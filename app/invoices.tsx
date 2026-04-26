@@ -5,7 +5,7 @@ import {
     type InvoiceStatus,
     type InvoiceItem
 } from '@/types/invoice'
-import { extractInvoiceItems, formatCurrency, formatDate } from '@/utils/invoices'
+import { extractInvoiceItems, formatCurrency, formatDate, formatInvoiceType } from '@/utils/invoices'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import React, { useMemo, useState } from 'react'
@@ -85,7 +85,7 @@ const renderInvoiceItem = ({
                     </View>
                     <View>
                         <Text style={styles.label}>Loại hóa đơn</Text>
-                        <Text style={styles.value}>{item.invoiceType || '--'}</Text>
+                        <Text style={styles.value}>{formatInvoiceType(item.invoiceType)}</Text>
                     </View>
                 </View>
             </View>

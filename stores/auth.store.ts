@@ -2,6 +2,7 @@ import { AuthState, AuthTokens } from "@/types/auth";
 import { create } from "zustand";
 import { UserDetail } from "../types/user";
 import { storage } from "./storage";
+import { unregisterStoredPushToken } from "@/utils/pushNotificationRegistration";
 
 export const useAuthStore = create<AuthState>((set) => ({
     user: null,
@@ -21,6 +22,12 @@ export const useAuthStore = create<AuthState>((set) => ({
         await storage.setItem("refreshToken", tokens.refreshToken)
     },
     logout: async () => {
+        try {
+            await unregisterStoredPushToken()
+        } catch (error) {
+            console.error("Cannot unregister FCM token during logout", error)
+        }
+
         await storage.removeItem("accessToken")
         await storage.removeItem("refreshToken")
         await storage.removeItem("user")

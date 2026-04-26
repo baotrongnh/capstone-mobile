@@ -25,7 +25,8 @@ interface MaintenanceRequestCardProps {
 
 const STATUS_CONFIG = {
   submitted: { label: "Chờ xử lý", color: "#f59e0b", bgColor: "#fef3c7" },
-  assigned: { label: "Đã giao", color: "#3b82f6", bgColor: "#dbeafe" },
+  acknowledged: { label: "Đã tiếp nhận", color: "#3b82f6", bgColor: "#dbeafe" },
+  scheduled: { label: "Đã lên lịch", color: "#8b5cf6", bgColor: "#ede9fe" },
   in_progress: {
     label: "Đang xử lý",
     color: "#8b5cf6",
