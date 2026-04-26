@@ -11,9 +11,7 @@ type MoreAction = {
 }
 
 const actions: MoreAction[] = [
-     { id: "support", title: "Hỗ trợ cư dân", icon: "lifebuoy" },
-     { id: "documents", title: "Hướng dẫn thiết bị", icon: "file-document-outline" },
-     { id: "feedback", title: "Góp ý ứng dụng", icon: "message-text-outline" },
+     { id: "contract", title: "Hợp đồng", icon: "file-document-outline" },
 ]
 
 export default function MoreScreen() {
@@ -30,7 +28,7 @@ export default function MoreScreen() {
 
                <View style={styles.list}>
                     {actions.map((item) => (
-                         <Pressable key={item.id} style={styles.item}>
+                         <Pressable key={item.id} style={styles.item} onPress={() => router.push("/contract")}>
                               <View style={styles.iconWrap}>
                                    <MaterialCommunityIcons name={item.icon} size={20} color="#3b82f6" />
                               </View>
