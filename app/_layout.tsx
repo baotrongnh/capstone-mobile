@@ -88,7 +88,7 @@ export default function RootLayout() {
         payload.routeMatched = Boolean(fireAlarmHref);
 
         await saveNotificationDebugPayload(payload);
-        router.push((isFireAlarmNotification(payload) && fireAlarmHref ? fireAlarmHref : "/notifications") as Href);
+        router.replace((isFireAlarmNotification(payload) && fireAlarmHref ? fireAlarmHref : "/notifications") as Href);
       };
 
       return registerPushNotificationListeners({

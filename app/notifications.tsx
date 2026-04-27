@@ -36,6 +36,9 @@ export default function NotificationsScreen() {
           [notifications],
      )
      const isMarkAllDisabled = unreadCount === 0 || markAllMutation.isPending
+     const goHome = useCallback(() => {
+          router.replace("/(tabs)/home")
+     }, [router])
 
      const handleRefresh = useCallback(() => {
           void refetch()
@@ -101,7 +104,7 @@ export default function NotificationsScreen() {
      return (
           <StyledContainer style={styles.container}>
                <View style={styles.header}>
-                    <Pressable onPress={() => router.back()} style={styles.backButton}>
+                    <Pressable onPress={goHome} style={styles.backButton}>
                          <Ionicons name="chevron-back" size={24} color="#334155" />
                     </Pressable>
 
