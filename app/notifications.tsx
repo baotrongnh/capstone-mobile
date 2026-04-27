@@ -6,7 +6,7 @@ import {
      useNotifications,
 } from "@/hooks/query/useNotifications"
 import { NotificationItem } from "@/types/notification"
-import { useRouter } from "expo-router"
+import { useRouter, type Href } from "expo-router"
 import React, { useCallback, useMemo } from "react"
 import {
      ActivityIndicator,
@@ -22,6 +22,7 @@ import {
      getNotificationTypeColor,
      getNotificationTypeIcon,
 } from "@/utils/notification"
+import { getFireAlarmControlHref } from "@/utils/fireAlarmNotification"
 
 export default function NotificationsScreen() {
      const router = useRouter()
@@ -44,7 +45,16 @@ export default function NotificationsScreen() {
           if (!item.isRead) {
                markAsReadMutation.mutate(item.id)
           }
-     }, [markAsReadMutation])
+
+          const fireAlarmHref = getFireAlarmControlHref({
+               ...(item.metadata ?? {}),
+               actionUrl: item.actionUrl,
+          })
+
+          if (fireAlarmHref) {
+               router.push(fireAlarmHref as Href)
+          }
+     }, [markAsReadMutation, router])
 
      const onMarkAll = useCallback(() => {
           if (isMarkAllDisabled) {

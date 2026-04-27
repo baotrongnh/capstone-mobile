@@ -16,7 +16,9 @@ import {
   persistPushState,
   registerPushToken,
 } from "@/utils/pushNotificationRegistration";
-import { Stack } from "expo-router";
+import { getFireAlarmControlHref } from "@/utils/fireAlarmNotification";
+import { isFireAlarmNotification, saveNotificationDebugPayload, type NotificationDebugPayload } from "@/utils/notificationDebug";
+import { router, Stack, type Href } from "expo-router";
 import React from "react";
 import { Alert, Linking } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -66,7 +68,36 @@ export default function RootLayout() {
     const configurePushRuntime = async () => {
       await setupPushNotificationChannel();
 
+      const openNotification = async (
+        source: "background" | "quit",
+        message: { messageId?: string; data?: Record<string, string>; notification?: unknown },
+      ) => {
+        const payload: NotificationDebugPayload = {
+          openedAt: new Date().toISOString(),
+          source,
+          messageId: message.messageId,
+          data: message.data ?? {},
+          notification: message.notification,
+          routeHref: null,
+          routeMatched: false,
+        };
+
+        const fireAlarmHref = getFireAlarmControlHref(payload.data);
+
+        payload.routeHref = fireAlarmHref;
+        payload.routeMatched = Boolean(fireAlarmHref);
+
+        await saveNotificationDebugPayload(payload);
+        router.push((isFireAlarmNotification(payload) && fireAlarmHref ? fireAlarmHref : "/notifications") as Href);
+      };
+
       return registerPushNotificationListeners({
+        onNotificationOpened: async (message) => {
+          await openNotification("background", message);
+        },
+        onInitialNotification: async (message) => {
+          await openNotification("quit", message);
+        },
         onTokenRefresh: async (token) => {
           if (!(await isPushEnabledLocally())) {
             return;
@@ -196,6 +227,7 @@ export default function RootLayout() {
             <Stack.Screen name="wifi-setup" options={{ headerShown: false }} />
             <Stack.Screen name="door-history" options={{ headerShown: false }} />
             <Stack.Screen name="debug" options={{ headerShown: false }} />
+            <Stack.Screen name="fire-alarm-control" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="notifications" options={{ headerShown: false }} />
             <Stack.Screen name="more-services" options={{ headerShown: false }} />
