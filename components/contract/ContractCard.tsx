@@ -26,112 +26,103 @@ interface ContractCardProps {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#dbe5f3",
     padding: 14,
-    marginBottom: 12,
-    marginHorizontal: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 10,
+    alignItems: "center",
+    marginBottom: 12,
+    gap: 10,
+  },
+  contractHead: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   contractNumber: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: "700",
-    color: "#1a1a1a",
-    marginBottom: 6,
+    color: "#0f172a",
+    flex: 1,
   },
   statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 14,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 999,
     alignItems: "center",
     justifyContent: "center",
   },
   statusText: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: "700",
     color: "#fff",
   },
   menuButton: {
-    padding: 6,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#f8fafc",
     justifyContent: "center",
     alignItems: "center",
   },
   section: {
-    marginBottom: 10,
+    marginBottom: 8,
   },
   fullWidthRow: {
     flexDirection: "row",
     alignItems: "flex-start",
-    marginBottom: 8,
+    marginTop: 8,
   },
   twoColumnRow: {
     flexDirection: "row",
-    gap: 10,
-    marginBottom: 8,
+    gap: 12,
+    marginTop: 8,
   },
   twoColumnItem: {
     flex: 1,
-    flexDirection: "row",
+    flexDirection: "column",
     alignItems: "flex-start",
   },
   iconContainer: {
-    width: 18,
-    height: 18,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 8,
-    marginTop: 1,
-    flexShrink: 0,
+    display: "none",
   },
   content: {
     flex: 1,
   },
   label: {
-    fontSize: 8,
-    color: "#999",
-    marginBottom: 2,
+    fontSize: 12,
+    color: "#64748b",
+    marginBottom: 4,
     fontWeight: "600",
   },
   value: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: "#1a1a1a",
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#0f172a",
   },
   priceSection: {
-    backgroundColor: "#f5f9ff",
-    borderRadius: 8,
-    padding: 10,
-    marginVertical: 8,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#e0edf9",
+    marginTop: 2,
   },
   priceLabel: {
-    fontSize: 10,
-    color: "#666",
+    fontSize: 12,
+    color: "#64748b",
     fontWeight: "600",
   },
   priceValue: {
-    fontSize: 15,
+    fontSize: 32,
     fontWeight: "800",
-    color: "#2196f3",
+    color: "#111827",
   },
   notificationBox: {
-    borderRadius: 8,
-    padding: 10,
-    marginVertical: 8,
+    borderRadius: 12,
+    padding: 9,
+    marginTop: 10,
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 8,
@@ -148,7 +139,7 @@ const styles = StyleSheet.create({
   },
   notificationText: {
     flex: 1,
-    fontSize: 10,
+    fontSize: 11,
   },
   notificationTextBlue: {
     color: "#1565c0",
@@ -163,8 +154,8 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: "#fff",
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     padding: 16,
     paddingBottom: 24,
     maxHeight: "80%",
@@ -177,9 +168,9 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   modalButton: {
-    paddingVertical: 12,
+    paddingVertical: 13,
     paddingHorizontal: 14,
-    borderRadius: 8,
+    borderRadius: 10,
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
@@ -237,10 +228,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   closeButton: {
-    paddingVertical: 12,
+    paddingVertical: 13,
     paddingHorizontal: 14,
-    borderRadius: 8,
-    backgroundColor: "#f5f5f5",
+    borderRadius: 10,
+    backgroundColor: "#f1f5f9",
     marginTop: 8,
   },
   closeButtonText: {
@@ -282,14 +273,12 @@ export const ContractCard = ({
     setTimeout(action, 200);
   };
 
-  console.log("first", contract);
-
   return (
     <>
       <View style={styles.card}>
         {/* Header with Contract Number & 3-dot Menu */}
         <View style={styles.headerRow}>
-          <View>
+          <View style={styles.contractHead}>
             <Text style={styles.contractNumber}>{contract.contractNumber}</Text>
             <View
               style={[
@@ -314,110 +303,46 @@ export const ContractCard = ({
 
         {/* Info Section */}
         <View style={styles.section}>
-          {/* Tenant Info - Full Width */}
+          <View style={styles.priceSection}>
+            <Text style={styles.priceLabel}>Giá thuê/tháng</Text>
+            <Text style={styles.priceValue}>{monthlyRent} đ</Text>
+          </View>
 
           <View style={styles.twoColumnRow}>
             <View style={styles.twoColumnItem}>
-              <View style={styles.iconContainer}>
-                <MaterialCommunityIcons
-                  name="account-outline"
-                  color="#888"
-                  size={16}
-                />
-              </View>
-              <View style={styles.content}>
-                <Text style={styles.label}>Người thuê</Text>
-                <Text style={styles.value}>
-                  {primaryTenant?.user?.fullName || "N/A"}
-                </Text>
-              </View>
-            </View>
-            {contract.members && contract.members.length > 0 && (
-              <View style={styles.twoColumnItem}>
-                <View style={styles.iconContainer}>
-                  <MaterialCommunityIcons
-                    name="account-multiple-outline"
-                    color="#888"
-                    size={16}
-                  />
-                </View>
-                <View style={styles.content}>
-                  <Text style={styles.label}>Số tiền đặt cọc</Text>
-                  <Text style={styles.value}>
-                    {Number(contract?.depositAmount).toLocaleString("vi-VN")} đ
-                  </Text>
-                </View>
-              </View>
-            )}
-          </View>
-
-          {/* Apartment & Members - Two Columns */}
-          <View style={styles.twoColumnRow}>
-            <View style={styles.twoColumnItem}>
-              <View style={styles.iconContainer}>
-                <MaterialCommunityIcons
-                  name="office-building-outline"
-                  color="#888"
-                  size={16}
-                />
-              </View>
-              <View style={styles.content}>
-                <Text style={styles.label}>Căn hộ</Text>
-                <Text style={styles.value}>
-                  Phòng {contract.apartment?.apartmentNumber}
-                </Text>
-              </View>
-            </View>
-
-            {contract.members && contract.members.length > 0 && (
-              <View style={styles.twoColumnItem}>
-                <View style={styles.iconContainer}>
-                  <MaterialCommunityIcons
-                    name="account-multiple-outline"
-                    color="#888"
-                    size={16}
-                  />
-                </View>
-                <View style={styles.content}>
-                  <Text style={styles.label}>Thành viên</Text>
-                  <Text style={styles.value}>
-                    {contract.members.length} người
-                  </Text>
-                </View>
-              </View>
-            )}
-          </View>
-
-          {/* Address - Full Width */}
-          <View style={styles.fullWidthRow}>
-            <View style={styles.iconContainer}>
-              <MaterialCommunityIcons
-                name="map-marker-outline"
-                color="#888"
-                size={16}
-              />
-            </View>
-            <View style={styles.content}>
-              <Text style={styles.label}>Địa chỉ</Text>
+              <Text style={styles.label}>Thời hạn</Text>
               <Text style={styles.value}>
-                {contract.apartment?.streetAddress}
+                {startDate} - {endDate}
+              </Text>
+            </View>
+            <View style={styles.twoColumnItem}>
+              <Text style={styles.label}>Căn hộ</Text>
+              <Text style={styles.value}>
+                Phòng {contract.apartment?.apartmentNumber || "N/A"}
               </Text>
             </View>
           </View>
 
-          {/* Date Range - Full Width */}
-          <View style={styles.fullWidthRow}>
-            <View style={styles.iconContainer}>
-              <MaterialCommunityIcons
-                name="calendar-outline"
-                color="#888"
-                size={16}
-              />
-            </View>
-            <View style={styles.content}>
-              <Text style={styles.label}>Thời hạn</Text>
+          <View style={styles.twoColumnRow}>
+            <View style={styles.twoColumnItem}>
+              <Text style={styles.label}>Người thuê</Text>
               <Text style={styles.value}>
-                {startDate} - {endDate}
+                {primaryTenant?.user?.fullName || "N/A"}
+              </Text>
+            </View>
+            <View style={styles.twoColumnItem}>
+              <Text style={styles.label}>Thành viên</Text>
+              <Text style={styles.value}>
+                {contract.members?.length || 0} người
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.fullWidthRow}>
+            <View style={styles.content}>
+              <Text style={styles.label}>Địa chỉ</Text>
+              <Text style={styles.value}>
+                {contract.apartment?.streetAddress || "N/A"}
               </Text>
             </View>
           </View>
@@ -461,12 +386,6 @@ export const ContractCard = ({
             </Text>
           </View>
         )}
-
-        {/* Price Section */}
-        <View style={styles.priceSection}>
-          <Text style={styles.priceLabel}>Giá thuê/tháng</Text>
-          <Text style={styles.priceValue}>{monthlyRent} đ</Text>
-        </View>
       </View>
 
       {/* Action Modal */}

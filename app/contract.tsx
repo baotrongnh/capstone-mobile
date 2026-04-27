@@ -15,6 +15,7 @@ import {
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { StyledContainer } from "@/components/styles";
 
 import { useContracts } from "@/hooks/query/useContracts";
 import { ContractWithMembers, ContractStatus } from "@/types/contract";
@@ -25,8 +26,22 @@ import { ExtendContractModal } from "@/components/contract/ExtendContractModal";
 import { AddMemberModal } from "@/components/contract/AddMemberModal";
 import { router, Stack } from "expo-router";
 
+const VIETNAMESE_STATUS_LABELS: Partial<
+  Record<"all" | ContractStatus, string>
+> = {
+  all: "Tất cả",
+  draft: "Chờ ký",
+  signed: "Đã ký",
+  active: "Đang hoạt động",
+  terminated: "Đã hủy",
+};
+
+const formatStatusLabel = (status: "all" | ContractStatus) => {
+  return VIETNAMESE_STATUS_LABELS[status] || status;
+};
+
 export default function ContractPage() {
-  const insets = useSafeAreaInsets(); // Lấy giá trị tai thỏ/status bar
+  const insets = useSafeAreaInsets();
   const [statusFilter, setStatusFilter] = useState<"all" | ContractStatus>(
     "all",
   );
@@ -52,16 +67,6 @@ export default function ContractPage() {
       return c.status === statusFilter;
     });
   }, [contractsList, statusFilter]);
-
-  // Statistics
-  const stats = {
-    total: contractsList.length,
-    active: contractsList.filter(
-      (c) => c.status === "signed" || c.status === "active",
-    ).length,
-    pending: contractsList.filter((c) => c.status === "draft").length,
-    expired: contractsList.filter((c) => c.status === "terminated").length,
-  };
 
   const handleAction = (
     contractId: string,
@@ -102,44 +107,48 @@ export default function ContractPage() {
   // UI Cho trạng thái Loading
   if (isLoading) {
     return (
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <StyledContainer style={styles.container}>
         <Stack.Screen options={{ headerShown: false }} />
+        <View style={styles.pageHeader}>
+          <Pressable
+            onPress={router.back}
+            style={styles.backButton}
+            hitSlop={10}
+          >
+            <MaterialIcons
+              name="arrow-back-ios-new"
+              size={18}
+              color="#334155"
+            />
+          </Pressable>
+          <Text style={styles.pageTitle}>Hợp đồng của tôi</Text>
+        </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#2196f3" />
+          <ActivityIndicator size="large" color="#3b82f6" />
           <Text style={styles.refreshText}>Đang tải danh sách hợp đồng...</Text>
         </View>
-      </View>
+      </StyledContainer>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <StyledContainer style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
-      <View style={[styles.headerContainer, { paddingTop: insets.top + 16 }]}>
-        <View style={{ display: "flex", gap: 5 }}>
-          <MaterialIcons
-            onPress={router.back}
-            name="arrow-back"
-            size={24}
-            color="black"
-          />
-          <Text style={styles.headerTitle}>Hợp đồng</Text>
-        </View>
-        <Text style={styles.headerSubtitle}>
-          Quản lý và xem các hợp đồng của bạn
+      <View style={styles.pageHeader}>
+        <Pressable onPress={router.back} style={styles.backButton} hitSlop={10}>
+          <MaterialIcons name="arrow-back-ios-new" size={18} color="#334155" />
+        </Pressable>
+        <Text style={styles.pageTitle}>Hợp đồng của tôi</Text>
+      </View>
+
+      <View style={styles.summaryCard}>
+        <Text style={styles.summaryTitle}>Danh sách hợp đồng</Text>
+        <Text style={styles.summarySubtitle}>
+          Quản lý và theo dõi trạng thái hợp đồng
         </Text>
+      </View>
 
-        <View style={styles.statsContainer}>
-          <StatCard label="Tổng cộng" value={stats.total} />
-          <StatCard
-            label="Đang hoạt động"
-            value={stats.active}
-            color="#4caf50"
-          />
-          <StatCard label="Chờ xử lý" value={stats.pending} color="#ff9800" />
-          <StatCard label="Đã hết hạn" value={stats.expired} color="#f44336" />
-        </View>
-
+      <View style={styles.tabsWrapper}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -151,11 +160,13 @@ export default function ContractPage() {
               key={filter.value}
               style={[
                 styles.filterButton,
+                filter.value === "signed" && styles.filterButtonSigned,
                 statusFilter === filter.value && styles.filterButtonActive,
               ]}
               onPress={() => setStatusFilter(filter.value)}
             >
               <Text
+                numberOfLines={1}
                 style={[
                   styles.filterButtonText,
                   statusFilter === filter.value &&
@@ -167,6 +178,18 @@ export default function ContractPage() {
             </Pressable>
           ))}
         </ScrollView>
+      </View>
+
+      <View style={styles.activeFilterRow}>
+        <Text style={styles.activeFilterLabel}>Đang xem</Text>
+        <Text style={styles.activeFilterStatus}>
+          {formatStatusLabel(statusFilter)}
+        </Text>
+        <View style={styles.activeFilterCountPill}>
+          <Text style={styles.activeFilterCountText}>
+            {filteredContracts.length} hợp đồng
+          </Text>
+        </View>
       </View>
 
       {/* Contract List */}
@@ -204,7 +227,7 @@ export default function ContractPage() {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={refetch}
-            tintColor="#2196f3"
+            tintColor="#3b82f6"
           />
         }
       />
@@ -232,17 +255,9 @@ export default function ContractPage() {
         contract={selectedContract}
         onClose={handleCloseModals}
       />
-    </View>
+    </StyledContainer>
   );
 }
-
-// Sub-component cho Stat Card để code sạch hơn
-const StatCard = ({ label, value, color = "#2196f3" }: any) => (
-  <View style={styles.statCard}>
-    <Text style={[styles.statNumber, { color }]}>{value}</Text>
-    <Text style={styles.statLabel}>{label}</Text>
-  </View>
-);
 
 const STATUS_FILTERS: { label: string; value: "all" | ContractStatus }[] = [
   { label: "Tất cả", value: "all" },
@@ -255,86 +270,124 @@ const STATUS_FILTERS: { label: string; value: "all" | ContractStatus }[] = [
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
-  },
-  headerContainer: {
-    backgroundColor: "#fff",
+    backgroundColor: "#f3f5f9",
     paddingHorizontal: 18,
-    paddingBottom: 18,
-    borderBottomWidth: 1,
-    borderBottomColor: "#efefef",
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
   },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: "800",
-    color: "#1a1a1a",
-    letterSpacing: -0.5,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: "#888",
-    marginTop: 2,
-    marginBottom: 16,
-  },
-  statsContainer: {
+  pageHeader: {
     flexDirection: "row",
-    gap: 8,
-    marginBottom: 16,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: "#f9f9f9",
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 4,
     alignItems: "center",
+    justifyContent: "flex-start",
+    marginBottom: 14,
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderColor: "#e2e8f0",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  pageTitle: {
+    flex: 1,
+    marginLeft: 10,
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+  summaryCard: {
+    borderRadius: 16,
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#f0f0f0",
+    borderColor: "#dbe5f3",
+    padding: 16,
+    marginBottom: 12,
+    gap: 4,
   },
-  statNumber: {
+  summaryTitle: {
     fontSize: 18,
-    fontWeight: "800",
-    marginBottom: 2,
+    color: "#0f172a",
+    fontWeight: "700",
   },
-  statLabel: {
-    fontSize: 10,
-    color: "#999",
-    fontWeight: "600",
-    textAlign: "center",
+  summarySubtitle: {
+    fontSize: 13,
+    color: "#64748b",
+    fontWeight: "500",
+  },
+  tabsWrapper: {
+    minHeight: 40,
+    marginBottom: 10,
   },
   filterScrollView: {
-    marginTop: 4,
+    maxHeight: 40,
   },
   filterContent: {
     gap: 8,
+    paddingRight: 6,
+    paddingVertical: 2,
+    alignItems: "center",
   },
   filterButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: "#f5f5f5",
+    borderRadius: 999,
     borderWidth: 1,
-    borderColor: "#eee",
+    borderColor: "#dbe5f3",
+    backgroundColor: "#ffffff",
+    minHeight: 32,
+    minWidth: 56,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+  },
+  filterButtonSigned: {
+    minWidth: 64,
+  },
+
+  filterButtonText: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: "700",
+    color: "#334155",
+    textAlign: "center",
   },
   filterButtonActive: {
-    backgroundColor: "#2196f3",
-    borderColor: "#2196f3",
+    backgroundColor: "#eff6ff",
+    borderColor: "#93c5fd",
   },
-  filterButtonText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#666",
-  },
+
   filterButtonTextActive: {
-    color: "#fff",
+    color: "#1d4ed8",
+  },
+  activeFilterRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 10,
+  },
+  activeFilterLabel: {
+    fontSize: 12,
+    color: "#6b7280",
+  },
+  activeFilterStatus: {
+    fontSize: 12,
+    color: "#374151",
+    fontWeight: "600",
+  },
+  activeFilterCountPill: {
+    backgroundColor: "#eef2ff",
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  activeFilterCountText: {
+    fontSize: 11,
+    color: "#4338ca",
+    fontWeight: "600",
   },
   contentContainer: {
-    padding: 16,
+    gap: 12,
+    paddingBottom: 20,
   },
   loadingContainer: {
     flex: 1,
@@ -346,18 +399,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   emptyTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "700",
-    color: "#444",
+    color: "#475569",
     marginTop: 16,
   },
   emptySubtitle: {
-    fontSize: 14,
-    color: "#999",
+    fontSize: 13,
+    color: "#94a3b8",
     marginTop: 8,
   },
   refreshText: {
     marginTop: 12,
-    color: "#888",
+    color: "#64748b",
+    fontWeight: "600",
   },
 });

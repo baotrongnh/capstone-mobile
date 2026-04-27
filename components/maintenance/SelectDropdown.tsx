@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { Colors } from "@/components/styles";
 import {
   View,
   Text,
@@ -12,13 +13,13 @@ import {
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-const Colors = {
-  primary: "#4F46E5",
+const SelectColors = {
+  primary: Colors.primary,
   surface: "#FFFFFF",
-  background: "#F9FAFB",
-  text: "#1F2937",
-  textMuted: "#6B7280",
-  border: "#E5E7EB",
+  background: "#F8FAFC",
+  text: "#0F172A",
+  textMuted: "#64748B",
+  border: "#E2E8F0",
   error: "#EF4444",
 };
 
@@ -82,8 +83,11 @@ export default function SelectDropdown({
         >
           {icon && (
             <MaterialCommunityIcons
+              name={icon as keyof typeof MaterialCommunityIcons.glyphMap}
               size={22}
-              color={selectedOption ? Colors.primary : Colors.textMuted}
+              color={
+                selectedOption ? SelectColors.primary : SelectColors.textMuted
+              }
               style={styles.triggerIcon}
             />
           )}
@@ -98,7 +102,7 @@ export default function SelectDropdown({
           <MaterialCommunityIcons
             name={modalVisible ? "chevron-up" : "chevron-down"}
             size={22}
-            color={Colors.textMuted}
+            color={SelectColors.textMuted}
           />
         </Pressable>
       </View>
@@ -133,13 +137,13 @@ export default function SelectDropdown({
                 <MaterialCommunityIcons
                   name="magnify"
                   size={20}
-                  color={Colors.textMuted}
+                  color={SelectColors.textMuted}
                   style={styles.searchIcon}
                 />
                 <TextInput
                   style={styles.searchInput}
                   placeholder="Tìm kiếm..."
-                  placeholderTextColor={Colors.textMuted}
+                  placeholderTextColor={SelectColors.textMuted}
                   value={searchText}
                   onChangeText={setSearchText}
                   autoFocus
@@ -174,7 +178,7 @@ export default function SelectDropdown({
                       <MaterialCommunityIcons
                         name="check"
                         size={22}
-                        color={Colors.primary}
+                        color={SelectColors.primary}
                       />
                     )}
                   </Pressable>
@@ -185,7 +189,7 @@ export default function SelectDropdown({
                 <MaterialCommunityIcons
                   name="checkbox-blank-outline"
                   size={40}
-                  color={Colors.textMuted}
+                  color={SelectColors.textMuted}
                   style={{ marginBottom: 8 }}
                 />
                 <Text style={styles.emptyText}>Không tìm thấy kết quả</Text>
@@ -200,30 +204,30 @@ export default function SelectDropdown({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 50,
+    marginBottom: 16,
   },
   label: {
     fontSize: 14,
     fontWeight: "600",
-    color: Colors.text,
+    color: SelectColors.text,
     marginBottom: 8,
   },
   trigger: {
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: SelectColors.border,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    backgroundColor: Colors.surface,
+    backgroundColor: SelectColors.surface,
   },
   triggerPressed: {
-    backgroundColor: "#F3F4F6",
-    borderColor: Colors.primary,
+    backgroundColor: "#F1F5F9",
+    borderColor: SelectColors.primary,
   },
   triggerEmpty: {
-    borderColor: Colors.border,
+    borderColor: SelectColors.border,
   },
   triggerIcon: {
     marginRight: 10,
@@ -231,11 +235,11 @@ const styles = StyleSheet.create({
   triggerText: {
     flex: 1,
     fontSize: 15,
-    color: Colors.text,
+    color: SelectColors.text,
     fontWeight: "500",
   },
   triggerPlaceholder: {
-    color: Colors.textMuted,
+    color: SelectColors.textMuted,
     fontWeight: "400",
   },
   overlay: {
@@ -244,7 +248,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   modalContainer: {
-    backgroundColor: Colors.surface,
+    backgroundColor: SelectColors.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: "90%",
@@ -265,7 +269,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: SelectColors.border,
     paddingHorizontal: 16,
     paddingVertical: 12,
     marginBottom: 8,
@@ -276,7 +280,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 15,
-    color: Colors.text,
+    color: SelectColors.text,
     paddingVertical: 8,
   },
   optionItem: {
@@ -286,22 +290,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 0.5,
-    borderBottomColor: Colors.border,
+    borderBottomColor: SelectColors.border,
   },
   optionItemPressed: {
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#F1F5F9",
   },
   optionItemSelected: {
-    backgroundColor: "#EFF6FF",
+    backgroundColor: "#DBEAFE",
   },
   optionText: {
     fontSize: 15,
-    color: Colors.text,
+    color: SelectColors.text,
     fontWeight: "500",
     flex: 1,
   },
   optionTextSelected: {
-    color: Colors.primary,
+    color: SelectColors.primary,
     fontWeight: "600",
   },
   emptyContainer: {
@@ -311,7 +315,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: Colors.textMuted,
+    color: SelectColors.textMuted,
     fontWeight: "500",
   },
 });
