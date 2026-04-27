@@ -1,4 +1,5 @@
 import { useMyApartment } from "@/hooks/query/useApartments";
+import { Colors } from "@/components/styles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import React, { useState, useMemo } from "react";
@@ -16,21 +17,17 @@ import {
 } from "react-native";
 import SelectDropdown from "./SelectDropdown";
 import { useCreateMaintenanceRequest } from "@/hooks/query/useMaintenance";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const Colors = {
-  primary: "#4D6FE8",
-  primaryLight: "#E8EEFF",
-  background: "#F1F5F9",
-  surface: "#FFFFFF",
-  inputBg: "#FFFFFF",
-  text: "#1F2937",
-  textMuted: "#94A3B8",
-  border: "#D9E1EA",
-  error: "#EF4444",
+const ModalColors = {
+  primary: Colors.primary,
+  primaryLight: "#dbeafe",
+  surface: "#ffffff",
+  inputBg: "#f8fafc",
+  text: "#0f172a",
+  textMuted: "#64748b",
+  border: "#e2e8f0",
+  error: "#ef4444",
 };
 
 // Danh sách categories
@@ -55,6 +52,15 @@ interface CreateMaintenanceModalProps {
   visible: boolean;
   onClose: () => void;
   onSubmit: (data: any) => void;
+}
+
+interface FormInputProps {
+  label: string;
+  icon?: keyof typeof MaterialCommunityIcons.glyphMap;
+  placeholder: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  multiline?: boolean;
 }
 
 // Giá trị mặc định của form để dễ dàng reset
@@ -220,8 +226,7 @@ export default function ModalCreateMaintenance({
     value,
     onChangeText,
     multiline = false,
-    ...props
-  }: any) => (
+  }: FormInputProps) => (
     <View style={styles.inputGroup}>
       <Text style={styles.label}>{label}</Text>
       <View
@@ -231,7 +236,7 @@ export default function ModalCreateMaintenance({
           <MaterialCommunityIcons
             name={icon}
             size={22}
-            color={Colors.textMuted}
+            color={ModalColors.textMuted}
             style={[styles.inputIcon, multiline && { marginTop: 14 }]}
           />
         )}
@@ -243,7 +248,6 @@ export default function ModalCreateMaintenance({
           onChangeText={onChangeText}
           multiline={multiline}
           textAlignVertical={multiline ? "top" : "center"}
-          {...props}
         />
       </View>
     </View>
@@ -252,36 +256,33 @@ export default function ModalCreateMaintenance({
   return (
     <Modal
       visible={visible}
-      animationType="slide"
+      animationType="fade"
+      transparent
       onRequestClose={handleClose}
-      presentationStyle="fullScreen"
       statusBarTranslucent
     >
-      <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={Platform.OS === "ios" ? insets.top + 8 : 0}
-          enabled={true}
-          style={styles.container}
-        >
-          {/* Header */}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? insets.top : 0}
+        style={styles.overlay}
+      >
+        <Pressable style={styles.overlayBg} onPress={handleClose} />
+        <View style={styles.sheet}>
           <View style={styles.header}>
+            <Text style={styles.headerTitle}>Tạo yêu cầu bảo trì</Text>
             <Pressable
               onPress={handleClose}
-              hitSlop={15}
-              style={styles.iconButton}
+              hitSlop={12}
+              style={styles.closeBtn}
             >
               <MaterialCommunityIcons
                 name="close"
-                size={24}
-                color={Colors.text}
+                size={22}
+                color={ModalColors.textMuted}
               />
             </Pressable>
-            <Text style={styles.headerTitle}>Tạo Yêu Cầu</Text>
-            <View style={{ width: 40 }} />
           </View>
 
-          {/* Form Content */}
           <ScrollView
             style={styles.content}
             contentContainerStyle={styles.contentContainer}
@@ -362,7 +363,7 @@ export default function ModalCreateMaintenance({
                 <Pressable
                   style={({ pressed }) => [
                     styles.uploadButton,
-                    pressed && { backgroundColor: Colors.border },
+                    pressed && { backgroundColor: ModalColors.border },
                   ]}
                   onPress={handleTakePhoto}
                 >
@@ -370,7 +371,7 @@ export default function ModalCreateMaintenance({
                     <MaterialCommunityIcons
                       name="camera"
                       size={24}
-                      color={Colors.primary}
+                      color={ModalColors.primary}
                     />
                   </View>
                   <Text style={styles.uploadText}>Chụp ảnh</Text>
@@ -379,7 +380,7 @@ export default function ModalCreateMaintenance({
                 <Pressable
                   style={({ pressed }) => [
                     styles.uploadButton,
-                    pressed && { backgroundColor: Colors.border },
+                    pressed && { backgroundColor: ModalColors.border },
                   ]}
                   onPress={handlePickImage}
                 >
@@ -387,7 +388,7 @@ export default function ModalCreateMaintenance({
                     <MaterialCommunityIcons
                       name="image-plus"
                       size={24}
-                      color={Colors.primary}
+                      color={ModalColors.primary}
                     />
                   </View>
                   <Text style={styles.uploadText}>Chọn ảnh</Text>
@@ -404,7 +405,7 @@ export default function ModalCreateMaintenance({
                       <MaterialCommunityIcons
                         name="close-circle"
                         size={24}
-                        color={Colors.surface}
+                        color={ModalColors.surface}
                       />
                       <View style={styles.removeIconBg} />
                     </Pressable>
@@ -412,75 +413,82 @@ export default function ModalCreateMaintenance({
                 ))}
               </ScrollView>
             </View>
-
-            <View
-              style={[
-                styles.submitSection,
-                { paddingBottom: Math.max(insets.bottom, 12) + 12 },
-              ]}
-            >
-              <Pressable
-                style={({ pressed }) => [
-                  styles.submitBtn,
-                  pressed && styles.submitBtnPressed,
-                ]}
-                onPress={handleSubmit}
-              >
-                <MaterialCommunityIcons
-                  name="send"
-                  size={20}
-                  color={Colors.surface}
-                  style={{ marginRight: 8 }}
-                />
-                <Text style={styles.submitBtnText}>Gửi Yêu Cầu</Text>
-              </Pressable>
-            </View>
-
-            <View style={{ height: 24 }} />
           </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
+
+          <View
+            style={[
+              styles.footer,
+              { paddingBottom: Math.max(insets.bottom, 12) },
+            ]}
+          >
+            <Pressable style={styles.cancelBtn} onPress={handleClose}>
+              <Text style={styles.cancelBtnText}>Hủy</Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [
+                styles.submitBtn,
+                pressed && styles.submitBtnPressed,
+              ]}
+              onPress={handleSubmit}
+            >
+              <MaterialCommunityIcons
+                name="send"
+                size={18}
+                color={ModalColors.surface}
+              />
+              <Text style={styles.submitBtnText}>Gửi yêu cầu</Text>
+            </Pressable>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  overlay: {
     flex: 1,
-    backgroundColor: Colors.background,
+    justifyContent: "flex-end",
+  },
+  overlayBg: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.45)",
+  },
+  sheet: {
+    backgroundColor: ModalColors.surface,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: "92%",
   },
   header: {
     flexDirection: "row",
-    justifyContent: "center",
+    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    backgroundColor: Colors.surface,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: "#EAEFF5",
+    borderBottomColor: "#f1f5f9",
   },
-  iconButton: {
-    position: "absolute",
-    right: 18,
+  closeBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#f8fafc",
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: "700",
-    color: Colors.text,
-    letterSpacing: -0.3,
+    color: ModalColors.text,
   },
   content: {
-    flex: 1,
+    maxHeight: "72%",
   },
   contentContainer: {
-    paddingHorizontal: 22,
-    paddingTop: 20,
-    paddingBottom: 4,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 16,
   },
   row: {
     flexDirection: "row",
@@ -490,78 +498,78 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   label: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "600",
-    color: Colors.text,
-    marginBottom: 10,
+    color: ModalColors.text,
+    marginBottom: 8,
     marginLeft: 2,
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.inputBg,
-    borderRadius: 14,
+    backgroundColor: ModalColors.inputBg,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: Colors.border,
-    minHeight: 54,
-    paddingHorizontal: 14,
+    borderColor: ModalColors.border,
+    minHeight: 50,
+    paddingHorizontal: 12,
   },
   textAreaContainer: {
     alignItems: "flex-start",
-    minHeight: 118,
+    minHeight: 110,
   },
   inputIcon: {
-    marginRight: 10,
+    marginRight: 8,
   },
   input: {
     flex: 1,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: Colors.text,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: ModalColors.text,
   },
   textArea: {
-    height: 106,
-    paddingTop: 12,
+    height: 98,
+    paddingTop: 10,
   },
   imageScroll: {
     flexDirection: "row",
-    paddingTop: 4,
+    paddingTop: 2,
     paddingBottom: 8,
   },
   uploadButton: {
-    width: 108,
-    height: 92,
+    width: 104,
+    height: 88,
     borderWidth: 1,
-    borderColor: "#E7EEFA",
+    borderColor: "#cbd5e1",
     borderStyle: "dashed",
-    borderRadius: 14,
+    borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: Colors.surface,
+    backgroundColor: ModalColors.surface,
     marginRight: 12,
   },
   uploadIconCircle: {
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: ModalColors.primaryLight,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 8,
   },
   uploadText: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: "600",
-    color: Colors.primary,
+    color: ModalColors.primary,
   },
   imagePreviewContainer: {
     marginRight: 12,
     position: "relative",
   },
   imagePreview: {
-    width: 108,
-    height: 92,
-    borderRadius: 14,
+    width: 104,
+    height: 88,
+    borderRadius: 12,
   },
   removeIcon: {
     position: "absolute",
@@ -575,33 +583,52 @@ const styles = StyleSheet.create({
     right: 2,
     width: 20,
     height: 20,
-    backgroundColor: Colors.error,
+    backgroundColor: ModalColors.error,
     borderRadius: 10,
     zIndex: -1,
   },
-  submitSection: {
-    paddingTop: 12,
+  footer: {
+    flexDirection: "row",
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: "#f1f5f9",
+  },
+  cancelBtn: {
+    flex: 1,
+    backgroundColor: "#f1f5f9",
+    paddingVertical: 13,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cancelBtnText: {
+    color: "#64748b",
+    fontSize: 14,
+    fontWeight: "600",
   },
   submitBtn: {
     flexDirection: "row",
-    backgroundColor: Colors.primary,
-    paddingVertical: 17,
-    borderRadius: 13,
+    flex: 1,
+    backgroundColor: ModalColors.primary,
+    paddingVertical: 13,
+    borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: Colors.primary,
+    gap: 8,
+    shadowColor: ModalColors.primary,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.22,
-    shadowRadius: 7,
-    elevation: 5,
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    elevation: 3,
   },
   submitBtnPressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.98 }],
+    opacity: 0.92,
   },
   submitBtnText: {
-    color: Colors.surface,
-    fontSize: 18,
+    color: ModalColors.surface,
+    fontSize: 14,
     fontWeight: "700",
   },
 });
