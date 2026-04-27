@@ -161,6 +161,11 @@ export default function RootLayout() {
     void configureNotificationHandler();
     void requestNotificationPermissionOnLaunch();
     void configurePushRuntime().then((cleanup) => {
+      if (!mounted) {
+        cleanup?.();
+        return;
+      }
+
       cleanupListeners = cleanup;
     });
 

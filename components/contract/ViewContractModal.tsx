@@ -14,7 +14,7 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { WebView } from "react-native-webview";
 import SignatureCanvas from "react-native-signature-canvas";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument } from "pdf-lib/cjs";
 import * as FileSystem from "expo-file-system/legacy";
 import { ContractWithMembers } from "@/types/contract";
 import { useUploadContractPdf } from "@/hooks/query/useContracts";

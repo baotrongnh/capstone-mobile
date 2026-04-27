@@ -16,22 +16,23 @@ import {
     unregisterStoredPushToken,
 } from "../utils/pushNotificationRegistration";
 
-const PUSH_PERMISSION_DENIED_MESSAGE = "Vui lòng cấp quyền thông báo trong cài đặt thiết bị để bật thông báo đẩy.";
+const PUSH_PERMISSION_DENIED_MESSAGE = "Vui long cap quyen thong bao trong cai dat thiet bi de bat thong bao day.";
+const BACKEND_SYNC_FAILED_MESSAGE = "Thong bao day da duoc bat tren thiet bi, nhung app chua dong bo token len may chu. Ban se chua nhan duoc push tu he thong cho den khi dong bo thanh cong.";
 
 const getTokenFailureMessage = (reason?: NativePushTokenFailureReason) => {
     if (reason === "firebase-not-configured") {
-        return "Không lấy được token thiết bị do app Android chưa có cấu hình Firebase (google-services.json).";
+        return "Khong lay duoc token thiet bi do app Android chua co cau hinh Firebase (google-services.json).";
     }
 
     if (reason === "play-services-unavailable") {
-        return "Google Play services chưa sẵn sàng trên thiết bị nên không thể nhận FCM token.";
+        return "Google Play services chua san sang tren thiet bi nen khong the nhan FCM token.";
     }
 
     if (reason === "unsupported") {
-        return "Môi trường hiện tại chưa hỗ trợ lấy token thông báo đẩy. Nếu đang dùng Expo Go, hãy mở app bằng development build.";
+        return "Moi truong hien tai chua ho tro lay token thong bao day. Neu dang dung Expo Go, hay mo app bang development build.";
     }
 
-    return "Không lấy được token thiết bị. Hãy kiểm tra mạng và thử lại sau vài giây.";
+    return "Khong lay duoc token thiet bi. Hay kiem tra mang va thu lai sau vai giay.";
 };
 
 export const usePushNotificationSetting = () => {
@@ -62,11 +63,26 @@ export const usePushNotificationSetting = () => {
         }
 
         const nextToken = tokenResult.token;
-        await registerPushToken(nextToken);
+
+        try {
+            await registerPushToken(nextToken);
+        } catch (error) {
+            console.error("Cannot register push token with backend", error);
+
+            cachedTokenRef.current = nextToken;
+            await persistCacheState(true, nextToken);
+
+            if (mountedRef.current) {
+                setIsEnabled(true);
+                setErrorMessage(BACKEND_SYNC_FAILED_MESSAGE);
+            }
+
+            return tokenResult;
+        }
 
         cachedTokenRef.current = nextToken;
         if (!(await persistCacheState(true, nextToken)) && mountedRef.current) {
-            setErrorMessage("Đã bật thông báo đẩy nhưng không thể lưu cài đặt cục bộ. Vui lòng mở lại màn hình để đồng bộ.");
+            setErrorMessage("Da bat thong bao day nhung khong the luu cai dat cuc bo. Vui long mo lai man hinh de dong bo.");
         }
 
         if (mountedRef.current) {
@@ -96,23 +112,13 @@ export const usePushNotificationSetting = () => {
             const savedToken = await getStoredPushToken();
             cachedTokenRef.current = savedToken;
 
-            // If system permission is granted and the user never opted out in-app,
-            // treat push as enabled and make sure we have a valid token.
             if (!isExplicitlyDisabled) {
-                try {
-                    const tokenResult = await syncPushToken();
-                    if (!tokenResult.token && mountedRef.current) {
-                        console.warn("Cannot sync push notification state", tokenResult.reason, tokenResult.errorMessage);
-                        setIsEnabled(false);
-                        setErrorMessage(getTokenFailureMessage(tokenResult.reason));
-                    }
-                } catch (error) {
-                    console.error("Cannot sync push notification state", error);
+                const tokenResult = await syncPushToken();
 
-                    if (mountedRef.current) {
-                        setIsEnabled(false);
-                        setErrorMessage("Không thể đồng bộ thông báo đẩy lúc này. Vui lòng thử lại sau.");
-                    }
+                if (!tokenResult.token && mountedRef.current) {
+                    console.warn("Cannot sync push notification state", tokenResult.reason, tokenResult.errorMessage);
+                    setIsEnabled(false);
+                    setErrorMessage(getTokenFailureMessage(tokenResult.reason));
                 }
 
                 return;
@@ -123,6 +129,13 @@ export const usePushNotificationSetting = () => {
             if (mountedRef.current) {
                 setIsEnabled(false);
                 setErrorMessage(null);
+            }
+        } catch (error) {
+            console.error("Cannot hydrate push notification state", error);
+
+            if (mountedRef.current) {
+                setIsEnabled(false);
+                setErrorMessage("Khong the dong bo thong bao day luc nay. Vui long thu lai sau.");
             }
         } finally {
             if (mountedRef.current) {
@@ -149,7 +162,7 @@ export const usePushNotificationSetting = () => {
             }
 
             Alert.alert(
-                "Chưa cấp quyền thông báo",
+                "Chua cap quyen thong bao",
                 PUSH_PERMISSION_DENIED_MESSAGE,
             );
             return false;
@@ -163,18 +176,18 @@ export const usePushNotificationSetting = () => {
             }
 
             Alert.alert(
-                "Không thể bật thông báo đẩy",
+                "Khong the bat thong bao day",
                 getTokenFailureMessage(tokenResult.reason),
             );
             return false;
         }
 
-        if (mountedRef.current) {
+        if (mountedRef.current && errorMessage !== BACKEND_SYNC_FAILED_MESSAGE) {
             setErrorMessage(null);
         }
 
         return true;
-    }, [syncPushToken]);
+    }, [errorMessage, syncPushToken]);
 
     const disablePushNotifications = useCallback(async () => {
         const token = cachedTokenRef.current ?? await getStoredPushToken();
@@ -184,7 +197,7 @@ export const usePushNotificationSetting = () => {
         } catch (error) {
             console.error("Cannot remove FCM token", error);
             if (mountedRef.current) {
-                setErrorMessage("Không thể tắt thông báo đẩy lúc này. Vui lòng thử lại khi có kết nối mạng ổn định.");
+                setErrorMessage("Khong the tat thong bao day luc nay. Vui long thu lai khi co ket noi mang on dinh.");
             }
 
             return false;
@@ -196,7 +209,7 @@ export const usePushNotificationSetting = () => {
         if (mountedRef.current) {
             setIsEnabled(false);
             if (!cachedStateSaved) {
-                setErrorMessage("Đã tắt thông báo đẩy nhưng không thể lưu trạng thái cục bộ.");
+                setErrorMessage("Da tat thong bao day nhung khong the luu trang thai cuc bo.");
             } else {
                 setErrorMessage(null);
             }
@@ -223,8 +236,8 @@ export const usePushNotificationSetting = () => {
         } catch (error) {
             console.error("Update push notification setting failed", error);
             Alert.alert(
-                "Không thể cập nhật",
-                "Có lỗi xảy ra khi cập nhật cài đặt thông báo đẩy. Vui lòng thử lại.",
+                "Khong the cap nhat",
+                "Co loi xay ra khi cap nhat cai dat thong bao day. Vui long thu lai.",
             );
             return false;
         } finally {

@@ -139,20 +139,19 @@ export default function MaintenanceScreen() {
       <StatusBar barStyle="dark-content" backgroundColor="#f8fafc" />
 
       <View style={styles.headerContainer}>
-        <Pressable>
-          <MaterialIcons
-            onPress={router.back}
-            name="arrow-back"
-            size={24}
-            color="black"
-          />
-        </Pressable>
-        <View>
+        <View style={styles.headerTopRow}>
+          <Pressable style={styles.backButton} onPress={router.back}>
+            <MaterialIcons
+              name="arrow-back-ios-new"
+              size={18}
+              color="#334155"
+            />
+          </Pressable>
           <Text style={styles.headerTitle}>Bảo Trì & Sửa Chữa</Text>
-          <Text style={styles.headerSubtitle}>
-            Quản lý yêu cầu bảo trì của bạn
-          </Text>
         </View>
+        <Text style={styles.headerSubtitle}>
+          Quản lý yêu cầu bảo trì của bạn
+        </Text>
       </View>
       <FlatList
         data={requests}
@@ -224,18 +223,36 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     paddingHorizontal: 20,
-    paddingVertical: 20,
+    paddingTop: 12,
+    paddingBottom: 16,
+  },
+  headerTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 34,
     fontWeight: "700",
     color: "#0f172a",
-    marginBottom: 4,
+    letterSpacing: -0.4,
   },
   headerSubtitle: {
     fontSize: 14,
     color: "#64748b",
     fontWeight: "500",
+    marginTop: 8,
+    marginLeft: 48,
   },
   statsContainer: {
     paddingHorizontal: 16,
