@@ -6,7 +6,7 @@ import {
      useNotifications,
 } from "@/hooks/query/useNotifications"
 import { NotificationItem } from "@/types/notification"
-import { useRouter } from "expo-router"
+import { useRouter, type Href } from "expo-router"
 import React, { useCallback, useMemo } from "react"
 import {
      ActivityIndicator,
@@ -22,6 +22,7 @@ import {
      getNotificationTypeColor,
      getNotificationTypeIcon,
 } from "@/utils/notification"
+import { getFireAlarmControlHref } from "@/utils/fireAlarmNotification"
 
 export default function NotificationsScreen() {
      const router = useRouter()
@@ -35,6 +36,9 @@ export default function NotificationsScreen() {
           [notifications],
      )
      const isMarkAllDisabled = unreadCount === 0 || markAllMutation.isPending
+     const goHome = useCallback(() => {
+          router.replace("/(tabs)/home")
+     }, [router])
 
      const handleRefresh = useCallback(() => {
           void refetch()
@@ -44,7 +48,16 @@ export default function NotificationsScreen() {
           if (!item.isRead) {
                markAsReadMutation.mutate(item.id)
           }
-     }, [markAsReadMutation])
+
+          const fireAlarmHref = getFireAlarmControlHref({
+               ...(item.metadata ?? {}),
+               actionUrl: item.actionUrl,
+          })
+
+          if (fireAlarmHref) {
+               router.push(fireAlarmHref as Href)
+          }
+     }, [markAsReadMutation, router])
 
      const onMarkAll = useCallback(() => {
           if (isMarkAllDisabled) {
@@ -91,7 +104,7 @@ export default function NotificationsScreen() {
      return (
           <StyledContainer style={styles.container}>
                <View style={styles.header}>
-                    <Pressable onPress={() => router.back()} style={styles.backButton}>
+                    <Pressable onPress={goHome} style={styles.backButton}>
                          <Ionicons name="chevron-back" size={24} color="#334155" />
                     </Pressable>
 

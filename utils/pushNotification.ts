@@ -10,6 +10,8 @@ type NotificationsApi = {
     getPermissionsAsync?: NotificationsModule["getPermissionsAsync"];
     requestPermissionsAsync?: NotificationsModule["requestPermissionsAsync"];
     scheduleNotificationAsync?: NotificationsModule["scheduleNotificationAsync"];
+    addNotificationResponseReceivedListener?: NotificationsModule["addNotificationResponseReceivedListener"];
+    getLastNotificationResponseAsync?: NotificationsModule["getLastNotificationResponseAsync"];
     AndroidImportance?: NotificationsModule["AndroidImportance"];
 };
 
@@ -333,11 +335,60 @@ export const registerPushNotificationListeners = async (
     options: PushNotificationListenerOptions = {},
 ) => {
     const messaging = await getFirebaseMessaging();
-    if (!messaging) {
+    const Notifications = await getNotificationsModule();
+
+    if (!messaging && !Notifications?.addNotificationResponseReceivedListener) {
         return () => undefined;
     }
 
     const unsubscribers: (() => void)[] = [];
+
+    if (Notifications?.addNotificationResponseReceivedListener) {
+        const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
+            const content = response.notification.request.content;
+
+            void options.onNotificationOpened?.({
+                data: content.data as Record<string, string> | undefined,
+                notification: {
+                    title: content.title ?? undefined,
+                    body: content.body ?? undefined,
+                },
+            });
+        });
+
+        unsubscribers.push(() => subscription.remove());
+    }
+
+    if (Notifications?.getLastNotificationResponseAsync) {
+        try {
+            const response = await Notifications.getLastNotificationResponseAsync();
+            if (response) {
+                const content = response.notification.request.content;
+
+                await options.onInitialNotification?.({
+                    data: content.data as Record<string, string> | undefined,
+                    notification: {
+                        title: content.title ?? undefined,
+                        body: content.body ?? undefined,
+                    },
+                });
+            }
+        } catch (error) {
+            console.error("Cannot read initial expo notification response", error);
+        }
+    }
+
+    if (!messaging) {
+        return () => {
+            unsubscribers.forEach((unsubscribe) => {
+                try {
+                    unsubscribe();
+                } catch (error) {
+                    console.error("Cannot clean up push notification listener", error);
+                }
+            });
+        };
+    }
 
     unsubscribers.push(messaging.onMessage(async (message) => {
         if (__DEV__) {
