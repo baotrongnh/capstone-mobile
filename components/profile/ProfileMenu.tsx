@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import {
   MenuContainer,
@@ -19,15 +19,29 @@ interface MenuItemData {
 interface ProfileMenuProps {
   items: MenuItemData[];
   onMenuPress: (screen: string) => void;
+  onMenuLongPress?: (screen: string) => void;
 }
 
-export default function ProfileMenu({ items, onMenuPress }: ProfileMenuProps) {
+export default function ProfileMenu({ items, onMenuPress, onMenuLongPress }: ProfileMenuProps) {
+  const longPressedItem = useRef<string | null>(null);
+
   return (
     <MenuContainer>
       {items.map((item) => (
         <MenuItem
           key={item.id}
-          onPress={() => onMenuPress(item.screen)}
+          onPress={() => {
+            if (longPressedItem.current === item.id) {
+              longPressedItem.current = null;
+              return;
+            }
+
+            onMenuPress(item.screen);
+          }}
+          onLongPress={() => {
+            longPressedItem.current = item.id;
+            onMenuLongPress?.(item.screen);
+          }}
           android_ripple={{ color: "#f0f0f0" }}
         >
           <MenuLeft>
