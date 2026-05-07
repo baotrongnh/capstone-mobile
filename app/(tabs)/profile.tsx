@@ -9,7 +9,7 @@ import { toUserText } from "@/utils/user";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Alert, BackHandler, RefreshControl, Text } from "react-native";
+import { Alert, BackHandler, Modal, RefreshControl, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Container,
@@ -19,6 +19,8 @@ import {
   ScrollContainer,
   Settings
 } from "../../components/profile";
+
+const DEBUG_PASSWORD = "290304";
 
 export default function ProfileScreenPage() {
   const router = useRouter();
@@ -38,6 +40,8 @@ export default function ProfileScreenPage() {
   const [localAvatar, setLocalAvatar] = useState<string | null>(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [refreshingProfile, setRefreshingProfile] = useState(false);
+  const [debugPassword, setDebugPassword] = useState("");
+  const [showDebugPasswordModal, setShowDebugPasswordModal] = useState(false);
 
   React.useEffect(() => {
     const onBackPress = () => {
@@ -121,6 +125,26 @@ export default function ProfileScreenPage() {
     } else {
       setCurrentScreen(screen);
     }
+  };
+
+  const handleMenuLongPress = (screen: string) => {
+    if (screen !== "settings") {
+      return;
+    }
+
+    setDebugPassword("");
+    setShowDebugPasswordModal(true);
+  };
+
+  const openDebugScreen = () => {
+    if (debugPassword !== DEBUG_PASSWORD) {
+      Alert.alert("Sai mật khẩu", "Vui lòng nhập đúng mật khẩu 6 số.");
+      return;
+    }
+
+    setShowDebugPasswordModal(false);
+    setDebugPassword("");
+    router.push("/debug");
   };
 
   const handleRefreshProfile = async () => {
@@ -213,8 +237,102 @@ export default function ProfileScreenPage() {
           avatarUploading={avatarUploading}
           onAvatarChange={handleAvatarChange}
         />
-        <ProfileMenu items={PROFILE_MENU_ITEMS} onMenuPress={handleMenuPress} />
+        <ProfileMenu
+          items={PROFILE_MENU_ITEMS}
+          onMenuPress={handleMenuPress}
+          onMenuLongPress={handleMenuLongPress}
+        />
       </ScrollContainer>
+
+      <Modal
+        visible={showDebugPasswordModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowDebugPasswordModal(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Mở debug thiết bị</Text>
+            <Text style={styles.modalText}>Nhập mật khẩu 6 số để tiếp tục.</Text>
+            <TextInput
+              value={debugPassword}
+              onChangeText={(value) => setDebugPassword(value.replace(/\D/g, "").slice(0, 6))}
+              placeholder="••••••"
+              keyboardType="number-pad"
+              secureTextEntry
+              maxLength={6}
+              style={styles.passwordInput}
+            />
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setShowDebugPasswordModal(false)}
+              >
+                <Text style={styles.cancelText}>Hủy</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalButton} onPress={openDebugScreen}>
+                <Text style={styles.confirmText}>Vào debug</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </Container>
   );
 }
+
+const styles = StyleSheet.create({
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.45)",
+    justifyContent: "center",
+    padding: 20,
+  },
+  modalCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 18,
+    padding: 20,
+    gap: 12,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+  modalText: {
+    color: "#64748b",
+  },
+  passwordInput: {
+    height: 50,
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    color: "#0f172a",
+    fontSize: 18,
+    letterSpacing: 4,
+  },
+  modalActions: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  modalButton: {
+    flex: 1,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: "#2563eb",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cancelButton: {
+    backgroundColor: "#f1f5f9",
+  },
+  cancelText: {
+    color: "#334155",
+    fontWeight: "700",
+  },
+  confirmText: {
+    color: "#ffffff",
+    fontWeight: "700",
+  },
+});
