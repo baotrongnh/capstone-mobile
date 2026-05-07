@@ -18,6 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context"
 const BOARD_ID = "ESP_A101"
 const DISCO_INTERVAL_MS = 1000
 const DISCO_TOTAL_CYCLES = 5
+const FIRE_ALARM_DEBUG_HREF = `/fire-alarm-control?espId=${BOARD_ID}&deviceId=1&deviceTopic=alarm&action=OFF`
 
 const isMutationSuccess = (response?: { data?: { success?: boolean } }) =>
      Boolean(response?.data?.success)
@@ -303,6 +304,26 @@ export default function DebugScreen() {
                          </Pressable>
                     </View>
 
+                    <View style={styles.fireAlarmCard}>
+                         <View style={styles.fireAlarmInfoRow}>
+                              <View style={styles.fireAlarmIconWrap}>
+                                   <MaterialCommunityIcons name="fire-alert" size={22} color="#ffffff" />
+                              </View>
+                              <View style={styles.discoTextWrap}>
+                                   <Text style={styles.fireAlarmTitle}>Màn hình báo cháy</Text>
+                                   <Text style={styles.fireAlarmSubtitle}>Mở giao diện cảnh báo khẩn cấp với board {BOARD_ID}, alarm #1</Text>
+                              </View>
+                         </View>
+
+                         <Pressable
+                              onPress={() => router.push(FIRE_ALARM_DEBUG_HREF)}
+                              style={({ pressed }) => [styles.fireAlarmButton, pressed && styles.buttonPressed]}
+                         >
+                              <MaterialCommunityIcons name="alarm-light-outline" size={18} color="#ffffff" />
+                              <Text style={styles.fireAlarmButtonText}>Mở cảnh báo cháy</Text>
+                         </Pressable>
+                    </View>
+
                     <View style={styles.sectionHeader}>
                          <Text style={styles.sectionTitle}>Điều khiển từng thiết bị</Text>
                          <Text style={styles.sectionSubtitle}>Mỗi thiết bị có nút Bật và Tắt riêng (riêng cửa chỉ có Bật)</Text>
@@ -471,6 +492,53 @@ const styles = StyleSheet.create({
           fontSize: 14,
           fontWeight: "700",
           color: "#1d4ed8",
+     },
+     fireAlarmCard: {
+          backgroundColor: "#991b1b",
+          borderRadius: 18,
+          padding: 14,
+          gap: 12,
+          borderWidth: 1,
+          borderColor: "#fecaca",
+     },
+     fireAlarmInfoRow: {
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 10,
+     },
+     fireAlarmIconWrap: {
+          width: 42,
+          height: 42,
+          borderRadius: 21,
+          backgroundColor: "#dc2626",
+          alignItems: "center",
+          justifyContent: "center",
+          borderWidth: 1,
+          borderColor: "rgba(255,255,255,0.35)",
+     },
+     fireAlarmTitle: {
+          fontSize: 16,
+          fontWeight: "800",
+          color: "#ffffff",
+     },
+     fireAlarmSubtitle: {
+          fontSize: 12,
+          color: "#fee2e2",
+          lineHeight: 18,
+     },
+     fireAlarmButton: {
+          minHeight: 46,
+          borderRadius: 13,
+          backgroundColor: "#ef4444",
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "row",
+          gap: 8,
+     },
+     fireAlarmButtonText: {
+          fontSize: 14,
+          fontWeight: "800",
+          color: "#ffffff",
      },
      sectionHeader: {
           gap: 2,

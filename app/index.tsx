@@ -1,5 +1,6 @@
 import { storage } from "@/stores/storage";
-import { useRouter } from "expo-router";
+import { consumePendingNotificationRoute } from "@/utils/notificationDebug";
+import { useRouter, type Href } from "expo-router";
 import { useEffect } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 
@@ -12,15 +13,21 @@ export default function Index() {
     const checkAuthAndRedirect = async () => {
       try {
         
-        const [accessToken, refreshToken, user] = await Promise.all([
+        const [accessToken, refreshToken, user, pendingNotificationRoute] = await Promise.all([
           storage.getItem("accessToken"),
           storage.getItem("refreshToken"),
           storage.getItem("user"),
+          consumePendingNotificationRoute(),
         ])
 
         if (!isMounted) return
 
-        router.replace(accessToken && refreshToken && user ? "/(tabs)/home" : "/login")
+        if (accessToken && refreshToken && user) {
+          router.replace((pendingNotificationRoute || "/(tabs)/home") as Href)
+          return
+        }
+
+        router.replace("/login")
       } catch {
         if (!isMounted) return
         router.replace("/login")
