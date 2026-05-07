@@ -16,16 +16,6 @@ const toErrorMessage = (error: unknown, fallback: string): string => {
     return fallback
 }
 
-const withRedirectTo = (authUrl: string, redirectUri: string): string => {
-    const [base, hash] = authUrl.split('#')
-    const [path, query = ''] = base.split('?')
-    const params = new URLSearchParams(query)
-    params.set('redirect_to', redirectUri)
-
-    const nextUrl = `${path}?${params.toString()}`
-    return hash ? `${nextUrl}#${hash}` : nextUrl
-}
-
 const getOAuthRedirectUri = (): string => {
     if (Constants.executionEnvironment === 'storeClient') {
         return Linking.createURL('/login')
@@ -78,16 +68,15 @@ export const useGoogleLogin = () => {
     const login = async (): Promise<boolean> => {
         setLoading(true)
         try {
-            const redirectUri = getOAuthRedirectUri()
-            console.log(redirectUri)
-            const url = await authServices.getSupabaseUrl()
+            const fallbackRedirectUri = getOAuthRedirectUri()
+            const redirectUri =
+                process.env.EXPO_PUBLIC_SUPABASE_RETURN_URL
+                || process.env.EXPO_PUBLIC_APP_URL
+                || fallbackRedirectUri
 
-            console.log('URL', url)
-            const authUrl = withRedirectTo(url, redirectUri)
-            console.log(authUrl)
-
+            const url = await authServices.getSupabaseUrl(redirectUri)
+            const authUrl = url
             const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri)
-            console.log('Resul: ', result)
 
             if (result.type !== 'success') {
                 return false

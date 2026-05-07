@@ -15,8 +15,10 @@ export const authServices = {
         const { data } = await apiClient.post(`${endpoints.auth}/refresh`, tokenData)
         return data.data
     },
-    getSupabaseUrl: async (): Promise<string> => {
-        const { data } = await apiClient.get(`${endpoints.auth}/supabaseUrl`)
+    getSupabaseUrl: async (returnUrl?: string): Promise<string> => {
+        const { data } = await apiClient.get(`${endpoints.auth}/supabaseUrl`, {
+            params: returnUrl ? { returnUrl } : undefined
+        })
         return typeof data.data === 'string' ? data.data : data.data?.url
     },
 
