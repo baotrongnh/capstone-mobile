@@ -34,6 +34,8 @@ interface MaintenanceRequestUI {
   assignedTo: string | null;
   room: string | null;
   isRated?: boolean;
+  streetAddress: string;
+  fullAddress?: string;
 }
 
 // Helper function to transform API data to UI format
@@ -55,6 +57,12 @@ const transformMaintenanceData = (
       ? new Date(item.completedAt).toISOString().split("T")[0]
       : null,
     apartment: item.apartment?.apartmentNumber || "N/A",
+    streetAddress: item.apartment?.streetAddress || "N/A",
+    fullAddress:
+      item.apartment?.fullAddress ||
+      item.apartment?.wardName ||
+      item.apartment?.provinceName ||
+      "",
     assignedTo: null,
     room: item.room?.roomNumber || null,
     isRated: item.isRated || false, // Assuming rating is null if not rated
@@ -76,8 +84,6 @@ export default function MaintenanceScreen() {
     null,
   );
   const { data: requestHistory, refetch } = useGetMaintenanceRequests();
-
-  console.log("HAHA", requestHistory);
 
   useEffect(() => {
     if (

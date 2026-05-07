@@ -14,6 +14,8 @@ interface MaintenanceRequestUI {
   apartment: string;
   assignedTo: string | null;
   room: string | null;
+  streetAddress: string;
+  fullAddress?: string;
   isRated?: boolean;
 }
 
@@ -60,6 +62,9 @@ export default function MaintenanceRequestCard({
         year: "numeric",
       })
     : "N/A";
+  const addressLine = [item.apartment, item.streetAddress, item.fullAddress]
+    .filter((part) => part && part !== "N/A")
+    .join(" - ");
 
   return (
     <Pressable
@@ -69,29 +74,44 @@ export default function MaintenanceRequestCard({
       <View style={styles.cardContent}>
         <View style={styles.header}>
           <View style={styles.typeSection}>
-            <View
-              style={[
-                styles.iconWrapper,
-                { backgroundColor: statusConfig.bgColor },
-              ]}
-            >
+            <View style={[styles.iconWrapper, { backgroundColor: "#eef2ff" }]}>
               <MaterialCommunityIcons
                 name="tools"
                 size={20}
-                color={statusConfig.color}
+                color={Colors.primary}
               />
             </View>
             <View style={styles.typeInfo}>
               <Text style={styles.requestTitle} numberOfLines={1}>
                 {item.title}
               </Text>
-              <Text style={styles.requestCategory} numberOfLines={1}>
-                Loại: {item.category || "Bảo trì chung"}
-              </Text>
+              <View style={styles.metaRow}>
+                <View style={styles.categoryChip}>
+                  <MaterialCommunityIcons
+                    name="shape-outline"
+                    size={12}
+                    color="#475569"
+                  />
+                  <Text style={styles.requestCategory} numberOfLines={1}>
+                    {item.category || "Bảo trì chung"}
+                  </Text>
+                </View>
+                <Text style={styles.requestId} numberOfLines={1}>
+                  #{item.id.slice(-6)}
+                </Text>
+              </View>
             </View>
           </View>
 
-          <View style={styles.statusBadge}>
+          <View
+            style={[
+              styles.statusBadge,
+              {
+                backgroundColor: `${statusConfig.color}12`,
+                borderColor: `${statusConfig.color}30`,
+              },
+            ]}
+          >
             <View
               style={[
                 styles.statusDot,
@@ -107,24 +127,20 @@ export default function MaintenanceRequestCard({
           </View>
         </View>
 
-        {/* Description */}
-        {item.title && (
-          <Text style={styles.description} numberOfLines={2}>
-            {item.title}
-          </Text>
-        )}
-
-        {/* Apartment and Room info */}
         <View style={styles.infoSection}>
           <View style={styles.infoRow}>
-            <MaterialCommunityIcons name="home" size={16} color="#64748b" />
+            <View style={styles.infoIconWrap}>
+              <MaterialCommunityIcons name="home" size={14} color="#475569" />
+            </View>
             <Text style={styles.infoText} numberOfLines={1}>
-              {item.apartment}
+              {addressLine || item.apartment}
             </Text>
           </View>
           {item.room && (
             <View style={styles.infoRow}>
-              <MaterialCommunityIcons name="door" size={16} color="#64748b" />
+              <View style={styles.infoIconWrap}>
+                <MaterialCommunityIcons name="door" size={14} color="#475569" />
+              </View>
               <Text style={styles.infoText} numberOfLines={1}>
                 {item.room}
               </Text>
@@ -134,20 +150,37 @@ export default function MaintenanceRequestCard({
 
         {/* Footer with priority, assigned staff and date */}
         <View style={styles.footer}>
-          <View style={styles.priorityBadge}>
+          <View
+            style={[
+              styles.priorityBadge,
+              { borderColor: `${priorityConfig.color}40` },
+            ]}
+          >
             <MaterialCommunityIcons
+              name={
+                priorityConfig.icon as React.ComponentProps<
+                  typeof MaterialCommunityIcons
+                >["name"]
+              }
               size={14}
               color={priorityConfig.color}
-              style={{ marginRight: 4 }}
+              style={styles.priorityIcon}
             />
             <Text
               style={[styles.priorityText, { color: priorityConfig.color }]}
             >
-              Độ ưu tiên: {priorityConfig.label}
+              {priorityConfig.label}
             </Text>
           </View>
 
-          <Text style={styles.dateText}>{formattedDate}</Text>
+          <View style={styles.dateWrap}>
+            <MaterialCommunityIcons
+              name="calendar-month-outline"
+              size={13}
+              color="#94a3b8"
+            />
+            <Text style={styles.dateText}>{formattedDate}</Text>
+          </View>
         </View>
 
         {item.assignedTo && (
@@ -164,41 +197,24 @@ export default function MaintenanceRequestCard({
         )}
 
         {item.status === "completed" && (
-          <>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "flex-end",
-                marginTop: 12,
-                gap: 10,
-              }}
-            >
-              <View></View>
-
-              {!item.isRated && (
-                <>
-                  <Pressable
-                    onPress={() => onRating?.(item)}
-                    style={({ pressed }) => [
-                      {
-                        backgroundColor: pressed ? "#059669" : "#10b981", // đổi màu khi nhấn
-                        padding: 8,
-                        borderRadius: 6,
-                        marginTop: 12,
-                        width: "30%",
-                        alignItems: "center",
-                        opacity: pressed ? 0.8 : 1, // hiệu ứng nhẹ
-                      },
-                    ]}
-                  >
-                    <Text style={{ color: "#ffffff", fontWeight: "600" }}>
-                      Đánh giá
-                    </Text>
-                  </Pressable>
-                </>
-              )}
-            </View>
-          </>
+          <View style={styles.ratingSection}>
+            {!item.isRated && (
+              <Pressable
+                onPress={() => onRating?.(item)}
+                style={({ pressed }) => [
+                  styles.ratingButton,
+                  pressed && styles.ratingButtonPressed,
+                ]}
+              >
+                <MaterialCommunityIcons
+                  name="star-four-points-outline"
+                  size={14}
+                  color="#ffffff"
+                />
+                <Text style={styles.ratingButtonText}>Đánh giá</Text>
+              </Pressable>
+            )}
+          </View>
         )}
       </View>
     </Pressable>
@@ -207,32 +223,32 @@ export default function MaintenanceRequestCard({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: "#e5e7eb",
     backgroundColor: "#ffffff",
     marginHorizontal: 16,
     marginBottom: 12,
     overflow: "hidden",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 3,
   },
   cardPressed: {
-    backgroundColor: "#f8fafc",
-    borderColor: Colors.primary,
-    shadowOpacity: 0.12,
+    borderColor: "#c7d2fe",
+    backgroundColor: "#fcfcfd",
+    transform: [{ scale: 0.992 }],
   },
   cardContent: {
-    padding: 16,
+    padding: 15,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 12,
+    marginBottom: 10,
     gap: 10,
   },
   typeSection: {
@@ -253,24 +269,46 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   requestTitle: {
-    fontSize: 15,
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 5,
+  },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  categoryChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "#f8fafc",
+    borderRadius: 999,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    maxWidth: "100%",
+  },
+  requestId: {
+    fontSize: 11,
+    color: "#94a3b8",
     fontWeight: "600",
-    color: "#1f2937",
-    marginBottom: 3,
   },
   requestCategory: {
-    fontSize: 12,
-    color: "#94a3b8",
+    fontSize: 11,
+    color: "#64748b",
     fontWeight: "500",
   },
   statusBadge: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: "#f1f5f9",
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    backgroundColor: "#f8fafc",
   },
   statusDot: {
     width: 6,
@@ -279,27 +317,35 @@ const styles = StyleSheet.create({
   },
   statusLabel: {
     fontSize: 11,
-    fontWeight: "600",
+    fontWeight: "700",
     maxWidth: 80,
   },
-  description: {
-    fontSize: 13,
-    color: "#475569",
-    lineHeight: 18,
-    marginBottom: 12,
-  },
   infoSection: {
-    marginBottom: 12,
+    marginBottom: 11,
     gap: 6,
+    borderRadius: 10,
+    backgroundColor: "#f8fafc",
+    borderWidth: 1,
+    borderColor: "#eef2f7",
+    paddingHorizontal: 8,
+    paddingVertical: 7,
   },
   infoRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
   },
+  infoIconWrap: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: "#e5e7eb",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   infoText: {
     fontSize: 12,
-    color: "#64748b",
+    color: "#1f2937",
     flex: 1,
     fontWeight: "500",
   },
@@ -309,23 +355,37 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#f1f5f9",
+    borderBottomColor: "#e2e8f0",
   },
   priorityBadge: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: "#f1f5f9",
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 999,
+    backgroundColor: "#f8fafc",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  priorityIcon: {
+    marginRight: 5,
   },
   priorityText: {
     fontSize: 11,
-    fontWeight: "600",
+    fontWeight: "700",
+  },
+  dateWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "#f8fafc",
+    borderRadius: 999,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
   },
   dateText: {
     fontSize: 11,
-    color: "#94a3b8",
+    color: "#64748b",
     fontWeight: "500",
   },
   assignedSection: {
@@ -334,14 +394,40 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 10,
     paddingHorizontal: 10,
-    paddingVertical: 8,
-    backgroundColor: "#dbeafe",
-    borderRadius: 8,
+    paddingVertical: 9,
+    backgroundColor: "#f9fafb",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
   },
   assignedText: {
     fontSize: 12,
-    color: "#1e40af",
+    color: "#475569",
     fontWeight: "500",
     flex: 1,
+  },
+  ratingSection: {
+    marginTop: 13,
+    alignItems: "flex-end",
+  },
+  ratingButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    backgroundColor: "#4f46e5",
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    minWidth: 110,
+  },
+  ratingButtonPressed: {
+    backgroundColor: "#4338ca",
+    opacity: 0.95,
+  },
+  ratingButtonText: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "700",
   },
 });

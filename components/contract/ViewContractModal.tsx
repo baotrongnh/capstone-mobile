@@ -347,8 +347,6 @@ export const ViewContractModal = ({
     null,
   );
 
-  console.log("AAA", contract);
-
   const getPdfUrl = () => {
     if (!contract?.pdfUrl) return "";
     return `${process.env.EXPO_PUBLIC_API_BASE_URL}${process.env.EXPO_PUBLIC_API_PREFIX}${contract.pdfUrl}`;
@@ -417,7 +415,7 @@ export const ViewContractModal = ({
 
       // Sửa lại tọa độ này
       const sigX = width - 250; // Canh lề phải, dưới chữ BÊN THUÊ
-      const sigY = 210; // Vị trí chữ ký
+      const sigY = 250; // Vị trí chữ ký
       const sigWidth = 180;
       const sigHeight = 80;
 
@@ -651,11 +649,9 @@ export const ViewContractModal = ({
                         allowUniversalAccessFromFileURLs={true}
                         startInLoadingState={true}
                         onLoadStart={() => {
-                          console.log("PDF loading started");
                           setPdfLoading(true);
                         }}
                         onLoadEnd={() => {
-                          console.log("PDF loading ended");
                           setPdfLoading(false);
                         }}
                         onError={(syntheticEvent) => {
@@ -795,9 +791,7 @@ export const ViewContractModal = ({
                         color="#fff"
                         size={16}
                       />
-                      <Text style={styles.primaryButtonText}>
-                        Bắt đầu vẽ chữ ký
-                      </Text>
+                      <Text style={styles.primaryButtonText}>Ký hợp đồng</Text>
                     </Pressable>
                   )}
                 </View>
