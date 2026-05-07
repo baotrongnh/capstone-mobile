@@ -21,9 +21,8 @@ const getOAuthRedirectUri = (): string => {
         return Linking.createURL('/login')
     }
 
-    return Linking.createURL('/login', { scheme: 'mobile' })
+    return Linking.createURL('/login')
 }
-
 
 export const useLogin = () => {
     const setTokens = useAuthStore((s) => s.setTokens)
@@ -85,7 +84,6 @@ export const useGoogleLogin = () => {
             const accessToken = result.url?.split("access_token=")[1]?.split("&")[0]
 
             if (!accessToken) throw new Error("No access token")
-
 
             const loginRes = await authServices.googleLogin(accessToken)
             console.log("loginRes:", loginRes)
