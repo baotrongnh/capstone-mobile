@@ -6,6 +6,7 @@ import {
   Pressable,
   Modal,
   TouchableWithoutFeedback,
+  Platform,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import {
@@ -29,8 +30,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#dbe5f3",
-    padding: 14,
+    borderColor: "#e2e8f0",
+    padding: 16,
   },
   headerRow: {
     flexDirection: "row",
@@ -52,22 +53,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   statusBadge: {
-    paddingHorizontal: 9,
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 999,
-    alignItems: "center",
-    justifyContent: "center",
+    borderRadius: 6,
   },
   statusText: {
-    fontSize: 11,
-    fontWeight: "700",
+    fontSize: 12,
+    fontWeight: "600",
     color: "#fff",
   },
   menuButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "#f8fafc",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -77,174 +75,131 @@ const styles = StyleSheet.create({
   fullWidthRow: {
     flexDirection: "row",
     alignItems: "flex-start",
-    marginTop: 8,
+    marginTop: 10,
   },
   twoColumnRow: {
     flexDirection: "row",
     gap: 12,
-    marginTop: 8,
+    marginTop: 10,
   },
   twoColumnItem: {
     flex: 1,
     flexDirection: "column",
     alignItems: "flex-start",
   },
-  iconContainer: {
-    display: "none",
-  },
   content: {
     flex: 1,
   },
   label: {
-    fontSize: 12,
+    fontSize: 13,
     color: "#64748b",
     marginBottom: 4,
-    fontWeight: "600",
+    fontWeight: "500",
   },
   value: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#0f172a",
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#334155",
   },
   priceSection: {
     marginTop: 2,
+    marginBottom: 4,
   },
   priceLabel: {
-    fontSize: 12,
+    fontSize: 13,
     color: "#64748b",
-    fontWeight: "600",
+    fontWeight: "500",
   },
   priceValue: {
-    fontSize: 32,
-    fontWeight: "800",
-    color: "#111827",
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#0f172a",
   },
   notificationBox: {
-    borderRadius: 12,
-    padding: 9,
-    marginTop: 10,
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 12,
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 8,
   },
   notificationBlue: {
-    backgroundColor: "#e3f2fd",
+    backgroundColor: "#eff6ff",
     borderLeftWidth: 3,
-    borderLeftColor: "#2196f3",
+    borderLeftColor: "#3b82f6",
   },
   notificationGreen: {
-    backgroundColor: "#e8f5e9",
+    backgroundColor: "#f0fdf4",
     borderLeftWidth: 3,
-    borderLeftColor: "#4caf50",
+    borderLeftColor: "#22c55e",
   },
   notificationText: {
     flex: 1,
-    fontSize: 11,
+    fontSize: 13,
+    lineHeight: 18,
   },
   notificationTextBlue: {
-    color: "#1565c0",
+    color: "#1e3a8a",
   },
   notificationTextGreen: {
-    color: "#2e7d32",
+    color: "#166534",
   },
+
+  /* ====== CSS MODAL TRƯỢT TỪ DƯỚI LÊN ====== */
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-end",
+    backgroundColor: "rgba(0, 0, 0, 0.4)", // Nền mờ phía sau
+    justifyContent: "flex-end", // Đẩy nội dung xuống đáy màn hình
   },
   modalContent: {
     backgroundColor: "#fff",
-    borderTopLeftRadius: 20,
+    borderTopLeftRadius: 20, // Bo tròn 2 góc trên
     borderTopRightRadius: 20,
-    padding: 16,
-    paddingBottom: 24,
-    maxHeight: "80%",
+    paddingTop: 12,
+    paddingBottom: Platform.OS === "ios" ? 36 : 24, // Padding thêm ở đáy cho thiết bị có tai thỏ/home indicator
+    width: "100%", // Trải dài hết chiều ngang
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 20,
   },
-  modalHeader: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1a1a1a",
-    marginBottom: 16,
-    textAlign: "center",
+  // Thanh gạt nhỏ ở trên cùng của modal (Tùy chọn, giúp UI giống Bottom Sheet chuẩn hơn)
+  dragHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: "#d1d5db",
+    borderRadius: 2,
+    alignSelf: "center",
+    marginBottom: 8,
   },
-  modalButton: {
-    paddingVertical: 13,
-    paddingHorizontal: 14,
-    borderRadius: 10,
+  menuItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-    marginBottom: 8,
-    borderWidth: 1,
+    paddingVertical: 16, // Tăng padding lên một chút để dễ bấm trên điện thoại
+    paddingHorizontal: 20,
   },
-  modalButtonPrimary: {
-    backgroundColor: "#2196f3",
-    borderColor: "#2196f3",
+  menuIcon: {
+    marginRight: 16,
   },
-  modalButtonPrimaryText: {
-    color: "#fff",
-    fontSize: 13,
-    fontWeight: "600",
-    flex: 1,
+  menuItemText: {
+    fontSize: 16, // Tăng size chữ lên một chút cho phù hợp với bottom sheet
+    color: "#374151",
+    fontWeight: "500",
   },
-  modalButtonSecondary: {
-    backgroundColor: "#fff",
-    borderColor: "#e0e0e0",
+  menuItemDangerText: {
+    color: "#ef4444",
   },
-  modalButtonSecondaryText: {
-    color: "#333",
-    fontSize: 13,
-    fontWeight: "600",
-    flex: 1,
-  },
-  modalButtonDanger: {
-    backgroundColor: "#f44336",
-    borderColor: "#f44336",
-  },
-  modalButtonDangerText: {
-    color: "#fff",
-    fontSize: 13,
-    fontWeight: "600",
-    flex: 1,
-  },
-  modalButtonSuccess: {
-    backgroundColor: "#4caf50",
-    borderColor: "#4caf50",
-  },
-  modalButtonSuccessText: {
-    color: "#fff",
-    fontSize: 13,
-    fontWeight: "600",
-    flex: 1,
-  },
-  modalButtonWarning: {
-    backgroundColor: "#ffc107",
-    borderColor: "#ffc107",
-  },
-  modalButtonWarningText: {
-    color: "#333",
-    fontSize: 13,
-    fontWeight: "600",
-    flex: 1,
-  },
-  closeButton: {
-    paddingVertical: 13,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-    backgroundColor: "#f1f5f9",
-    marginTop: 8,
-  },
-  closeButtonText: {
-    color: "#666",
-    fontSize: 13,
-    fontWeight: "600",
-    textAlign: "center",
+  separator: {
+    height: 1,
+    backgroundColor: "#f3f4f6",
+    marginVertical: 4,
   },
 });
 
 const getStatusStyle = (status: ContractStatus) => {
   const statusConfig = CONTRACT_STATUS_MAP[status];
-  if (!statusConfig) return { backgroundColor: "#f44336" };
+  if (!statusConfig) return { backgroundColor: "#ef4444" };
   return { backgroundColor: statusConfig.color };
 };
 
@@ -270,7 +225,7 @@ export const ContractCard = ({
 
   const handleMenuAction = (action: () => void) => {
     setMenuVisible(false);
-    setTimeout(action, 200);
+    setTimeout(action, 300); // Chờ animation slide down hoàn tất rồi mới chạy action
   };
 
   return (
@@ -290,18 +245,21 @@ export const ContractCard = ({
             </View>
           </View>
           <Pressable
-            style={styles.menuButton}
+            style={({ pressed }) => [
+              styles.menuButton,
+              pressed && { backgroundColor: "#f1f5f9" },
+            ]}
             onPress={() => setMenuVisible(true)}
           >
             <MaterialCommunityIcons
               name="dots-vertical"
-              color="#666"
-              size={22}
+              color="#64748b"
+              size={24}
             />
           </Pressable>
         </View>
 
-        {/* Info Section */}
+        {/* Info Section (Giữ nguyên) */}
         <View style={styles.section}>
           <View style={styles.priceSection}>
             <Text style={styles.priceLabel}>Giá thuê/tháng</Text>
@@ -348,13 +306,13 @@ export const ContractCard = ({
           </View>
         </View>
 
-        {/* Notifications */}
+        {/* Notifications (Giữ nguyên) */}
         {contract.status === "signed" && (
           <View style={[styles.notificationBox, styles.notificationBlue]}>
             <MaterialCommunityIcons
               name="information"
-              color="#1976d2"
-              size={14}
+              color="#2563eb"
+              size={18}
             />
             <View style={{ flex: 1 }}>
               <Text
@@ -362,8 +320,8 @@ export const ContractCard = ({
               >
                 Hợp đồng đã ký.{" "}
                 <Text
-                  onPress={() => router.push("/")}
-                  style={{ textDecorationLine: "underline" }}
+                  onPress={() => router.push("/invoices")}
+                  style={{ textDecorationLine: "underline", fontWeight: "600" }}
                 >
                   Vui lòng thanh toán!
                 </Text>
@@ -376,8 +334,8 @@ export const ContractCard = ({
           <View style={[styles.notificationBox, styles.notificationGreen]}>
             <MaterialCommunityIcons
               name="check-circle"
-              color="#388e3c"
-              size={14}
+              color="#16a34a"
+              size={18}
             />
             <Text
               style={[styles.notificationText, styles.notificationTextGreen]}
@@ -388,104 +346,125 @@ export const ContractCard = ({
         )}
       </View>
 
-      {/* Action Modal */}
+      {/* ===== ACTION MODAL (HIỆU ỨNG SLIDE TỪ DƯỚI LÊN) ===== */}
       <Modal
         visible={menuVisible}
         transparent
-        animationType="slide"
+        animationType="slide" // Chuyển sang hiệu ứng trượt
         onRequestClose={() => setMenuVisible(false)}
       >
         <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
           <View style={styles.modalOverlay}>
             <TouchableWithoutFeedback>
               <View style={styles.modalContent}>
-                <Text style={styles.modalHeader}>
-                  {contract.contractNumber}
-                </Text>
+                {/* Thanh gạt trang trí phía trên cùng */}
+                <View style={styles.dragHandle} />
 
+                {/* Nút Xem & Ký */}
                 <Pressable
-                  style={[styles.modalButton, styles.modalButtonPrimary]}
+                  style={({ pressed }) => [
+                    styles.menuItem,
+                    pressed && { backgroundColor: "#f9fafb" },
+                  ]}
                   onPress={() => handleMenuAction(onViewPress)}
                 >
                   <MaterialCommunityIcons
-                    name="file-document-outline"
-                    color="#fff"
-                    size={20}
+                    name="eye-outline"
+                    color="#4b5563"
+                    size={24}
+                    style={styles.menuIcon}
                   />
-                  <Text style={styles.modalButtonPrimaryText}>
-                    {contract.status === "draft" ? "Xem & Ký" : "Xem hợp đồng"}
+                  <Text style={styles.menuItemText}>
+                    {contract.status === "draft"
+                      ? "Xem & ký hợp đồng"
+                      : "Xem hợp đồng"}
                   </Text>
                 </Pressable>
 
+                {/* Nút Tải hợp đồng */}
                 <Pressable
-                  style={[styles.modalButton, styles.modalButtonSecondary]}
+                  style={({ pressed }) => [
+                    styles.menuItem,
+                    pressed && { backgroundColor: "#f9fafb" },
+                  ]}
                   onPress={() => handleMenuAction(onDownloadPress)}
                 >
                   <MaterialCommunityIcons
                     name="download-outline"
-                    color="#333"
-                    size={20}
+                    color="#4b5563"
+                    size={24}
+                    style={styles.menuIcon}
                   />
-                  <Text style={styles.modalButtonSecondaryText}>
-                    Tải hợp đồng
-                  </Text>
+                  <Text style={styles.menuItemText}>Tải hợp đồng</Text>
                 </Pressable>
 
+                {/* Nút Thêm thành viên */}
                 {contract.status === "draft" && (
                   <Pressable
-                    style={[styles.modalButton, styles.modalButtonWarning]}
+                    style={({ pressed }) => [
+                      styles.menuItem,
+                      pressed && { backgroundColor: "#f9fafb" },
+                    ]}
                     onPress={() => handleMenuAction(onAddMemberPress)}
                   >
                     <MaterialCommunityIcons
-                      name="account-plus-outline"
-                      color="#333"
-                      size={20}
+                      name="account-outline"
+                      color="#4b5563"
+                      size={24}
+                      style={styles.menuIcon}
                     />
-                    <Text style={styles.modalButtonWarningText}>
-                      Thêm thành viên
-                    </Text>
+                    <Text style={styles.menuItemText}>Thêm thành viên</Text>
                   </Pressable>
                 )}
 
+                {/* Nút Gia hạn */}
                 {contract.status === "active" && (
                   <Pressable
-                    style={[styles.modalButton, styles.modalButtonSuccess]}
+                    style={({ pressed }) => [
+                      styles.menuItem,
+                      pressed && { backgroundColor: "#f9fafb" },
+                    ]}
                     onPress={() => handleMenuAction(onExtendPress)}
                   >
                     <MaterialCommunityIcons
                       name="clock-outline"
-                      color="#fff"
-                      size={20}
+                      color="#4b5563"
+                      size={24}
+                      style={styles.menuIcon}
                     />
-                    <Text style={styles.modalButtonSuccessText}>
-                      Gia hạn hợp đồng
-                    </Text>
+                    <Text style={styles.menuItemText}>Gia hạn hợp đồng</Text>
                   </Pressable>
                 )}
 
+                {/* Nút Hủy */}
                 {contract.status !== "terminated" &&
                   contract.status !== "active" && (
-                    <Pressable
-                      style={[styles.modalButton, styles.modalButtonDanger]}
-                      onPress={() => handleMenuAction(onCancelPress)}
-                    >
-                      <MaterialCommunityIcons
-                        name="delete-outline"
-                        color="#fff"
-                        size={20}
-                      />
-                      <Text style={styles.modalButtonDangerText}>
-                        Hủy hợp đồng
-                      </Text>
-                    </Pressable>
+                    <>
+                      <View style={styles.separator} />
+                      <Pressable
+                        style={({ pressed }) => [
+                          styles.menuItem,
+                          pressed && { backgroundColor: "#fef2f2" },
+                        ]}
+                        onPress={() => handleMenuAction(onCancelPress)}
+                      >
+                        <MaterialCommunityIcons
+                          name="trash-can-outline"
+                          color="#ef4444"
+                          size={24}
+                          style={styles.menuIcon}
+                        />
+                        <Text
+                          style={[
+                            styles.menuItemText,
+                            styles.menuItemDangerText,
+                          ]}
+                        >
+                          Hủy hợp đồng
+                        </Text>
+                      </Pressable>
+                    </>
                   )}
-
-                <Pressable
-                  style={styles.closeButton}
-                  onPress={() => setMenuVisible(false)}
-                >
-                  <Text style={styles.closeButtonText}>Đóng</Text>
-                </Pressable>
               </View>
             </TouchableWithoutFeedback>
           </View>
