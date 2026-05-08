@@ -26,4 +26,10 @@ export const maintenanceService = {
     );
     return data;
   },
+  getMaintenanceById: async (requestId: string) => {
+    const { data } = await apiClient.get(
+      `${endpoints.maintenance}/${requestId}`,
+    );
+    return data;
+  },
 };

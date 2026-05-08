@@ -373,7 +373,6 @@ export const ViewContractModal = ({
     try {
       setPdfLoading(true);
 
-      // 🔥 SỬA LẠI 1: Cắt chính xác tiền tố data URI bằng Regex cho an toàn
       const signatureBase64 = signature.replace(
         /^data:image\/(png|jpeg|jpg);base64,/,
         "",
@@ -398,7 +397,6 @@ export const ViewContractModal = ({
       const pdfBytes = base64js.toByteArray(pdfBase64);
       const pdfDoc = await PDFDocument.load(pdfBytes);
 
-      // 🔥 SỬA LẠI 2: Truyền trực tiếp chuỗi Base64 vào pdf-lib, KHÔNG dùng toByteArray cho ảnh
       let image;
       try {
         // Mặc định SignatureCanvas trả về PNG
