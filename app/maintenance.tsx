@@ -51,7 +51,7 @@ const transformMaintenanceData = (
     title: item.title,
     category: item.category,
     priority: item.urgency,
-    status: item.status === "submitted" ? "pending" : item.status,
+    status: item.status,
     createdAt: new Date(item.createdAt).toISOString().split("T")[0],
     completedAt: item.completedAt
       ? new Date(item.completedAt).toISOString().split("T")[0]
@@ -106,7 +106,7 @@ export default function MaintenanceScreen() {
       id: (requests.length + 1).toString(),
       ...newRequest,
       createdAt: new Date().toISOString().split("T")[0],
-      status: "pending",
+      status: "submitted",
       assignedTo: null,
       isRated: false,
     };
@@ -128,8 +128,10 @@ export default function MaintenanceScreen() {
   };
 
   const handleRequestPress = (request: MaintenanceRequestUI) => {
-    console.log("Request pressed:", request);
-    // Navigate to detail screen or show detail modal
+    router.push({
+      pathname: "/maintenance/[id]",
+      params: { id: request.id },
+    });
   };
 
   const handleRating = (request: MaintenanceRequestUI) => {

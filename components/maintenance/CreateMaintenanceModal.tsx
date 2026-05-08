@@ -321,6 +321,7 @@ export default function ModalCreateMaintenance({
                   placeholder="Chọn loại"
                   value={formData.category}
                   onSelect={(val: string) => handleFormChange("category", val)}
+                  compact
                   options={CATEGORIES_OPTIONS}
                   renderOption={(option: any) => option.label}
                   searchable={false}
@@ -333,6 +334,7 @@ export default function ModalCreateMaintenance({
                   placeholder="Chọn ưu tiên"
                   value={formData.priority}
                   onSelect={(val: string) => handleFormChange("priority", val)}
+                  compact
                   options={PRIORITY_OPTIONS}
                   renderOption={(option: any) => option.label}
                   searchable={false}
@@ -493,6 +495,8 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 16,
   },
   inputGroup: {
     marginBottom: 16,
