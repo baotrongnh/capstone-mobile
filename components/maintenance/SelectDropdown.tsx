@@ -33,6 +33,7 @@ interface SelectDropdownProps {
   renderOption?: (option: any) => string;
   searchable?: boolean;
   dropdownStyle?: StyleProp<ViewStyle>;
+  compact?: boolean;
 }
 
 export default function SelectDropdown({
@@ -45,6 +46,7 @@ export default function SelectDropdown({
   renderOption,
   searchable = true,
   dropdownStyle,
+  compact = false,
 }: SelectDropdownProps) {
   const [modalVisible, setModalVisible] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -71,7 +73,7 @@ export default function SelectDropdown({
   return (
     <>
       {/* Dropdown Trigger */}
-      <View style={styles.container}>
+      <View style={[styles.container, compact && styles.containerCompact]}>
         <Text style={styles.label}>{label}</Text>
         <Pressable
           style={({ pressed }) => [
@@ -205,6 +207,9 @@ export default function SelectDropdown({
 const styles = StyleSheet.create({
   container: {
     marginBottom: 16,
+  },
+  containerCompact: {
+    marginBottom: 0,
   },
   label: {
     fontSize: 14,

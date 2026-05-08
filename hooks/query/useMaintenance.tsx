@@ -37,3 +37,10 @@ export const useRateMaintenanceRequest = (requestId: string) => {
     },
   });
 };
+
+export const useGetMaintenanceById = (requestId: string) => {
+  return useQuery({
+    queryKey: ["maintenanceById", requestId],
+    queryFn: () => maintenanceService.getMaintenanceById(requestId),
+  });
+};
